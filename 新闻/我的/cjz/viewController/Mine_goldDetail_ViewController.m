@@ -1,0 +1,641 @@
+//
+//  Mine_goldDetail_ViewController.m
+//  新闻
+//
+//  Created by chenjinzhi on 2018/1/12.
+//  Copyright © 2018年 apple. All rights reserved.
+//
+
+#import "Mine_goldDetail_ViewController.h"
+#import "Mine_goldDetail_scrollView.h"
+#import "Mine_goldDetail_TableViewController.h"
+#import "Repply_ChangeToMoney_ViewController.h"
+#import "Mine_goldDetail_ViewController.h"
+#import "GoldChangeToMoney_ViewController.h"
+#import "Mine_goldDetail_cell_model.h"
+#import "DateReload_view.h"
+#import "Mine_Historty_cash_ViewController.h"
+
+@interface Mine_goldDetail_ViewController ()<UIScrollViewDelegate>
+
+@end
+
+@implementation Mine_goldDetail_ViewController{
+    UIView*     m_navibar_view;
+    
+    UIView*     m_lable_view;
+    UILabel*    m_gold_label;
+    UILabel*    m_package_label;
+    UITapGestureRecognizer*     m_tap_goldLable;
+    UITapGestureRecognizer*     m_tap_packageLable;
+    
+    NSArray*    m_gold_array;//金币数据
+    NSArray*    m_package_array;//钱包数据
+    Money_model*    m_moneyModel;
+    UIScrollView* m_scrollView;
+    UIScrollView*  m_line_scrollView;
+    UIView*         m_gold_line;
+    UIView*         m_package_line;
+    
+    Mine_goldDetail_TableViewController*   gold_tvc;
+    Mine_goldDetail_TableViewController*   package_tvc;
+    NSMutableArray* m_gold_array_all;
+    NSMutableArray* m_package_array_all;
+    UIView*         m_gold_view;
+    UIView*         m_package_view;
+    UILabel*        m_goldNumber;
+    UILabel*        m_packageNumber;
+    NSInteger       m_headerHight;
+    
+    DateReload_view*    m_reload_gold;
+    DateReload_view*    m_reload_package;
+    UIActivityIndicatorView*    m_waitting;
+    
+    //判断滑动方向
+    NSInteger       m_selectedIndex;
+    CGFloat         m_lastPosition;
+    
+    NSInteger       m_page_gold;
+    NSInteger       m_page_package;
+    
+}
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view.
+    self.view.backgroundColor = [UIColor whiteColor];
+    m_selectedIndex = 0;
+    m_lastPosition = 0;
+    
+    //UI
+    [self initNavi];
+    [self InitView];
+    [self initScrollView];
+    [self initTableView];
+    
+    //数据初始化
+    m_selectedIndex = self.selectIndex;
+    [m_scrollView setContentOffset:CGPointMake(m_selectedIndex*SCREEN_WIDTH, 0)];
+    [self ChangeLage:m_selectedIndex];
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+-(void)initNavi{
+    UIView* navibar_view = [[UIView alloc] initWithFrame:CGRectMake(0, StaTusHight, SCREEN_WIDTH, 56)];
+    
+    UIButton* back_button = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, 56, 56)];
+    [back_button setImageEdgeInsets:UIEdgeInsetsMake(20, 20, 20, 20)];
+    [back_button setImage:[UIImage imageNamed:@"ic_nav_back"] forState:UIControlStateNormal];
+    [back_button addTarget:self action:@selector(back) forControlEvents:UIControlEventTouchUpInside];
+    [navibar_view addSubview:back_button];
+    
+    UIButton* history_button = [[UIButton alloc] initWithFrame:CGRectMake(SCREEN_WIDTH-56-14, 21, 56, 14)];
+    [history_button setTitle:@"提现记录" forState:UIControlStateNormal];
+    [history_button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+    [history_button.titleLabel setFont:[UIFont fontWithName:@"SourceHanSansCN-Regular" size:14]];
+    [history_button addTarget:self action:@selector(history_changeToMoney) forControlEvents:UIControlEventTouchUpInside];
+    [navibar_view addSubview:history_button];
+    
+    UILabel* title = [[UILabel alloc] initWithFrame:CGRectMake(SCREEN_WIDTH/2-80/2, 18, 80, 20)];
+    title.textAlignment = NSTextAlignmentCenter;
+    title.text = @"收支记录";
+    title.font = [UIFont boldSystemFontOfSize:18];
+    title.textColor = [UIColor colorWithRed:34/255.0 green:39/255.0 blue:39/255.0 alpha:1/1.0];
+    [navibar_view addSubview:title];
+    
+    //line
+    UIView* line = [[UIView alloc] initWithFrame:CGRectMake(0, 56-1, SCREEN_WIDTH, 1)];
+    line.backgroundColor = [UIColor colorWithRed:242/255.0 green:242/255.0 blue:242/255.0 alpha:1/1.0];
+    [navibar_view addSubview:line];
+    
+    [self.view addSubview:navibar_view];
+    m_navibar_view = navibar_view;
+}
+
+-(void)InitView{
+    //标签
+    UIView* label_view = [[UIView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(m_navibar_view.frame), SCREEN_WIDTH, 40)];
+    label_view.backgroundColor = [UIColor colorWithRed:239/255.0 green:197/255.0 blue:0/255.0 alpha:1/1.0];
+    m_lable_view = label_view;
+    label_view.userInteractionEnabled = YES;
+    
+    UILabel* gold_label = [[UILabel alloc] initWithFrame:CGRectMake(0, 12, SCREEN_WIDTH/2, 16)];
+    gold_label.userInteractionEnabled = YES;
+    gold_label.text = @"金币";
+    gold_label.textColor = [UIColor blackColor];
+    gold_label.textAlignment = NSTextAlignmentCenter;
+    gold_label.font = [UIFont fontWithName:@"SourceHanSansCN-Regular" size:16];
+    m_gold_label = gold_label;
+    m_tap_goldLable = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(scrollToGold)];
+    [m_gold_label addGestureRecognizer:m_tap_goldLable];
+    [label_view addSubview:m_gold_label];
+    
+    //金币下划线
+    UIView* gold_line = [[UIView alloc] initWithFrame:CGRectMake((SCREEN_WIDTH/2)/3, CGRectGetMaxY(gold_label.frame)+10, (SCREEN_WIDTH/2)/3, 2)];
+    gold_line.backgroundColor = [UIColor blackColor];
+    m_gold_line = gold_line;
+    [label_view addSubview:m_gold_line];
+    
+    UILabel* package_label = [[UILabel alloc] initWithFrame:CGRectMake(SCREEN_WIDTH/2, 12, SCREEN_WIDTH/2, 16)];
+    package_label.userInteractionEnabled = YES;
+    package_label.text = @"钱包";
+    package_label.textColor = [UIColor blackColor];
+    package_label.textAlignment = NSTextAlignmentCenter;
+    package_label.font = [UIFont fontWithName:@"SourceHanSansCN-Regular" size:16];
+    m_package_label = package_label;
+    m_tap_packageLable = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(scrollToPackage)];
+    [m_package_label addGestureRecognizer:m_tap_packageLable];
+    [label_view addSubview:m_package_label];
+    
+    //钱包下划线
+    UIView* package_line = [[UIView alloc] initWithFrame:CGRectMake(SCREEN_WIDTH/2+(SCREEN_WIDTH/2)/3, CGRectGetMaxY(gold_label.frame)+10, (SCREEN_WIDTH/2)/3, 2)];
+    package_line.backgroundColor = [UIColor blackColor];
+    m_package_line = package_line;
+    [label_view addSubview:m_package_line];
+    
+    [self.view addSubview:m_lable_view];
+    
+}
+
+-(void)initScrollView{
+    UIScrollView* scrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(0,
+                                                                              CGRectGetMaxY(m_lable_view.frame),
+                                                                              SCREEN_WIDTH,
+                                                                              SCREEN_HEIGHT-CGRectGetMaxY(m_lable_view.frame))];
+    m_scrollView = scrollView;
+//    scrollView.contentInset = UIEdgeInsetsZero;
+    scrollView.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;
+//    scrollView.array_array_money_model = m_array_array_moneyModel;
+//    scrollView.money_model = m_moneyModel;
+//    scrollView.section_array = m_section_array;
+//    scrollView.selectIndex = 0;
+    scrollView.pagingEnabled = YES;
+    scrollView.showsVerticalScrollIndicator = NO;
+    scrollView.showsHorizontalScrollIndicator = NO;
+    scrollView.bounces = NO;
+    scrollView.contentSize = CGSizeMake(2*SCREEN_WIDTH, 0);
+    scrollView.delegate = self;
+    [self.view addSubview:m_scrollView];
+}
+
+-(void)initTableView{
+    UIView* gold_view = [[UIView alloc] init];
+    m_gold_view = gold_view;
+    gold_view.frame = CGRectMake(0, 0, SCREEN_WIDTH, m_scrollView.frame.size.height);
+    [self initGoldHeaderView];
+    Mine_goldDetail_TableViewController* gold_tableview = [[Mine_goldDetail_TableViewController alloc] init];
+    gold_tableview.tableName = @"金币";
+    gold_tableview.tableView.frame = CGRectMake(0, m_headerHight, SCREEN_WIDTH, m_scrollView.frame.size.height-m_headerHight);
+    gold_tvc = gold_tableview;
+    [gold_view addSubview:gold_tvc.tableView];
+    
+    IMP_BLOCK_SELF(Mine_goldDetail_ViewController);
+    GYHHeadeRefreshController *header = [GYHHeadeRefreshController headerWithRefreshingBlock:^{
+        m_page_gold = 0;
+        [block_self GetNetData_gold:m_page_gold];
+        
+    }];
+    //头部刷新视图设置
+    header.lastUpdatedTimeLabel.hidden = YES;
+    header.stateLabel.hidden = YES;
+    gold_tvc.tableView.header = header;
+    [header beginRefreshing];
+    
+    gold_tvc.tableView.footer = [MJRefreshAutoNormalFooter footerWithRefreshingBlock:^{
+        [block_self GetNetData_gold:m_page_gold];
+    }];
+
+    //底部视图
+//    UIView* footView = [[UIView alloc] initWithFrame:CGRectMake(0, m_scrollView.frame.size.height-10-16, SCREEN_WIDTH, 10)];
+//
+//    UILabel* foot_label = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, SCREEN_WIDTH, 10)];
+//    foot_label.text = @"- 只显示最近100条数据 -";
+//    foot_label.textColor = [UIColor colorWithRed:167/255.0 green:169/255.0 blue:169/255.0 alpha:1/1.0];
+//    foot_label.textAlignment = NSTextAlignmentCenter;
+//    foot_label.font = [UIFont systemFontOfSize:10];
+//    [footView addSubview:foot_label];
+//    [gold_view addSubview:footView];
+    
+    [m_scrollView addSubview:gold_view];
+    
+    UIView* package_view = [[UIView alloc] init];
+    m_package_view = package_view;
+    package_view.frame = CGRectMake(SCREEN_WIDTH, 0, SCREEN_WIDTH, m_scrollView.frame.size.height);
+    [self initPackageHeaderView];
+    Mine_goldDetail_TableViewController* package_tableview = [[Mine_goldDetail_TableViewController alloc] init];
+    package_tableview.tableName = @"钱包";
+    package_tableview.tableView.frame = CGRectMake(0, m_headerHight, SCREEN_WIDTH,
+                                                   SCREEN_HEIGHT-CGRectGetMaxY(m_lable_view.frame)-m_headerHight);
+    package_tvc = package_tableview;
+    [package_view addSubview:package_tvc.tableView];
+    
+    GYHHeadeRefreshController *header_package = [GYHHeadeRefreshController headerWithRefreshingBlock:^{
+        m_page_package = 0;
+        [block_self GetNetData_package:m_page_package];
+        
+    }];
+    //头部刷新视图设置
+    header_package.lastUpdatedTimeLabel.hidden = YES;
+    header_package.stateLabel.hidden = YES;
+    package_tvc.tableView.header = header_package;
+    [header_package beginRefreshing];
+    
+    package_tvc.tableView.footer = [MJRefreshAutoNormalFooter footerWithRefreshingBlock:^{
+        [block_self GetNetData_package:m_page_package];
+    }];
+    //提现按钮
+//    UIButton* ChangeTOMoney_button = [[UIButton alloc] initWithFrame:CGRectMake(16, CGRectGetMaxY(package_tableview.tableView.frame)+10, SCREEN_WIDTH-16-16, 40)];
+//    [ChangeTOMoney_button setTitle:@"申请提现" forState:UIControlStateNormal];
+//    [ChangeTOMoney_button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+//    [ChangeTOMoney_button.titleLabel setFont:[UIFont fontWithName:@"SourceHanSansCN-Regular" size:16]];
+//    ChangeTOMoney_button.backgroundColor = [UIColor colorWithRed:248/255.0 green:205/255.0 blue:4/255.0 alpha:1/1.0];
+//    [ChangeTOMoney_button addTarget:self action:@selector(ChangeToMoney_repply) forControlEvents:UIControlEventTouchUpInside];
+//    [package_view addSubview:ChangeTOMoney_button];
+    
+    [m_scrollView addSubview:package_view];
+}
+
+-(void)initGoldHeaderView{
+    m_headerHight = 120;
+    UIView* header_view = [[UIView alloc] initWithFrame:CGRectMake(0, 0, SCREEN_WIDTH, m_headerHight)];
+    header_view.backgroundColor = [UIColor colorWithRed:248/255.0 green:205/255.0 blue:4/255.0 alpha:1/1.0];
+    
+    UILabel* gold_label = [[UILabel alloc] initWithFrame:CGRectMake(0, 32, SCREEN_WIDTH, kWidth(18))];
+    gold_label.text = @"我的金币(个)";
+    gold_label.textColor = [UIColor blackColor];
+    gold_label.textAlignment = NSTextAlignmentCenter;
+    gold_label.font = [UIFont fontWithName:@"SourceHanSansCN-Regular" size:kWidth(16)];
+    [header_view addSubview:gold_label];
+        
+    UILabel* gold_number = [[UILabel alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(gold_label.frame)+16, SCREEN_WIDTH, kWidth(26))];
+    gold_number.text = [NSString stringWithFormat:@"%@",[[Login_info share] GetUserMoney].coin];
+    gold_number.textColor = [UIColor blackColor];
+    gold_number.textAlignment = NSTextAlignmentCenter;
+    gold_number.font = [UIFont boldSystemFontOfSize:kWidth(24)];
+    m_goldNumber = gold_number;
+    [header_view addSubview:m_goldNumber];
+        
+    UILabel* gold_tip = [[UILabel alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(gold_number.frame)+11, SCREEN_WIDTH, 24)];
+//    gold_tip.text = @"已自动兑换昨日500金币，兑换比例为1000金币=1元";
+    gold_tip.textColor = [UIColor colorWithRed:34/255.0 green:39/255.0 blue:39/255.0 alpha:1/1.0];;
+    gold_tip.textAlignment = NSTextAlignmentCenter;
+    gold_tip.font = [UIFont fontWithName:@"SourceHanSansCN-Regular" size:10];
+    [header_view addSubview:gold_tip];
+    
+    [m_gold_view addSubview:header_view];
+}
+
+-(void)initPackageHeaderView{
+    m_headerHight = 120;
+    UIView* header_view = [[UIView alloc] initWithFrame:CGRectMake(0, 0, SCREEN_WIDTH, m_headerHight)];
+    header_view.backgroundColor = [UIColor colorWithRed:248/255.0 green:205/255.0 blue:4/255.0 alpha:1/1.0];
+    
+    UILabel* package_label = [[UILabel alloc] initWithFrame:CGRectMake(0, 32, SCREEN_WIDTH, kWidth(18))];
+    package_label.text = @"我的钱包(元)";
+    package_label.textColor = [UIColor blackColor];
+    package_label.textAlignment = NSTextAlignmentCenter;
+    package_label.font = [UIFont fontWithName:@"SourceHanSansCN-Regular" size:kWidth(16)];
+    [header_view addSubview:package_label];
+    
+    UILabel* package_number = [[UILabel alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(package_label.frame)+16, SCREEN_WIDTH, kWidth(26))];
+    package_number.text = [NSString stringWithFormat:@"%@",[[Login_info share]GetUserMoney].cash];
+    package_number.textColor = [UIColor blackColor];
+    package_number.textAlignment = NSTextAlignmentCenter;
+    package_number.font = [UIFont boldSystemFontOfSize:kWidth(24)];
+    m_packageNumber = package_number;
+    [header_view addSubview:m_packageNumber];
+    
+    [m_package_view addSubview:header_view];
+}
+
+#pragma mark - 按钮方法
+-(void)back{
+    [self.navigationController popViewControllerAnimated:YES];
+}
+
+-(void)history_changeToMoney{
+    NSLog(@"提现记录");
+    Mine_Historty_cash_ViewController* vc = [[Mine_Historty_cash_ViewController alloc] init];
+    [self.navigationController pushViewController:vc animated:YES];
+}
+
+-(void)ChangeToMoney_repply{
+    NSLog(@"申请提现");
+    GoldChangeToMoney_ViewController* vc = [[GoldChangeToMoney_ViewController alloc] init];
+    
+    [self.navigationController pushViewController:vc animated:YES];
+}
+
+-(void)scrollToPackage{
+    //数据初始化
+    m_selectedIndex = 1;
+    [m_scrollView setContentOffset:CGPointMake(SCREEN_WIDTH, 0)];
+    [self ChangeLage:m_selectedIndex];
+}
+
+-(void)scrollToGold{
+    //数据初始化
+    m_selectedIndex = 0;
+    [m_scrollView setContentOffset:CGPointMake(0, 0)];
+    [self ChangeLage:m_selectedIndex];
+}
+
+#pragma mark - 标签与scrollView页面的 对应
+-(void)ChangeLage:(NSInteger)index{
+    if(index == 0){
+        m_gold_label.textColor      =    [UIColor blackColor];
+        m_package_label.textColor   =    [UIColor colorWithRed:34/255.0 green:39/255.0 blue:39/255.0 alpha:0.5/1.0];
+        m_gold_line.hidden = NO;
+        m_package_line.hidden = YES;
+        
+    }else{
+        m_gold_label.textColor      =    [UIColor colorWithRed:34/255.0 green:39/255.0 blue:39/255.0 alpha:0.5/1.0];
+        m_package_label.textColor   =    [UIColor blackColor];
+        m_gold_line.hidden = YES;
+        m_package_line.hidden = NO;
+    }
+    
+}
+
+#pragma mark - scrll代理
+-(void)scrollViewDidScroll:(UIScrollView *)scrollView{
+    NSLog(@"scrollView-->x:%f",scrollView.contentOffset.x);
+    CGFloat currentPosition = scrollView.contentOffset.x;
+    if(currentPosition > m_lastPosition){
+        //往右滑
+        if(currentPosition == SCREEN_WIDTH){
+            if(m_selectedIndex == 0){
+                [self ChangeLage:1];
+                m_selectedIndex = 1;
+            }
+            
+        }
+    }
+    else{
+        //往左滑
+        if(currentPosition == 0){
+            if(m_selectedIndex == 1){
+                [self ChangeLage:0];
+                m_selectedIndex = 0;
+            }
+        }
+    }
+    
+    m_lastPosition = currentPosition;
+}
+
+/*
+ # url : http://39.104.13.61/api/getCoinRecord?json={"user_id":"814B08C64ADD12284CA82BA39384B177","page":"0","size":"10"}
+ {
+ "user_id": "814B08C64ADD12284CA82BA39384B177",   #用户唯一标识
+ "page":0,   //页码
+ "size":10,  //每页显示条数
+ }
+ */
+
+#pragma mark - 数据获取API
+-(void)GetNetData_gold:(NSInteger)type{
+    // 1.创建一个网络路径
+    NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://younews.3gshow.cn/api/getCoinRecord"]];
+    // 2.创建一个网络请求，分别设置请求方法、请求参数
+    NSMutableURLRequest *request =[NSMutableURLRequest requestWithURL:url];
+    request.HTTPMethod = @"POST";
+    NSString *args = @"json=";
+    NSString* argument = @"{";
+    argument = [argument stringByAppendingString:[NSString stringWithFormat:@"\"%@\":\"%@\"",@"user_id",[[Login_info share]GetUserInfo].user_id]];
+    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%ld\"",@"page",m_page_gold]];
+    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%d\"",@"size",10]];
+    argument = [argument stringByAppendingString:@"}"];
+    argument = [MyEntrypt MakeEntryption:argument];
+    args = [args stringByAppendingString:[NSString stringWithFormat:@"%@",argument]];
+    request.HTTPBody = [args dataUsingEncoding:NSUTF8StringEncoding];
+    // 3.获得会话对象
+    NSURLSession *session = [NSURLSession sharedSession];
+    // 4.根据会话对象，创建一个Task任务
+    IMP_BLOCK_SELF(Mine_goldDetail_ViewController);
+    NSURLSessionDataTask *sessionDataTask = [session dataTaskWithRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            
+            
+            if(error){
+                NSLog(@"网络获取失败");
+                //发送失败消息
+                [[AlertHelper Share] ShowMe:self And:2.0 And:@"网络失败"];
+                return ;
+            }
+            
+            NSLog(@"GetNetData_gold从服务器获取到数据");
+            
+            NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:data options:(NSJSONReadingMutableLeaves) error:nil];
+            NSNumber* code = dict[@"code"];
+            if([code longValue] != 200){
+                [gold_tvc.tableView.header endRefreshing];
+                return;
+            }
+            NSArray* array_model = [Mine_goldDetail_cell_model dicToModelArray:dict];
+            NSArray* array_tmp = nil;
+            
+            if(m_gold_array_all == nil){
+                m_gold_array_all = [NSMutableArray array];
+            }
+            
+            
+            
+            
+            if (type == 0) {
+                if(array_model.count != 0){
+                    array_tmp = [[TimeHelper share] sortAllData_day:array_model];//[array,array]
+                }else{
+                    array_tmp = [NSArray array];
+                }
+                m_gold_array = array_tmp;
+                gold_tvc.array_cells = m_gold_array;
+                m_gold_array_all = [NSMutableArray arrayWithArray:array_model];
+                if(array_model.count == 0){
+                    [gold_tvc.tableView.footer noticeNoMoreData];
+                }
+            }else{
+                for (Mine_goldDetail_cell_model* model in array_model) {
+                    [m_gold_array_all addObject:model];
+                }
+                array_tmp = [[TimeHelper share] sortAllData_day:m_gold_array_all];
+                m_gold_array = array_tmp;
+                gold_tvc.array_cells = m_gold_array;
+            }
+            
+//            NSArray* array = array_tmp;
+            if(array_model.count == 0){ //当数据为空时
+                [gold_tvc.tableView.footer noticeNoMoreData];
+                if(type == 0){
+                    [block_self NoResult_gold];
+                }
+                return;
+            }else{
+                [gold_tvc.tableView reloadData];
+                m_page_gold += 1;
+                
+                [gold_tvc.tableView.footer endRefreshing];
+                [m_reload_gold removeFromSuperview];
+            }
+            [m_waitting stopAnimating];
+            [gold_tvc.tableView.header endRefreshing];
+            [gold_tvc.tableView.header endRefreshing];
+
+        });
+        
+    }];
+    //5.最后一步，执行任务，(resume也是继续执行)。
+    [sessionDataTask resume];
+}
+
+-(void)GetNetData_package:(NSInteger)type{
+    // 1.创建一个网络路径
+    NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://younews.3gshow.cn/api/getCashRecord"]];
+    // 2.创建一个网络请求，分别设置请求方法、请求参数
+    NSMutableURLRequest *request =[NSMutableURLRequest requestWithURL:url];
+    request.HTTPMethod = @"POST";
+    NSString *args = @"json=";
+    NSString *argument = @"{";
+    argument = [argument stringByAppendingString:[NSString stringWithFormat:@"\"%@\":\"%@\"",@"user_id",[[Login_info share]GetUserInfo].user_id]];
+    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%ld\"",@"page",type]];
+    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%d\"",@"size",10]];
+    argument = [argument stringByAppendingString:@"}"];
+    argument = [MyEntrypt MakeEntryption:argument];
+    args = [args stringByAppendingString:[NSString stringWithFormat:@"%@",argument]];
+    request.HTTPBody = [args dataUsingEncoding:NSUTF8StringEncoding];
+    // 3.获得会话对象
+    NSURLSession *session = [NSURLSession sharedSession];
+    // 4.根据会话对象，创建一个Task任务
+    IMP_BLOCK_SELF(Mine_goldDetail_ViewController);
+    NSURLSessionDataTask *sessionDataTask = [session dataTaskWithRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            
+            
+            if(error){
+                NSLog(@"网络获取失败");
+                //发送失败消息
+                [[AlertHelper Share] ShowMe:self And:2.0 And:@"网络失败"];
+                return ;
+            }
+            
+            NSLog(@"GetNetData_package从服务器获取到数据");
+            
+            NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:data options:(NSJSONReadingMutableLeaves) error:nil];
+            NSNumber* code = dict[@"code"];
+            if([code longValue] != 200){
+                [package_tvc.tableView.header endRefreshing];
+                [package_tvc.tableView.footer endRefreshing];
+                return;
+            }
+            NSArray* array_model = [Mine_goldDetail_cell_model dicToModelArray_package:dict];
+            
+            if(m_package_array_all == nil){
+                m_package_array_all = [NSMutableArray array];
+            }
+            
+            
+            NSArray* array_tmp = nil;
+            
+            if (type == 0) {
+                array_tmp = [[TimeHelper share] sortAllData_day:array_model];//[array,array]
+                m_package_array = array_tmp;
+                package_tvc.array_cells = m_package_array;
+                m_package_array_all = [NSMutableArray arrayWithArray:array_model];
+                
+            }else{
+                for (Mine_goldDetail_cell_model* model in array_model) {//记录所有数据
+                    [m_package_array_all addObject:model];
+                }
+                array_tmp = [[TimeHelper share] sortAllData_day:m_package_array_all];
+                m_package_array = array_tmp;
+                package_tvc.array_cells = m_package_array;
+            }
+            
+            if(array_model.count == 0){ //当数据为空时
+                [package_tvc.tableView.footer noticeNoMoreData];
+                if(type == 0){
+                    [block_self NoResult_package];
+                }
+                return;
+            }else{
+                [package_tvc.tableView reloadData];
+                m_page_package += 1;
+                [package_tvc.tableView.footer endRefreshing];
+                [m_reload_package removeFromSuperview];
+            }
+            [m_waitting stopAnimating];
+            [package_tvc.tableView.footer endRefreshing];
+            [package_tvc.tableView.header endRefreshing];
+            
+        });
+        
+    }];
+    //5.最后一步，执行任务，(resume也是继续执行)。
+    [sessionDataTask resume];
+}
+
+
+-(void)NoResult_gold{
+    DateReload_view* reload_gold = [[DateReload_view alloc] initWithFrame:CGRectMake(0, 120,
+                                                                                     gold_tvc.tableView.frame.size.width,
+                                                                                     gold_tvc.tableView.frame.size.height)];
+    m_reload_gold = reload_gold;
+    m_reload_gold.title = @"没有更多数据了";
+    [m_gold_view addSubview:reload_gold];
+    
+    [reload_gold.button addTarget:self action:@selector(TVC_gold_reload) forControlEvents:UIControlEventTouchUpInside];
+}
+-(void)NoResult_package{
+    DateReload_view* reload_gold = [[DateReload_view alloc] initWithFrame:CGRectMake(0, 120,
+                                                                                     package_tvc.tableView.frame.size.width,
+                                                                                     package_tvc.tableView.frame.size.height)];
+    m_reload_package = reload_gold;
+    m_reload_package.title = @"没有更多数据了";
+    [m_package_view addSubview:reload_gold];
+    
+    [reload_gold.button addTarget:self action:@selector(TVC_package_reload) forControlEvents:UIControlEventTouchUpInside];
+}
+-(void)TVC_gold_reload{
+    
+    [gold_tvc.tableView.header beginRefreshing];
+    UIActivityIndicatorView* waiting = [[UIActivityIndicatorView alloc] initWithFrame:CGRectMake(0, 0, 100, 100)];
+    waiting.center = m_gold_view.center;
+    [waiting setActivityIndicatorViewStyle:UIActivityIndicatorViewStyleGray];
+    [waiting setActivityIndicatorViewStyle:UIActivityIndicatorViewStyleWhiteLarge];
+    [waiting setBackgroundColor:[UIColor lightGrayColor]];
+
+    m_waitting = waiting;
+    [m_gold_view addSubview:waiting];
+    [m_waitting startAnimating];
+    
+}
+-(void)TVC_package_reload{
+    [package_tvc.tableView.header beginRefreshing];
+    [m_reload_package removeFromSuperview];
+    UIActivityIndicatorView* waiting = [[UIActivityIndicatorView alloc] initWithFrame:CGRectMake(0, 0, 100, 100)];
+    waiting.center = self.view.center;
+//    [waiting setActivityIndicatorViewStyle : UIActivityIndicatorViewStyleGray];
+    [waiting setActivityIndicatorViewStyle : UIActivityIndicatorViewStyleWhiteLarge];
+    [waiting setBackgroundColor:[UIColor lightGrayColor]];
+    
+    m_waitting = waiting;
+    [m_package_view addSubview:waiting];
+    [m_waitting startAnimating];
+}
+/*
+#pragma mark - Navigation
+
+// In a storyboard-based application, you will often want to do a little preparation before navigation
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    // Get the new view controller using [segue destinationViewController].
+    // Pass the selected object to the new view controller.
+}
+*/
+
+@end

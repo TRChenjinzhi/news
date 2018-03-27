@@ -1,0 +1,114 @@
+//
+//  PrefixHeader.pch
+//  新闻
+//
+//  Created by gyh on 16/2/29.
+//  Copyright © 2016年 apple. All rights reserved.
+//
+
+#ifndef PrefixHeader_pch
+#define PrefixHeader_pch
+
+#import "FMDB.h"
+#import "UIImageView+WebCache.h"
+#import "AFNetworking.h"
+#import "MJExtension.h"
+#import "UIView+Frame.h"
+#import "NSString+Extension.h"
+#import "GYHHeadeRefreshController.h"
+#import "ThemeManager.h"
+#import "MBProgressHUD+Extion.h"
+#import "UIImageView+WebCache.h"
+#import "MJRefresh.h"
+#import "BaseEngine.h"
+#import "BaseViewController.h"
+#import "AppConfig.h"
+#import "UIColor+Extension.h"
+#import "IdentifyingCode.h"
+#import "AlertHelper.h"
+#import "Login_info.h"
+#import "Login_userInfo.h"
+#import "Login_shareInfo.h"
+#import "Login_userMoney.h"
+#import "TimeHelper.h"
+#import "MyDataBase.h"
+#import "Waiting_ViewController.h"
+#import "Md5Helper.h"
+#import "InternetHelp.h"
+#import "LabelHelper.h"
+#import "NullNilHelper.h"
+#import "UMShareHelper.h"
+#import "Tips_ViewController.h"
+#import "erWeiMa_Helper.h"//二维码
+#import "FSAES128.h"//加密 CBC 128
+#import "MyEntrypt.h"//aes base64
+#import "UrlEncode.h"//url encode
+#import "RewardHelper.h"
+#import "TaskCountHelper.h"
+#import "Task_DetailWeb_model.h"
+#import "MyMBProgressHUD.h"
+
+#import <UMCommon/UMCommon.h>           // 公共组件是所有友盟产品的基础组件，必选
+#import <UMAnalytics/MobClick.h>        // 统计组件
+#import <UMSocialCore/UMSocialCore.h>    // 分享组件
+//#import <UMPush/UMessage.h>             // Push组件
+#import <UserNotifications/UserNotifications.h>  // Push组件必须的系统库
+
+//html解析
+#import "XPathQuery.h"
+#import "TFHpple.h"
+#import "TFHppleElement.h"
+
+
+#define SCREEN_WIDTH                    ([UIScreen mainScreen].bounds.size.width)
+#define SCREEN_HEIGHT                   ([UIScreen mainScreen].bounds.size.height)
+#define theApp                          ((AppDelegate *)[[UIApplication sharedApplication] delegate])
+#define theWindow                       [[UIApplication sharedApplication] delegate].window
+#define RGBA(r,g,b,a)                   [UIColor colorWithRed:r/255.0f green:g/255.0f blue:b/255.0f alpha:a]
+#define HEXColor(colorString)           [UIColor colorWithHexString:colorString]
+#define StaTusHight                     [[UIApplication sharedApplication] statusBarFrame].size.height
+// 状态栏高度大于20（热点被连接时）
+#define STATUS_BAR_BIGGER_THAN_20       [UIApplication sharedApplication].statusBarFrame.size.height > 20
+#define NAVIBAR_HEIGHR                  self.navigationController.navigationBar.frame.size.height
+
+
+///判断是否是ios7
+#define isIOS7 (DeviceSystemMajorVersion()< 7 ? NO:YES)
+///判断是否是ios8
+#define isIOS8 (DeviceSystemMajorVersion()< 8 ? NO:YES)
+
+#define isIOS9 (DeviceSystemMajorVersion()< 9 ? NO:YES)
+
+#define isIOS10 (DeviceSystemMajorVersion()< 10 ? NO:YES)
+
+
+#define IS_IPHONE4 ([UIScreen instancesRespondToSelector:@selector(currentMode)] ? CGSizeEqualToSize(CGSizeMake(640, 960), [[UIScreen mainScreen] currentMode].size) : NO)
+#define IS_IPHONE5 ([UIScreen instancesRespondToSelector:@selector(currentMode)] ? CGSizeEqualToSize(CGSizeMake(640, 1136), [[UIScreen mainScreen] currentMode].size) : NO)
+#define IS_IPHONE6 ([UIScreen instancesRespondToSelector:@selector(currentMode)] ? (CGSizeEqualToSize(CGSizeMake(750, 1334), [[UIScreen mainScreen] currentMode].size) || CGSizeEqualToSize(CGSizeMake(640, 1136), [[UIScreen mainScreen] currentMode].size)) : NO)
+#define IS_IPHONE6PLUS ([UIScreen instancesRespondToSelector:@selector(currentMode)] ? (CGSizeEqualToSize(CGSizeMake(1125, 2001), [[UIScreen mainScreen] currentMode].size) || CGSizeEqualToSize(CGSizeMake(1242, 2208), [[UIScreen mainScreen] currentMode].size)) : NO)
+
+
+#if __has_feature(objc_arc)
+#define IMP_BLOCK_SELF(type) __weak type *block_self=self;
+#else
+#define IMP_BLOCK_SELF(type) __block type *block_self=self;
+#endif
+
+#ifdef DEBUG
+#define DLog(...) NSLog(@"%s(第%d行) %@", __PRETTY_FUNCTION__, __LINE__, [NSString stringWithFormat:__VA_ARGS__])
+#else
+#define DLog(...)
+#endif
+
+//这里的320我是针对5s为标准适配的,如果需要其他标准可以修改
+#define kWidth(R)               (R)*(SCREEN_WIDTH/320)
+//这里的568我是针对5s为标准适配的,如果需要其他标准可以修改
+#define kHeight(R)              kWidth(R)
+
+//这里是5s屏幕字体
+#define font(R)                 (R)*(SCREEN_WIDTH/320.0)
+#define kFONT16                 [UIFont systemFontOfSize:font(16.0f)]
+#define kFONT(R)                [UIFont systemFontOfSize:font(R)]
+
+
+#endif /* PrefixHeader_pch */
