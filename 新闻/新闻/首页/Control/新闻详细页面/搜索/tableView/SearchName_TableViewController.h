@@ -20,4 +20,6 @@
 
 @property (nonatomic,weak)id delegate;
 
+@property (nonatomic)NSInteger type;
+
 @end

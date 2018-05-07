@@ -10,7 +10,7 @@
 #define PrefixHeader_pch
 
 #import "FMDB.h"
-#import "UIImageView+WebCache.h"
+//#import "UIImageView+WebCache.h"
 #import "AFNetworking.h"
 #import "MJExtension.h"
 #import "UIView+Frame.h"
@@ -47,6 +47,14 @@
 #import "TaskCountHelper.h"
 #import "Task_DetailWeb_model.h"
 #import "MyMBProgressHUD.h"
+#import "MyKeychain.h"
+#import "Masonry.h" //自动布局
+#import "JsonHelper.h"
+#import "MyWindows.h"
+#import <AdSupport/Adsupport.h>
+#import "CXAHyperlinkLabel.h"
+#import "YYKit.h"
+#import "TaskData.h"
 
 #import <UMCommon/UMCommon.h>           // 公共组件是所有友盟产品的基础组件，必选
 #import <UMAnalytics/MobClick.h>        // 统计组件
@@ -59,6 +67,96 @@
 #import "TFHpple.h"
 #import "TFHppleElement.h"
 
+#define MyKeychain_server               @"MyKeychain_server"
+#define IDFA                            [[[ASIdentifierManager sharedManager] advertisingIdentifier] UUIDString]
+#define RedPackage_newUser              @"登陆_TabBarVCL_红包活动_新用户"
+#define RedPackage_oldUser              @"登陆_TabBarVCL_红包活动_老用户"
+
+//登陆
+#define Login_wechat                    @"Login_wechat"
+#define Login_wechat_NotBlind           201
+#define Login_wechat_notTheTelephone    202
+
+//1.微信好友 2.朋友圈 3.qq好友 4.qq空间 5.短信
+#define WeChat_haoyou               @"微信好友"
+#define WeChat_pengyoujuan          @"朋友圈"
+#define QQ_haoyou                   @"QQ好友"
+#define QQ_kongjian                 @"QQ空间"
+#define Phone_duanxin               @"Phone_duanxin"
+
+//新手任务
+#define NewUserTask_blindWechat              @"绑定微信"
+#define NewUserTask_readQuestion             @"查看常见问题"
+#define NewUserTask_readNews                 @"阅读新闻"
+#define NewUserTask_readVideo                @"观看视频"
+#define NewUserTask_shareByPengyouquan       @"朋友圈收徒"
+
+//日常任务
+#define DayDayTask_signIn               @"签到"
+#define DayDayTask_FirstShouTu          @"首次收徒"
+#define DayDayTask_ShouTu               @"邀请好友"
+#define DayDayTask_readNews             @"阅读文章"
+#define DayDayTask_shareNews            @"分享文章"
+#define DayDayTask_readVideo            @"观看视频"
+#define DayDayTask_GoodReply            @"优质评论"
+#define DayDayTask_showIncome           @"晒收入"
+#define DayDayTask_choujiang            @"参与抽奖"
+#define DayDayTask_yaoYiYao             @"摇一摇"
+
+typedef enum : NSUInteger {
+    Wechat = 1,
+    Ali,
+    Phone
+} CrashType;
+
+typedef enum : NSUInteger {
+    TheDevice,
+    NotTheDevice
+} Device_Type;
+
+typedef enum : NSUInteger {
+    Android = 1,
+    IOS
+} Client_Type;
+
+typedef enum : NSUInteger {
+    wechat,
+    ali
+} zhifu_Type;
+
+typedef enum : NSUInteger {
+    Index_DayDayTask_FirstShouTu,
+    Index_DayDayTask_ShouTu,
+    Index_DayDayTask_readNews,
+    Index_DayDayTask_shareNews,
+    Index_DayDayTask_readVideo,
+    Index_DayDayTask_GoodReply,
+    Index_DayDayTask_showIncome,
+    Index_DayDayTask_choujiang
+} IndexOfDayDayTask;
+
+//任务类型  1:提供开宝箱  2：阅读文章 3：分享文章  4:优质评论 5：晒收入 6：参与抽奖任务 7,查看常见问题 8：微信绑定奖励 9.视频任务 10.摇一摇 11.朋友圈收徒
+#define Task_box                        1
+#define Task_reading                    2
+#define Task_shareNews                  3
+#define Task_reply                      4
+#define Task_showIncome                 5
+#define Task_chouJiang                  6
+#define Task_readQuestion               7
+#define Task_blindWechat                8
+#define Task_video                      9
+#define Task_yaoyiyao                   10
+#define Task_apprenitceByPengyouquan    11
+#define Task_Login                      100   //自定义
+#define Task_ShouTu                     101   //自定义
+#define Task_FirstShouTu                102   //自定义
+
+//搜索类型
+#define SearchType_news                 1
+#define SearchType_video                2
+
+//视频任务 最低时间
+#define Task_video_leastTime    30
 
 #define SCREEN_WIDTH                    ([UIScreen mainScreen].bounds.size.width)
 #define SCREEN_HEIGHT                   ([UIScreen mainScreen].bounds.size.height)
@@ -101,14 +199,15 @@
 #endif
 
 //这里的320我是针对5s为标准适配的,如果需要其他标准可以修改
-#define kWidth(R)               (R)*(SCREEN_WIDTH/320)
+#define kWidth(R)               (R)*(SCREEN_WIDTH/375)
 //这里的568我是针对5s为标准适配的,如果需要其他标准可以修改
 #define kHeight(R)              kWidth(R)
 
 //这里是5s屏幕字体
-#define font(R)                 (R)*(SCREEN_WIDTH/320.0)
+#define font(R)                 (R)*(SCREEN_WIDTH/375.0)
 #define kFONT16                 [UIFont systemFontOfSize:font(16.0f)]
 #define kFONT(R)                [UIFont systemFontOfSize:font(R)]
+#define KBFONT(R)               [UIFont boldSystemFontOfSize:(R)]
 
 
 #endif /* PrefixHeader_pch */

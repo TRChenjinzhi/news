@@ -37,6 +37,10 @@
     [m_waitting_view startAnimating];
 }
 
+-(void)waiting_stop{
+    [m_waitting_view stopAnimating];
+}
+
 /*
 #pragma mark - Navigation
 

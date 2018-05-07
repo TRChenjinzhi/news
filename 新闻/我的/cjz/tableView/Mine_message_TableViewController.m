@@ -75,20 +75,20 @@
 -(CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath{
     CGFloat hight = [Mine_message_TableViewCell hightForCell];
     Mine_message_model* model = m_array_model[indexPath.row];
-    CGFloat text_hight = [LabelHelper GetLabelHight:kFONT(10) AndText:model.subTitle AndWidth:SCREEN_WIDTH-kWidth(56)-kWidth(16)];
-    if(text_hight > kWidth(12)){
-        return hight+(text_hight-kWidth(12));
+    CGFloat text_hight = [LabelHelper GetLabelHight:kFONT(14) AndText:model.subTitle AndWidth:SCREEN_WIDTH-kWidth(56)-kWidth(16)];
+    if(text_hight > kWidth(14)){
+        return hight+(text_hight-kWidth(14));
     }else{
         return hight;
     }
 }
 
--(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath{
-    NSLog(@"Mine message cell 点击");
-}
-
 -(CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section{
     return 0;
+}
+
+-(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath{
+    [tableView deselectRowAtIndexPath:indexPath animated:NO];
 }
 
 /*

@@ -8,6 +8,7 @@
 
 #import <Foundation/Foundation.h>
 #import "CJZdataModel.h"
+#import "video_info_model.h"
 
 @interface UMShareHelper : NSObject
 
@@ -20,5 +21,7 @@
 +(void)SharePNGByName:(NSString *)name AndImg:(UIImage *)img;
 
 +(void)ShareName:(NSString*)name;
+
++(void)ShareVideo:(NSString *)name AndModel:(video_info_model*)model;
 
 @end

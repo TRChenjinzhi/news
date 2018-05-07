@@ -18,8 +18,11 @@
 #import "Mine_ShowToFriend_ViewController.h"
 #import "SaiIncome_view.h"
 #import "Mine_inviteApprence_ViewController.h"
+#import "NewUserTask_model.h"
+#import "GoldChangeToMoney_ViewController.h"
+#import "Mine_choujiang_ViewController.h"
 
-@interface TaskViewController ()
+@interface TaskViewController ()<choujiang_protocol>
 
 @property (nonatomic,strong)UIView* titleView;
 
@@ -47,11 +50,14 @@
     UILabel*    m_logo_second_lable;
     BOOL        m_isClicked_logo;
     UIView*     m_logo_view;
+    UIView*     m_newUserTaskOver_win;
+    UIView*     m_newUserOfGuide_view;
     
-    NSArray* array_count;
+    NSArray*            DayDayTaskCount_array;//日常任务完成情况
+    NSArray*            userTaskCount_array;//新手任务完成情况
     UITableView*        m_DayDayTask_tableview;
-    NSMutableArray*     array_model;//测试
-    NSMutableArray* DayDayTask_model;//测试
+    NSMutableArray*     userTitleArray_model;
+    NSMutableArray*     DayDayTaskTitleArray_model;
     NewUser_TableViewController* NewUserTabelViewControl;
     DayDayTask_TableViewController* DayDayTaskTabelViewConrol;
     UIView*                         m_newuserVCL_view;
@@ -92,7 +98,9 @@
     m_isFirst = YES;//用来页面刷新,下次进入时
     [self initNavi];
     [self initView];
-    [self GetMaxTaskCount];
+    if([Login_info share].isLogined){
+        [self GetMaxTaskCount];
+    }
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(newuserTask_click:) name:@"新手任务点击" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(dayDayTask_click:) name:@"日常任务点击" object:nil];
@@ -103,6 +111,8 @@
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(TaskRefresh) name:@"用户信息更新" object:nil];
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(SendTaskType_157:) name:@"UMShareHelper-TaskViewController-晒收入分享完成" object:nil];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(IsClicked) name:@"SCNavi_TaskVCL_宝箱倒计时" object:nil];
 
 }
 
@@ -113,12 +123,19 @@
         if([Login_info share].isLogined){
             [InternetHelp AutoLogin];
             [self GetMaxTaskCount];
-            [NewUserTabelViewControl.tableView reloadData];
-            [DayDayTaskTabelViewConrol.tableView reloadData];
+            [self getNewUserTaskCount];
+            
+            [self IsClicked]; //宝箱倒计时
+            [self IsHideUserTask];//是否隐藏新手任务
+            
+            //由于要隐藏已完成的 首次收徒。 要隐藏 所以减少 scrollview的contentsize
+//            if([Login_info share].userInfo_model.mastercode.length > 0){
+//                CGSize size = self.MainScrollView.contentSize;
+//                [self.MainScrollView setContentSize:CGSizeMake(size.width, size.height-[Task_TableViewCell HightForcell])];
+//            }
         }
     }
-    [self IsClicked]; //宝箱倒计时
-    [self IsHideUserTask];//是否隐藏新手任务
+    
     
 }
 
@@ -236,11 +253,11 @@
     //新手
     [self GetData];
     NSLog(@"logoView-->%f",CGRectGetMaxY(self.titleView.frame));
-    UIView* newUserView = [[UIView alloc] initWithFrame:CGRectMake(0, 94, SCREEN_WIDTH, 48+66*array_model.count)];
+    UIView* newUserView = [[UIView alloc] initWithFrame:CGRectMake(0, 94, SCREEN_WIDTH, 48+66*userTitleArray_model.count)];
     newUserView.backgroundColor = [[ThemeManager sharedInstance] GetDialogViewColor];
     NewUser_TableViewController* newUser_tableView = [[NewUser_TableViewController alloc] initWithStyle:UITableViewStylePlain];
-    newUser_tableView.view.frame = CGRectMake(0, 0, SCREEN_WIDTH, 48+66*array_model.count);
-    newUser_tableView.array_model = array_model;
+    newUser_tableView.view.frame = CGRectMake(0, 0, SCREEN_WIDTH, 48+66*userTitleArray_model.count);
+    newUser_tableView.array_model = userTitleArray_model;
     newUser_tableView.Headertitle = @"新手任务";
     [newUser_tableView.tableView registerClass:[Task_TableViewCell class] forCellReuseIdentifier:@"TaskCell"];
     [newUserView addSubview:newUser_tableView.tableView];
@@ -258,17 +275,24 @@
     //日常任务
     [self GetDayDayTaskData];
     DayDayTask_TableViewController* dayDayTask_TableView = [[DayDayTask_TableViewController alloc] initWithStyle:UITableViewStylePlain];
-    UIView* dayDayTaskView = [[UIView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(view.frame), SCREEN_WIDTH, 30+176+66*DayDayTask_model.count)];
+    UIView* dayDayTaskView = [[UIView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(view.frame), SCREEN_WIDTH, 30+176+66*DayDayTaskTitleArray_model.count)];
     dayDayTaskView.backgroundColor = [UIColor redColor];
+    dayDayTaskView.clipsToBounds = YES;
 
-    dayDayTask_TableView.view.frame = CGRectMake(0, 0, SCREEN_WIDTH, 30+176+66*DayDayTask_model.count);
-    dayDayTask_TableView.array_model = DayDayTask_model;
-    [dayDayTask_TableView setHeadertitle:@"日常任务" AndDayCount:[[[Login_info share] GetUserInfo].login_times integerValue]];
+    dayDayTask_TableView.tableView.frame = CGRectMake(0, 0, SCREEN_WIDTH, 30+176+66*DayDayTaskTitleArray_model.count);
+    dayDayTask_TableView.array_model = DayDayTaskTitleArray_model;
+    if([Login_info share].isLogined){
+        [dayDayTask_TableView setHeadertitle:@"日常任务" AndDayCount:[[[Login_info share] GetUserInfo].login_times integerValue]];
+    }else{
+        [dayDayTask_TableView setHeadertitle:@"日常任务" AndDayCount:0];
+    }
+    
     [dayDayTask_TableView.tableView registerClass:[Task_TableViewCell class] forCellReuseIdentifier:@"DayDayTaskCell"];
     [dayDayTaskView addSubview:dayDayTask_TableView.tableView];
     DayDayTaskTabelViewConrol = dayDayTask_TableView;
     m_DayDayTask_tableview = dayDayTask_TableView.tableView;
     [self.MainView addSubview:dayDayTaskView];
+    self.MainView.frame = CGRectMake(0, 0, SCREEN_WIDTH, CGRectGetMaxY(dayDayTaskView.frame));
     m_dayDayVCL_view = dayDayTaskView;
     
     
@@ -284,28 +308,164 @@
         //是否已经阅读过相关阅读
         //是否已经微信绑定
         //是否已经收徒
-        NSString* readingState = [Login_info share].userInfo_model.is_read_question;
-        NSString* wechatState = [Login_info share].userInfo_model.wechat_binding;
-        NSString* apprenticeCount = [Login_info share].userInfo_model.appren_count;
-        if([readingState isEqualToString:@"1"] &&
-           [wechatState isEqualToString:@"1"] &&
-           [apprenticeCount integerValue] > 0){
 
+        if([[TaskCountHelper share] newUserTask_isOver]){
             [m_newuserVCL_view removeFromSuperview];
             [m_grayView removeFromSuperview];
-            m_dayDayVCL_view.frame = CGRectMake(0, 94, SCREEN_WIDTH, 30+176+66*DayDayTask_model.count);
+            m_dayDayVCL_view.frame = CGRectMake(0, 94, SCREEN_WIDTH, 30+176+66*DayDayTaskTitleArray_model.count);
             [self.MainScrollView setContentSize:CGSizeMake(SCREEN_WIDTH, m_logo_view.frame.size.height+m_dayDayVCL_view.frame.size.height)];
+            
+            //弹出 “恭喜您完成新手任务”
+            if([[Login_info share].userMoney_model.is_wechat_withdraw integerValue] == 0){//是否已经使用了 首次1元
+                if(![[AppConfig sharedInstance] getShowWinForFirstDone_newUserTask]){ //是否已经显示过了
+                    [[AppConfig sharedInstance] saveShowWinForFirstDone_newUserTask:YES];
+                    //显示弹窗
+                    [self showNewUserWin_Done];
+                }
+            }
+            
+            [self.view layoutIfNeeded];
         }else{
-            m_newuserVCL_view.frame = CGRectMake(0, 94, SCREEN_WIDTH, 48+66*array_model.count);
+            m_newuserVCL_view.frame = CGRectMake(0, 94, SCREEN_WIDTH, 48+66*userTitleArray_model.count);
             [self.MainView addSubview:m_grayView];
             [self.MainView addSubview:m_newuserVCL_view];
-            m_dayDayVCL_view.frame = CGRectMake(0, CGRectGetMaxY(m_grayView.frame), SCREEN_WIDTH, 30+176+66*DayDayTask_model.count);
+            m_dayDayVCL_view.frame = CGRectMake(0, CGRectGetMaxY(m_grayView.frame), SCREEN_WIDTH, 30+176+66*DayDayTaskTitleArray_model.count);
             [self.MainScrollView setContentSize:CGSizeMake(SCREEN_WIDTH, m_logo_view.frame.size.height+m_newuserVCL_view.frame.size.height+m_grayView.frame.size.height+m_dayDayVCL_view.frame.size.height)];
+            
+            //是否添加新手指导
+            if(![[AppConfig sharedInstance] getGuideOfNewUser]){
+                [self.MainScrollView setContentOffset:CGPointZero animated:NO];
+                [[AppConfig sharedInstance] saveGuideOfNewUser:YES];
+                [self showGuideOfNewUserUI];
+            }
         }
         
-    }else{
-        
+    }else{//未登陆时
+        m_newuserVCL_view.frame = CGRectMake(0, 94, SCREEN_WIDTH, 48+66*userTitleArray_model.count);
+        [self.MainView addSubview:m_grayView];
+        [self.MainView addSubview:m_newuserVCL_view];
+        m_dayDayVCL_view.frame = CGRectMake(0, CGRectGetMaxY(m_grayView.frame), SCREEN_WIDTH, 30+176+66*DayDayTaskTitleArray_model.count);
+        [self.MainScrollView setContentSize:CGSizeMake(SCREEN_WIDTH, m_logo_view.frame.size.height+m_newuserVCL_view.frame.size.height+m_grayView.frame.size.height+m_dayDayVCL_view.frame.size.height)];
     }
+}
+
+-(void)showNewUserWin_Done{
+    m_newUserTaskOver_win = [[UIView alloc] initWithFrame:[UIScreen mainScreen].bounds];
+    m_newUserTaskOver_win.backgroundColor = RGBA(0, 0, 0, 0.6);
+    [[UIApplication sharedApplication].keyWindow addSubview:m_newUserTaskOver_win];
+    
+    UIView* centerView = [UIView new];
+    centerView.backgroundColor = [UIColor whiteColor];
+    [centerView.layer setCornerRadius:8.0f];
+    centerView.clipsToBounds = YES;
+    [m_newUserTaskOver_win addSubview:centerView];
+    [centerView mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.center.equalTo(m_newUserTaskOver_win);
+        make.height.mas_offset(kWidth(234));
+        make.left.equalTo(m_newUserTaskOver_win.mas_left).with.offset(kWidth(40));
+        make.right.equalTo(m_newUserTaskOver_win.mas_right).with.offset(-kWidth(40));
+    }];
+    
+    //上半边
+    UIView* top_view = [UIView new];
+    top_view.backgroundColor = RGBA(255, 62, 71, 1);
+    [centerView addSubview:top_view];
+    [top_view mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.left.and.top.and.right.equalTo(centerView);
+        make.height.mas_offset(kWidth(130));
+    }];
+    
+    UIButton* del_btn = [UIButton new];
+    [del_btn setImage:[UIImage imageNamed:@"ic_close"] forState:UIControlStateNormal];
+    [del_btn addTarget:self action:@selector(closeWin) forControlEvents:UIControlEventTouchUpInside];
+    [top_view addSubview:del_btn];
+    [del_btn mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(top_view.mas_top).with.offset(kWidth(10));
+        make.right.equalTo(top_view.mas_right).with.offset(-kWidth(10));
+        make.height.and.width.mas_offset(kWidth(20));
+    }];
+    
+    UIImageView* imgV = [UIImageView new];
+    [imgV setImage:[UIImage imageNamed:@"complete"]];
+    [imgV.layer setCornerRadius:kWidth(36)/2];
+    imgV.clipsToBounds = YES;
+    [top_view addSubview:imgV];
+    [imgV mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.height.and.width.mas_offset(kWidth(36));
+        make.top.equalTo(top_view.mas_top).with.offset(kWidth(20));
+        make.centerX.equalTo(top_view.mas_centerX);
+    }];
+    
+    UILabel* tips_one = [UILabel new];
+    tips_one.text               = @"恭喜您完成新手任务";
+    tips_one.textColor          = RGBA(255, 255, 255, 1);
+    tips_one.textAlignment      = NSTextAlignmentCenter;
+    tips_one.font               = kFONT(18);
+    [top_view addSubview:tips_one];
+    [tips_one mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.left.and.right.equalTo(top_view);
+        make.top.equalTo(imgV.mas_bottom).with.offset(kWidth(12));
+    }];
+    
+    UILabel* tips_two = [UILabel new];
+    tips_two.text               = @"马上去提现吧";
+    tips_two.textColor          = RGBA(255, 208, 210, 1);
+    tips_two.textAlignment      = NSTextAlignmentCenter;
+    tips_two.font               = kFONT(14);
+    [top_view addSubview:tips_two];
+    [tips_two mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.left.and.right.equalTo(top_view);
+        make.top.equalTo(tips_one.mas_bottom).with.offset(kWidth(10));
+    }];
+    
+    //下半边
+    UIView* bottom_view = [UIView new];
+    [centerView addSubview:bottom_view];
+    [bottom_view mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.left.and.right.and.bottom.equalTo(centerView);
+        make.height.mas_offset(kWidth(104));
+    }];
+    
+    UIButton* oneYuan_btn = [UIButton new];
+    [oneYuan_btn setTitle:@"提现1元到微信" forState:UIControlStateNormal];
+    [oneYuan_btn setTitleColor:RGBA(217, 31, 3, 1) forState:UIControlStateNormal];
+    [oneYuan_btn setBackgroundImage:[UIImage imageNamed:@"btn_bg"] forState:UIControlStateNormal];
+    [oneYuan_btn.layer setCornerRadius:kWidth(36)/2];
+    [oneYuan_btn addTarget:self action:@selector(goToReplyMoney) forControlEvents:UIControlEventTouchUpInside];
+    oneYuan_btn.clipsToBounds = YES;
+    [bottom_view addSubview:oneYuan_btn];
+    [oneYuan_btn mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.height.mas_offset(kWidth(36));
+        make.top.equalTo(bottom_view.mas_top).with.offset(kWidth(20));
+        make.left.equalTo(bottom_view.mas_left).with.offset(kWidth(50));
+        make.right.equalTo(bottom_view.mas_right).with.offset(-kWidth(50));
+    }];
+    
+    UILabel* tips_three = [UILabel new];
+    tips_three.text             = @"首次1元即可提现";
+    tips_three.textColor        = RGBA(158, 151, 151, 1);
+    tips_three.textAlignment    = NSTextAlignmentCenter;
+    tips_three.font             = kFONT(12);
+    [bottom_view addSubview:tips_three];
+    [tips_three mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.left.and.right.equalTo(bottom_view);
+        make.top.equalTo(oneYuan_btn.mas_bottom).with.offset(kWidth(16));
+    }];
+    
+}
+
+-(void)showGuideOfNewUserUI{
+    m_newUserOfGuide_view = [[UIView alloc] initWithFrame:[UIScreen mainScreen].bounds];
+    m_newUserOfGuide_view.backgroundColor = RGBA(0, 0, 0, 0.6);
+    [[UIApplication sharedApplication].keyWindow addSubview:m_newUserOfGuide_view];
+    
+    UIImageView* imgV = [[UIImageView alloc] initWithFrame:CGRectMake(0, statusHight+56+94, kWidth(324), kWidth(224))];
+    [imgV setImage:[UIImage imageNamed:@"guide_text"]];
+    imgV.userInteractionEnabled = YES;
+    [m_newUserOfGuide_view addSubview:imgV];
+    
+    UITapGestureRecognizer* tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(closeGuideOfNewUserUI)];
+    [imgV addGestureRecognizer:tap];
 }
 
 #pragma mark - 按钮方法
@@ -316,6 +476,12 @@
         vc.delegate = self;
         [self.navigationController pushViewController:vc animated:YES];
         return;
+    }
+    else{
+        if([[Login_info share].userInfo_model.device_mult_user integerValue] == NotTheDevice){
+            [MyMBProgressHUD ShowMessage:@"非绑定设备，不能执行任务" ToView:self.view AndTime:1.0f];
+            return;
+        }
     }
     
     NSNotification* noti = [NSNotification notificationWithName:@"" object:[NSNumber numberWithInteger:1]];
@@ -472,13 +638,15 @@
     blackground_view.alpha = 0.6;
     
     //图片
-    UIImageView* imgView = [[UIImageView alloc] initWithFrame:CGRectMake(30, 109, 300, 300)];
+    CGFloat img_width = SCREEN_WIDTH-30-30;
+    UIImageView* imgView = [[UIImageView alloc] initWithFrame:CGRectMake(30, 109, img_width, img_width)];
     [imgView setImage:[UIImage imageNamed:@"box_open"]];
     [view addSubview:imgView];
     
-    UILabel* label = [[UILabel alloc] initWithFrame:CGRectMake(SCREEN_WIDTH/2 -98/2, CGRectGetMaxY(imgView.frame)+16, 98, 14)];
+    UILabel* label = [[UILabel alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(imgView.frame)+16, SCREEN_WIDTH, 14)];
     label.text = @"恭喜您获得金币";
     label.textColor = [[ThemeManager sharedInstance] TaskGetTitleSmallLableColor];
+    label.textAlignment = NSTextAlignmentCenter;
     label.font = [UIFont fontWithName:@"SourceHanSansCN-Regular" size:14];
     [view addSubview:label];
     
@@ -518,72 +686,39 @@
 }
 
 -(void)GetData{
-    array_model = [NSMutableArray array];
-    NSArray* title = @[@"绑定微信",@"查看常见问题",@"首次邀请好友"];
-    NSArray* money = @[@50,@20,@2];
-    NSArray* isYuan = @[@0,@0,@1];
-    NSArray* isDone = @[@0,@0,@0];
-    NSArray* subTitle = @[@"绑定后可直接提现至微信",@"认真阅读平台规则",@"首次邀请好友，额外多奖励2元"];
-    for(int i=0;i<title.count;i++){
-        TaskCell_model* model = [[TaskCell_model alloc] init];
-        model.title = title[i];
-        NSNumber* number = money[i];
-        model.Money = number.integerValue;
-        model.subTitle = subTitle[i];
-        NSNumber* number1 = isYuan[i];
-        if([number1 integerValue] == 1){
-            model.IsYuan = YES;
-        }else{
-            model.IsYuan = NO;
-        }
-        NSNumber* number2 = isDone[i];
-        if([number2 integerValue] == 1){
-            model.isDone = YES;
-        }else{
-            model.isDone = NO;
-        }
-        
-        [array_model addObject:model];
-    }
-    [TaskCountHelper share].task_newUser_name_array = array_model;
+    userTitleArray_model = [TaskData GetNewUserTask_data];
 }
 
 -(void)GetDayDayTaskData{
-    DayDayTask_model = [NSMutableArray array];
-    NSArray* title = @[@"邀请好友",@"阅读新闻",@"分享文章",@"优质评论",@"晒收入"];
-    NSArray* money = @[@1,@10,@10,@10,@20];
-    NSArray* isYuan = @[@1,@0,@0,@0,@0];
-    NSArray* isDone = @[@0,@0,@0,@0,@0];
-    NSArray* subTitle = @[@"每成功邀请一名好友，奖励1元奖金",@"认真阅读，每篇奖励20金币",@"分享文章给好友，每次奖励10金币",
-                          @"有见解有趣味的评论会获得额外的奖励",@"晒出自己的收入，每次奖励20金币"];
-    for(int i=0;i<title.count;i++){
-        TaskCell_model* model = [[TaskCell_model alloc] init];
-        model.title = title[i];
-        NSNumber* number = money[i];
-        model.Money = number.integerValue;
-        model.subTitle = subTitle[i];
-        NSNumber* number1 = isYuan[i];
-        if([number1 integerValue] == 1){
-            model.IsYuan = YES;
-        }else{
-            model.IsYuan = NO;
-        }
-        NSNumber* number2 = isDone[i];
-        if([number2 integerValue] == 1){
-            model.isDone = YES;
-        }else{
-            model.isDone = NO;
-        }
-        
-        [DayDayTask_model addObject:model];
-    }
-    [TaskCountHelper share].task_dayDay_name_array = DayDayTask_model;
+
+    DayDayTaskTitleArray_model = [TaskData GetDayDayTask_data];
 }
 
+-(void)closeWin{
+    [m_newUserTaskOver_win removeFromSuperview];
+}
+
+-(void)goToReplyMoney{
+    GoldChangeToMoney_ViewController* vc = [[GoldChangeToMoney_ViewController alloc] init];
+    [self.navigationController pushViewController:vc animated:YES];
+    
+    [self closeWin];
+}
+
+-(void)closeGuideOfNewUserUI{
+    NSLog(@"退出新手指导");
+    [m_newUserOfGuide_view removeFromSuperview];
+}
 
 #pragma mark - 通知
 -(void)newuserTask_click:(NSNotification*)noti{
-    //@[@"绑定微信",@"输入邀请码",@"查看常见问题",@"首次邀请好友"];
+    /*
+     1. 绑定微信（+50金币）
+     2. 查看常见问题（+20金币）
+     3. 阅读新闻（0/5）
+     4. 观看视频（0/5）
+     5. 朋友圈收徒
+     */
     NSNumber* number = noti.object;
     NSInteger index = [number integerValue];
     
@@ -592,37 +727,37 @@
         [self.navigationController pushViewController:vc animated:YES];
         return;
     }
+    else{
+        if([[Login_info share].userInfo_model.device_mult_user integerValue] == NotTheDevice){
+            [MyMBProgressHUD ShowMessage:@"非绑定设备，不能执行任务" ToView:self.view AndTime:1.0f];
+            return;
+        }
+    }
     switch (index) {
-        case 0:
+        case Task_blindWechat:
             NSLog(@"绑定微信");
-            [UMShareHelper LoginWechat:@"微信"];
+            [UMShareHelper LoginWechat:NewUserTask_blindWechat];
             break;
-        case 1:{
+        case Task_readQuestion:{
             NSLog(@"查看常见问题");
             Mine_question_ViewController* vc = [[Mine_question_ViewController alloc] init];
             vc.isTask = YES;
             [self.navigationController pushViewController:vc animated:YES];
             break;
         }
-        case 2:{
-            NSLog(@"首次邀请好友");
-            NSString* apprenticeCount = [Login_info share].userInfo_model.appren_count;
-            NSInteger count = [apprenticeCount integerValue];
-            if(count > 0){
-                Mine_GetApprentice_ViewController* vc = [[Mine_GetApprentice_ViewController alloc]init];
-                vc.array_model = [[NSArray alloc]init];
-                [self.navigationController pushViewController:vc animated:YES];
-            }else{
-                Mine_ShowToFriend_ViewController* vc = [[Mine_ShowToFriend_ViewController alloc]init];
-                vc.number = [[Login_info share].userInfo_model.appren integerValue];
-                [self.navigationController pushViewController:vc animated:YES];
-            }
+        case Task_apprenitceByPengyouquan:{
+            NSLog(@"朋友圈收徒");
+            [UMShareHelper ShareName:WeChat_pengyoujuan];
             break;
         }
-        case 3:{
-            NSLog(@"输入邀请码");
-            Task_BaiShi_ViewController* vc = [[Task_BaiShi_ViewController alloc] init];
-            [self.navigationController pushViewController:vc animated:YES];
+        case Task_reading:{
+            NSLog(@"阅读新闻");
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"频道切换" object: [NSNumber numberWithInt:0]];
+            break;
+        }
+        case Task_video:{
+            NSLog(@"观看视频");
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"频道切换" object: [NSNumber numberWithInt:0]];
             break;
         }
         default:
@@ -632,50 +767,76 @@
 }
 
 -(void)dayDayTask_click:(NSNotification*)noti{
-    //@[@"邀请好友",@"阅读新闻",@"分享新闻",@"优质评论",@"晒收入",@"参与抽奖"];
+    /*
+     1. 签到
+     2. 首次收徒
+     3. 收徒
+     4. 阅读文章
+     5. 分享文章
+     6. 观看视频
+     7. 优质评论（按点赞数奖励）
+     8. 晒收入
+     9. 参与抽奖
+     10. 摇一摇
+     */
     
     if(![Login_info share].isLogined){//未登陆时
         Mine_login_ViewController* vc = [[Mine_login_ViewController alloc] init];
         [self.navigationController pushViewController:vc animated:YES];
         return;
     }
+    else{
+        if([[Login_info share].userInfo_model.device_mult_user integerValue] == NotTheDevice){
+            [MyMBProgressHUD ShowMessage:@"非绑定设备，不能执行任务" ToView:self.view AndTime:1.0f];
+            return;
+        }
+    }
     NSNumber* number = noti.object;
     NSInteger index = [number integerValue];
     switch (index) {
-        case 0:
+        case Task_FirstShouTu:
         {
-            NSLog(@"邀请好友");
-            if(![Login_info share].isLogined){
-                Mine_login_ViewController* vc = [[Mine_login_ViewController alloc] init];
-                [self.navigationController pushViewController:vc animated:YES];
-                return;
-            }
-            //        [self getApprenticeData];
+            NSLog(@"首次收徒");
             Mine_inviteApprence_ViewController* vc = [[Mine_inviteApprence_ViewController alloc] init];
             [self.navigationController pushViewController:vc animated:YES];
             break;
         }
-        case 1:
+        case Task_ShouTu:{
+            NSLog(@"收徒");
+            Mine_inviteApprence_ViewController* vc = [[Mine_inviteApprence_ViewController alloc] init];
+            [self.navigationController pushViewController:vc animated:YES];
+            break;
+        }
+        case Task_reading:
             NSLog(@"阅读新闻");
-            
             [[NSNotificationCenter defaultCenter] postNotificationName:@"频道切换" object: [NSNumber numberWithInt:0]];
             break;
-        case 2:{
+        case Task_shareNews:{
             NSLog(@"分享文章");
             [[NSNotificationCenter defaultCenter] postNotificationName:@"频道切换" object: [NSNumber numberWithInt:0]];
             break;
         }
-        case 3:
+        case Task_video:{
+            NSLog(@"观看视频");
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"频道切换" object: [NSNumber numberWithInt:1]];
+            break;
+        }
+        case Task_reply:
             NSLog(@"优质评论");
             [[NSNotificationCenter defaultCenter] postNotificationName:@"频道切换" object: [NSNumber numberWithInt:0]];
             break;
-        case 4:
+        case Task_showIncome:
             NSLog(@"晒收入");
             [self SaiIncome];
             break;
-        case 5:
+        case Task_chouJiang:{
             NSLog(@"参与抽奖");
+            Mine_choujiang_ViewController* vc = [[Mine_choujiang_ViewController alloc] init];
+            vc.delegate = self;
+            [self.navigationController pushViewController:vc animated:YES];
             break;
+        }
+
         default:
             break;
     }
@@ -687,7 +848,7 @@
     [DayDayTaskTabelViewConrol setHeadertitle:@"日常任务" AndDayCount:[[[Login_info share] GetUserInfo].login_times integerValue]];
     [DayDayTaskTabelViewConrol.tableView reloadData];
     
-    [self IsHideUserTask];//是否隐藏新手任务
+//    [self IsHideUserTask];//是否隐藏新手任务
 }
 
 -(void)SaiIncome{
@@ -695,15 +856,28 @@
     [[UIApplication sharedApplication].keyWindow addSubview:sai_view];
 }
 
+#pragma mark - 协议
+-(void)choujiang_result:(BOOL)isDone AndTaskId:(NSString*)taskId{
+    if(isDone){
+        [InternetHelp SendTaskId:taskId AndType:Task_chouJiang Sucess:^(NSInteger type, NSDictionary *dic) {
+            NSString* coin = dic[@"list"][@"coin"];
+            [RewardHelper ShowReward:Task_chouJiang AndSelf:self AndCoin:coin];
+            DayDayTaskTabelViewConrol.array_model = DayDayTaskTitleArray_model;
+        } Fail:^(NSDictionary *dic) {
+            [MyMBProgressHUD ShowMessage:@"抽奖上传失败!" ToView:self.view AndTime:1.0f];
+        }];
+    }
+}
+
 #pragma mark - 获取task_id
 -(NSString*)GetTaskId:(NSInteger)type{
-    //任务类型  1:提供开宝箱  2：阅读文章 3：分享文章  4:优质评论 5：晒收入 6：参与抽奖任务 7,查看常见问题 8：微信绑定奖励
+    //任务类型  1:提供开宝箱  2：阅读文章 3：分享文章  4:优质评论 5：晒收入 6：参与抽奖任务 7,查看常见问题 8：微信绑定奖励 9.视频任务 10.摇一摇 11.朋友圈收徒
     switch (type) {
-        case 1:{
+        case Task_box:{
             return [Md5Helper Box_taskId:[[Login_info share]GetUserInfo].user_id];
             break;
         }
-        case 2:{
+        case Task_reading:{
             //阅读文章
             break;
         }
@@ -715,20 +889,24 @@
             //优质评论
             break;
         }
-        case 5:{
+        case Task_showIncome:{
             return [Md5Helper ShowIncome_taskId:[[Login_info share]GetUserInfo].user_id];
             break;
         }
-        case 6:{
+        case Task_chouJiang:{
             //参与抽奖任务
             break;
         }
-        case 7:{
+        case Task_readQuestion:{
             return [Md5Helper Question_taskId:[[Login_info share]GetUserInfo].user_id];
             break;
         }
-        case 8:{
+        case Task_blindWechat:{
             return [Md5Helper Wechat_taskId:[[Login_info share]GetUserInfo].user_id];
+            break;
+        }
+        case Task_yaoyiyao:{
+            
             break;
         }
             
@@ -784,7 +962,8 @@
             if(code != 200){
                 NSLog(@"%@",dict[@"message"]);
                 if(type == 1){
-                    [MBProgressHUD showError:@"2小时内不能重复打开宝箱"];
+//                    [MBProgressHUD showError:@"2小时内不能重复打开宝箱"];
+                    [MyMBProgressHUD ShowMessage:@"2小时内不能重复打开宝箱" ToView:block_self.view AndTime:1];
                 }
                 return;
             }
@@ -793,20 +972,22 @@
             NSString* myRewardCoin = dict[@"list"][@"reward_coin"];
             [[Login_info share] GetUserMoney].coin = coin;
             switch (type) {
-                case 1:{
+                case Task_box:{
 //                    [MBProgressHUD showSuccess:@""];
                     [self LogoClicked];//开始倒计时
                     [block_self ShowBoxWind:[NSString stringWithFormat:@"%@",myRewardCoin]];
                     break;
                 }
-                case 5:{
-                    [MBProgressHUD showSuccess:@"晒收入 任务完成"];
+                case Task_showIncome:{
+//                    [MBProgressHUD showSuccess:@"晒收入 任务完成"];
+                    [RewardHelper ShowReward:Task_showIncome AndSelf:self.view AndCoin:myRewardCoin];
                     break;
                 }
-                case 7:{
+                case Task_readQuestion:{
                     [MBProgressHUD showSuccess:@"查看常见问题 任务完成"];
-                    [Login_info share].userInfo_model.is_read_question = @"1";
+                    [[TaskCountHelper share] newUserTask_addCountByType:Task_readQuestion];
                     [self TaskRefresh];
+                    
                     break;
                 }
                     
@@ -825,7 +1006,6 @@
 
 //获取每次任务允许完成最大次数
 -(void)GetMaxTaskCount{
-    //任务类型  1:提供开宝箱  2：阅读文章 3：分享文章  4:优质评论 5：晒收入 6：参与抽奖任务 7,查看常见问题 8：微信绑定奖励
     NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://younews.3gshow.cn/api/taskStatus"]];
     NSMutableURLRequest *request =[NSMutableURLRequest requestWithURL:url];
     request.HTTPMethod = @"POST";
@@ -859,54 +1039,89 @@
             if(code != 200){
                 return;
             }
-            array_count = [TaskMaxCout_model dicToArray:dict];
-            [TaskCountHelper share].taskcountModel_array = array_count;
+            DayDayTaskCount_array = [TaskMaxCout_model dicToArray:dict];
+            [TaskCountHelper share].taskcountModel_array = DayDayTaskCount_array;
+            
+            //同步宝箱时间
+            [self synchronousBoxTime:DayDayTaskCount_array];
+            
+            
             
             //将数据插入到该任务
-            for (TaskMaxCout_model* item in array_count) {
-                for (TaskCell_model* model in DayDayTask_model) {
-                    //@[@"邀请好友",@"阅读新闻",@"绑定分享新闻",@"优质评论",@"晒收入",@"参与抽奖"];
-                    if(item.type == 2 && [model.title isEqualToString:@"阅读新闻"]){
-                        TaskCell_model* model_tmp = DayDayTask_model[1];
-                        model_tmp.count_model = item;
+            for (TaskMaxCout_model* item in DayDayTaskCount_array) {
+                for (TaskCell_model* model in DayDayTaskTitleArray_model) {
+                    /*
+                     日常任务：1.签到 2.首次收徒 3.收徒 4.阅读文章 5.分享文章 6.观看视频 7.优质评论（按点赞数奖励）8.晒收入 9.参与抽奖 10.摇一摇得金币
+                     */
+                    if([model.title isEqualToString:DayDayTask_FirstShouTu]){
+                        model.type = Task_FirstShouTu;
+                    }
+                    if([model.title isEqualToString:DayDayTask_ShouTu]){
+                        model.type = Task_ShouTu;
+                    }
+                    if([model.title isEqualToString:DayDayTask_GoodReply]){
+                        model.type = Task_reply;
+                    }
+
+                    if(item.type == Task_reading && [model.title isEqualToString:DayDayTask_readNews]){
+                        model.DayDay_model = item;
+                        model.type = Task_reading;
                         
                         if(item.maxCout <= item.count){
-                            model_tmp.isDone = YES;
+                            model.isDone = YES;
                         }
-                        [DayDayTask_model replaceObjectAtIndex:1 withObject:model_tmp];
                         break;
                     }
-                    if(item.type == 3 && [model.title isEqualToString:@"分享文章"]){
-                        TaskCell_model* model_tmp = DayDayTask_model[2];
-                        model_tmp.count_model = item;
+                    if(item.type == Task_shareNews && [model.title isEqualToString:DayDayTask_shareNews]){
+                        model.DayDay_model = item;
+                        model.type = Task_shareNews;
+                        
                         if(item.maxCout <= item.count){
-                            model_tmp.isDone = YES;
+                            model.isDone = YES;
                         }
-                        [DayDayTask_model replaceObjectAtIndex:2 withObject:model_tmp];
                         break;
                     }
-                    if(item.type == 5 && [model.title isEqualToString:@"晒收入"]){
-                        TaskCell_model* model_tmp = DayDayTask_model[4];
-                        model_tmp.count_model = item;
+                    if(item.type == Task_video && [model.title isEqualToString:DayDayTask_readVideo]){
+                        model.DayDay_model = item;
+                        model.type = Task_video;
+                        
                         if(item.maxCout <= item.count){
-                            model_tmp.isDone = YES;
+                            model.isDone = YES;
                         }
-                        [DayDayTask_model replaceObjectAtIndex:4 withObject:model_tmp];
                         break;
                     }
-                    if(item.type == 6 && [model.title isEqualToString:@"参与抽奖"]){
-                        TaskCell_model* model_tmp = DayDayTask_model[5];
-                        model_tmp.count_model = item;
+                    if(item.type == Task_showIncome && [model.title isEqualToString:DayDayTask_showIncome]){
+                        model.DayDay_model = item;
+                        model.type = Task_showIncome;
+                        
                         if(item.maxCout <= item.count){
-                            model_tmp.isDone = YES;
+                            model.isDone = YES;
                         }
-                        [DayDayTask_model replaceObjectAtIndex:5 withObject:model_tmp];
+                        break;
+                    }
+                    if(item.type == Task_chouJiang && [model.title isEqualToString:DayDayTask_choujiang]){
+                        model.DayDay_model = item;
+                        model.type = Task_chouJiang;
+                        
+                        if(item.maxCout <= item.count){
+                            model.isDone = YES;
+                        }
                         break;
                     }
                 }
             }
             
-            DayDayTaskTabelViewConrol.array_model = DayDayTask_model;
+            if([[Login_info share].userInfo_model.appren_count integerValue] > 0){
+                for (TaskCell_model* model in DayDayTaskTitleArray_model) {
+                    if([model.title isEqualToString:DayDayTask_FirstShouTu]){
+                        [DayDayTaskTitleArray_model removeObject:model];
+                        self.MainScrollView.contentSize = CGSizeMake(self.MainScrollView.contentSize.width, self.MainScrollView.contentSize.height-[Task_TableViewCell HightForcell]);
+                        break;
+                    }
+                }
+            }
+            
+            DayDayTaskTabelViewConrol.array_model = DayDayTaskTitleArray_model;
             
         });
         
@@ -915,6 +1130,95 @@
     [sessionDataTask resume];
 }
 
+-(void)getNewUserTaskCount{
+    //获取新手任务 信息
+    [InternetHelp GetNewUserTaskCount_Sucess:^(NSDictionary *dic) {
+
+        userTaskCount_array = [NewUserTask_model dicToArray:dic[@"list"]];
+        [TaskCountHelper share].task_newUser_name_array = userTaskCount_array;
+        
+        //将数据插入到该任务
+        for (NewUserTask_model* item in userTaskCount_array) {
+            for (TaskCell_model* model in userTitleArray_model) {
+                //@[@"邀请好友",@"阅读新闻",@"绑定分享新闻",@"优质评论",@"晒收入",@"参与抽奖"];
+                if(item.type == Task_blindWechat && [model.title isEqualToString:NewUserTask_blindWechat]){
+                    model.User_model = item;
+                    
+                    if(item.status == 1 || item.max <= item.count){//0：未完成   1：完成
+                        model.isDone = YES;
+                    }
+                    break;
+                }
+                if(item.type == Task_readQuestion && [model.title isEqualToString:NewUserTask_readQuestion]){
+                    model.User_model = item;
+                    
+                    if(item.status == 1 || item.max <= item.count){//0：未完成   1：完成
+                        model.isDone = YES;
+                    }
+                    break;
+                }
+                if(item.type == Task_reading && [model.title isEqualToString:NewUserTask_readNews]){
+                    model.User_model = item;
+                    
+                    if(item.status == 1 || item.max <= item.count){//0：未完成   1：完成
+                        model.isDone = YES;
+                    }
+                    break;
+                }
+                if(item.type == Task_video && [model.title isEqualToString:NewUserTask_readVideo]){
+                    model.User_model = item;
+                    
+                    if(item.status == 1 || item.max <= item.count){//0：未完成   1：完成
+                        model.isDone = YES;
+                    }
+                    break;
+                }
+                if(item.type == Task_apprenitceByPengyouquan && [model.title isEqualToString:NewUserTask_shareByPengyouquan]){
+                    model.User_model = item;
+                    
+                    if(item.status == 1 || item.max <= item.count){//0：未完成   1：完成
+                        model.isDone = YES;
+                    }
+                    break;
+                }
+            }
+        }
+        
+        NewUserTabelViewControl.array_model = userTitleArray_model;
+        
+        [self IsHideUserTask];
+        
+    } Fail:^(NSDictionary *dic) {
+        if(dic == nil){
+            [MyMBProgressHUD ShowMessage:@"网络错误" ToView:self.view AndTime:1.0f];
+        }else{
+            [MyMBProgressHUD ShowMessage:dic[@"msg"] ToView:self.view AndTime:1.0f];
+        }
+    }];
+}
+
+//同步服务器宝箱时间
+-(void)synchronousBoxTime:(NSArray*)array{
+    for (TaskMaxCout_model* model in array) {
+        if(model.type == 1){
+            NSInteger boxTime = model.lastOpenBox_time;
+            NSInteger boxTime_local = [[AppConfig sharedInstance] getBoxTime];
+            if(boxTime != boxTime_local){
+                //恢复宝箱初始状态
+                m_logo_tap.enabled = YES;
+                [m_logo_state_time removeFromSuperview];
+                [m_logo_tips addSubview:m_logo_state_normal];
+                [m_timer invalidate];
+                //保存时间
+                [[AppConfig sharedInstance] saveBoxTime:boxTime];
+                m_isClicked_logo = NO;
+                
+                //开始判断宝箱状态
+                [self IsClicked];
+            }
+        }
+    }
+}
 /*
 #pragma mark - Navigation
 

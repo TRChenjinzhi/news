@@ -26,6 +26,7 @@
  "comment_num":"",    //评论数
  "collect_count":"",  //收藏数
  "url":"http://39.104.13.61:3389/kl.php?id=29",   //详情页地址
+ "origin_channel":"4", //新增:channel为推荐[1] origin_channel标识原频道 默认空  相关推荐接口需要传此参数
  },
  */
 
@@ -50,6 +51,7 @@
         model.source = dic[@"source"];
         model.url = dic[@"url"];
         model.url = [model.url stringByAppendingString:@"&t=2"]; //加 &t=2 区别收到的新闻为ios端
+        model.origin_channel = dic[@"origin_channel"];
         model.comment_num = dic[@"comment_num"];
         model.collect_count = dic[@"collect_count"];
         [model_array addObject:model];

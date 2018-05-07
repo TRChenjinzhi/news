@@ -39,4 +39,20 @@
     return dic;
 }
 
++(NSString *)JsonToObject_ToStringByFloat:(NSObject *)obj{
+    if([obj isKindOfClass:[NSNumber class]]){
+        NSNumber* number = (NSNumber*)obj;
+        return [NSString stringWithFormat:@"%.2f",[number floatValue]];
+    }
+    return (NSString *)obj;
+}
+
++(NSString*)JsonToObject_ToStringByInterger:(NSObject *)obj{
+    if([obj isKindOfClass:[NSNumber class]]){
+        NSNumber* number = (NSNumber*)obj;
+        return [NSString stringWithFormat:@"%.0f",[number floatValue]];
+    }
+    return (NSString *)obj;
+}
+
 @end

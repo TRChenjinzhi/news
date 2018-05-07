@@ -11,6 +11,8 @@
 #import "FMDatabase.h"
 #import "CJZdataModel.h"
 #import "ChannelName.h"
+#import "video_info_model.h"
+#import "Mine_message_model.h"
 
 @interface MyDataBase : NSObject
 
@@ -39,7 +41,7 @@
 //浏览记录表  1.存储model数据 2.不能超过100条
 -(void)CreateReadingNewsTabel;
 -(void)AddReadingNews:(CJZdataModel*)model;
--(NSArray*)ReadingNews_GetLastMaxCountData;
+-(NSMutableArray*)ReadingNews_GetLastMaxCountData;
 -(void)clearTable_ReadingNews;
 
 //已经获得阅读奖励表
@@ -55,4 +57,22 @@
 -(void)ChannelTable_SelecteData:(ChannelName*)channelName;
 -(BOOL)ChannelTable_IsHaveTitle:(NSString*)title;
 -(void)clearTable_Channel;
+
+//视频浏览记录表
+-(void)CreateReadingVideoTabel;
+-(void)ReadingVideo_insertData:(video_info_model*)model;
+-(void)AddReadingVideo:(video_info_model*)model;
+-(NSInteger)ReadingVideo_GetCount;
+-(NSMutableArray*)ReadingVideo_GetLastMaxCountData;
+-(BOOL)ReadingVideo_IsAgainData:(video_info_model*)add_model;
+-(void)ReadingVideo_clearTable;
+-(void)ReadingVideo_initId;
+-(void)clearTable_ReadingVideo;
+
+//消息界面数据
+-(void)CreateMessageTabel;
+-(void)Message_insertData:(Mine_message_model*)model;
+-(NSArray*)Message_getData;
+-(void)clearTable_Message;
+
 @end

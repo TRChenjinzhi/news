@@ -85,12 +85,20 @@
     Task_TableViewCell* cell = [Task_TableViewCell CellFormTableForDayDayTask:tableView];
     TaskCell_model* model = m_arrayModel[indexPath.row];
     if(![Login_info share].isLogined){
-        model.count_model.count = 0;
+        model.DayDay_model.count = 0;
+    }
+    else{
+        if([model.title isEqualToString:DayDayTask_FirstShouTu]){
+            if([[Login_info share].userInfo_model.appren_count integerValue] >= 1){
+                model.isDone = YES;
+            }
+        }else{
+            model.isDone = NO;
+        }
     }
     cell.taskModel = model;
     cell.type = @"日常任务";
-    cell.tag = indexPath.row;
-    
+    cell.tag = model.type;
     
     return cell;
     
@@ -98,7 +106,7 @@
 
 -(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath{
     NSLog(@"DayDayTasktableView cell -->点击");
-    [[NSNotificationCenter defaultCenter] postNotificationName:@"日常任务点击" object:[NSNumber numberWithInteger:indexPath.row]];
+//    [[NSNotificationCenter defaultCenter] postNotificationName:@"日常任务点击" object:[NSNumber numberWithInteger:indexPath.row]];
 }
 
 -(BOOL)tableView:(UITableView *)tableView shouldHighlightRowAtIndexPath:(NSIndexPath *)indexPath{

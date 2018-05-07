@@ -8,15 +8,18 @@
 
 #import <Foundation/Foundation.h>
 #import "TaskMaxCout_model.h"
+#import "NewUserTask_model.h"
 
 @interface TaskCell_model : NSObject
 
-@property (nonatomic,strong)NSString* title;
-@property (nonatomic,strong)NSString* subTitle;
-@property (nonatomic)NSInteger Money;
-@property (nonatomic)BOOL   IsYuan;
+@property (nonatomic,strong)NSString*   title;
+@property (nonatomic,strong)NSString*   subTitle;
+@property (nonatomic)       NSInteger   Money;
+@property (nonatomic)       BOOL        IsYuan;
+@property (nonatomic)       NSInteger   type;
 
-@property (nonatomic,strong)TaskMaxCout_model* count_model;
+@property (nonatomic,strong)NewUserTask_model* User_model;
+@property (nonatomic,strong)TaskMaxCout_model* DayDay_model;
 
 @property (nonatomic)BOOL isDone;
 

@@ -116,7 +116,8 @@
     //曲线层
     UIImageView* img_view = [[UIImageView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(loginBackground_view.frame), SCREEN_WIDTH, 16)];
     img_view.backgroundColor = [UIColor colorWithRed:248/255.0 green:205/255.0 blue:4/255.0 alpha:1/1.0];
-    img_view.contentMode = UIViewContentModeBottom;
+//    img_view.contentMode = UIViewContentModeBottom;
+//    img_view.backgroundColor = [UIColor blackColor];
     [img_view setImage:[UIImage imageNamed:@"mine_bg"]];
     
     UIView* line = [[UIView alloc] initWithFrame:CGRectMake(0, 15, SCREEN_WIDTH, 1)];//为了覆盖 图片下面的一条黄线
@@ -131,25 +132,28 @@
     gold_view.backgroundColor = [UIColor whiteColor];
     gold_view.userInteractionEnabled = YES;
     
-    UILabel* gold_label = [[UILabel alloc] initWithFrame:CGRectMake(48, 0, 24, 12)];
+    UILabel* gold_label = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, SCREEN_WIDTH/3, 12)];
     gold_label.text = @"金币";
     gold_label.textColor = [[ThemeManager sharedInstance] MineSmallTextColor];
+    gold_label.textAlignment = NSTextAlignmentCenter;
     gold_label.font = [UIFont fontWithName:@"SourceHanSansCN-Regular" size:12];
     gold_label.userInteractionEnabled = YES;
     self.gold_label = gold_label;
     [gold_view addSubview:gold_label];
     
-    UILabel* moneyPackge_label = [[UILabel alloc] initWithFrame:CGRectMake(CGRectGetMaxX(gold_label.frame)+96, 0, 24, 12)];
+    UILabel* moneyPackge_label = [[UILabel alloc] initWithFrame:CGRectMake(CGRectGetMaxX(gold_label.frame), 0, SCREEN_WIDTH/3, 12)];
     moneyPackge_label.text = @"钱包";
     moneyPackge_label.textColor = [[ThemeManager sharedInstance] MineSmallTextColor];
+    moneyPackge_label.textAlignment = NSTextAlignmentCenter;
     moneyPackge_label.font = [UIFont fontWithName:@"SourceHanSansCN-Regular" size:12];
     moneyPackge_label.userInteractionEnabled = YES;
     self.packge_label = moneyPackge_label;
     [gold_view addSubview:moneyPackge_label];
     
-    UILabel* apprentice_label = [[UILabel alloc] initWithFrame:CGRectMake(CGRectGetMaxX(moneyPackge_label.frame)+96, 0, 24, 12)];
+    UILabel* apprentice_label = [[UILabel alloc] initWithFrame:CGRectMake(CGRectGetMaxX(moneyPackge_label.frame), 0, SCREEN_WIDTH/3, 12)];
     apprentice_label.text = @"徒弟";
     apprentice_label.textColor = [[ThemeManager sharedInstance] MineSmallTextColor];
+    apprentice_label.textAlignment = NSTextAlignmentCenter;
     apprentice_label.font = [UIFont fontWithName:@"SourceHanSansCN-Regular" size:12];
     apprentice_label.userInteractionEnabled = YES;
     self.apprentice_label = apprentice_label;
@@ -177,7 +181,7 @@
 }
 
 -(void)initLoginView{
-    self.UnLogin_view = [[UIView alloc] initWithFrame:CGRectMake(128, 86, 104, 32)];
+    self.UnLogin_view = [[UIView alloc] initWithFrame:CGRectMake(SCREEN_WIDTH/2-104/2, 86, 104, 32)];
     
     //登陆按钮
     UIButton* login_button = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, 104, 32)];
@@ -374,7 +378,6 @@
         }else{
             [userInfo_img sd_setImageWithURL:[NSURL URLWithString:userInfo_model.icon] placeholderImage:nil options:SDWebImageRefreshCached];
         }
-        
     }
     
     userinfo_name.text = userInfo_model.name;
@@ -386,7 +389,7 @@
 }
 
 -(void)loginAction{
-    NSLog(@"微信登陆");
+    NSLog(@"进入登陆界面");
     [[NSNotificationCenter defaultCenter] postNotificationName:@"登陆" object:nil];
 }
 

@@ -15,11 +15,13 @@
 
 #define str_box @"_open_box"
 #define str_read @"_read"
+#define str_video @"_watch"
 #define str_share @"_share"
 #define str_reply @"_comment"
 #define str_showIncome @"_share_income"
 #define str_question @"read_faq_"
 #define str_wechat @"bind_wechat"
+#define str_wechatShareFriend @"share_wx_community_"
 @implementation Md5Helper
 
 +(NSString*)Box_taskId:(NSString*)userId{
@@ -32,6 +34,11 @@
 //    阅读文章id
 //    md5(文章id+ "_read"+ userid);
     return [Md5Helper md5:[NSString stringWithFormat:@"%@%@%@",newsId,str_read,userId]];
+}
++(NSString*)Video_taskId:(NSString*)userId AndVideoId:(NSString*)videoId{
+    //    视频id
+    //    md5(视频id+ "_video"+ userid);
+    return [Md5Helper md5:[NSString stringWithFormat:@"%@%@%@",videoId,str_video,userId]];
 }
 +(NSString*)Share_taskId:(NSString*)userId AndNewsId:(NSString*)newsId{
 //    分享文章id
@@ -64,6 +71,10 @@
 //    绑定微信
 //    md5("bind_wechat" + userid);
     return [Md5Helper md5:[NSString stringWithFormat:@"%@%@",str_wechat,userId]];
+}
++(NSString*)wechatShareFriend_task:(NSString*)userId{
+    //朋友圈分享
+    return [Md5Helper md5:[NSString stringWithFormat:@"%@%@",str_wechatShareFriend,userId]];
 }
 
 + (NSString *)md5:(NSString *)string{

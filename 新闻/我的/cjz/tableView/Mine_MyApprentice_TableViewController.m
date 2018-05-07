@@ -25,10 +25,9 @@
     
     // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
     // self.navigationItem.rightBarButtonItem = self.editButtonItem;
-    
-    self.tableView.bounces = NO;
+    self.tableView.estimatedRowHeight = [Mine_GetApprentice_TableViewCell HightForCell];
+    self.tableView.bounces = YES;
     self.tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
-    //    self.tableView.automaticallyAdjustsScrollViewInsets = false;contentInsetAdjustmentBehavior
     [self.tableView registerClass:[Mine_GetApprentice_TableViewCell class] forCellReuseIdentifier:@"Mine_GetApprentice_cell"];
 
 }

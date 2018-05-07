@@ -21,7 +21,7 @@
 -(void)setModel:(DayDayTask_sign_gold_model *)model{
     
     NSInteger imgWidth = 32;
-    NSInteger lineWidth = 9;
+    CGFloat lineWidth = (SCREEN_WIDTH-16-16-7*imgWidth)/12;//12:6*2
     
     if(model.IsRedPackage){
         //左边横线

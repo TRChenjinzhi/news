@@ -8,6 +8,7 @@
 
 #import <Foundation/Foundation.h>
 #import "Login_info.h"
+#import "Mine_zhifu_model.h"
 
 @interface AppConfig : NSObject
 
@@ -24,12 +25,12 @@
 -(void)saveUrlNews:(id)array;
 -(id)getUrlNews;
 
--(void)saveSearchWord:(NSArray*)array;
--(NSArray*)GetSearchWord;
--(void)addSearchWord:(NSString*)searchWord;
--(void)removeSearchWord:(NSString*)searchWord;
--(void)removeSearchWordByIndex:(NSInteger)index;
--(void)removeSearchWordAll;
+-(void)saveSearchWord:(NSArray*)array AndType:(NSString*)type;
+-(NSArray*)GetSearchWordAndType:(NSString*)type;
+-(void)addSearchWord:(NSString*)searchWord AndType:(NSString*)type;
+-(void)removeSearchWord:(NSString*)searchWord AndType:(NSString*)type;
+-(void)removeSearchWordByIndex:(NSInteger)index AndType:(NSString*)type;
+-(void)removeSearchWordAllAndType:(NSString*)type;
 
 -(void)saveFontSize:(NSInteger)size;
 -(NSInteger)GetFontSize;
@@ -53,7 +54,7 @@
 -(NSNumber*)getTheTime_lastRefresh:(NSString*)channel_id;
 
 -(void)saveNews:(NSArray*)array channel_id:(NSString*)channel_id;
--(NSMutableArray*)getNewsByChannel_id:(NSString*)channel_id;
+-(NSArray*)getNewsByChannel_id:(NSString*)channel_id;
 
 -(void)saveChannel:(NSArray*)array;
 -(NSArray*)getChannel;
@@ -69,5 +70,27 @@
 
 -(void)saveUserId:(NSString*)userId;
 -(NSString*)getUserId:(NSString*)userId;
+
+-(void)saveIdifyCode:(NSNumber*)time;
+-(NSNumber*)getIdefyCode;
+
+-(void)saveVideo:(NSString*)channelId AndArray:(NSArray*)array;
+-(NSArray*)getVideo:(NSString*)channelId;
+
+-(void)saveNewUserTaskInfo;
+-(void)getNewUserTaskInfo;
+-(void)clearNewUserTaskInfo;
+
+-(void)saveShowWinForFirstDone_newUserTask:(BOOL)isDone;
+-(BOOL)getShowWinForFirstDone_newUserTask;
+
+-(void)saveGuideOfNewUser:(BOOL)isGuide;
+-(BOOL)getGuideOfNewUser;
+
+-(void)saveZhifuInfo:(Mine_zhifu_model*)model;
+-(NSDictionary*)getZhifuInfo;
+
+-(void)saveChoujiangTips:(BOOL)isShow;
+-(BOOL)getChoujiangTips_isShow;
 
 @end

@@ -16,12 +16,14 @@
 #import "DateReload_view.h"
 #import "Mine_Historty_cash_ViewController.h"
 
+
 @interface Mine_goldDetail_ViewController ()<UIScrollViewDelegate>
 
 @end
 
 @implementation Mine_goldDetail_ViewController{
     UIView*     m_navibar_view;
+    UIView*     m_headerView;
     
     UIView*     m_lable_view;
     UILabel*    m_gold_label;
@@ -57,7 +59,6 @@
     
     NSInteger       m_page_gold;
     NSInteger       m_page_package;
-    
 }
 
 - (void)viewDidLoad {
@@ -69,7 +70,8 @@
     
     //UI
     [self initNavi];
-    [self InitView];
+    [self initHeaderView];
+    [self InitTipsView];
     [self initScrollView];
     [self initTableView];
     
@@ -77,6 +79,15 @@
     m_selectedIndex = self.selectIndex;
     [m_scrollView setContentOffset:CGPointMake(m_selectedIndex*SCREEN_WIDTH, 0)];
     [self ChangeLage:m_selectedIndex];
+    
+    
+    //侧滑退出 与 scrollview 手势冲突
+    NSArray *gestureArray = self.navigationController.view.gestureRecognizers;
+    for (UIGestureRecognizer *gestureRecognizer in gestureArray) {
+        if ([gestureRecognizer isKindOfClass:[UIScreenEdgePanGestureRecognizer class]]) {
+            [m_scrollView.panGestureRecognizer requireGestureRecognizerToFail:gestureRecognizer];
+        }
+    }
 }
 
 - (void)didReceiveMemoryWarning {
@@ -93,12 +104,12 @@
     [back_button addTarget:self action:@selector(back) forControlEvents:UIControlEventTouchUpInside];
     [navibar_view addSubview:back_button];
     
-    UIButton* history_button = [[UIButton alloc] initWithFrame:CGRectMake(SCREEN_WIDTH-56-14, 21, 56, 14)];
-    [history_button setTitle:@"提现记录" forState:UIControlStateNormal];
-    [history_button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
-    [history_button.titleLabel setFont:[UIFont fontWithName:@"SourceHanSansCN-Regular" size:14]];
-    [history_button addTarget:self action:@selector(history_changeToMoney) forControlEvents:UIControlEventTouchUpInside];
-    [navibar_view addSubview:history_button];
+//    UIButton* history_button = [[UIButton alloc] initWithFrame:CGRectMake(SCREEN_WIDTH-56-14, 21, 56, 14)];
+//    [history_button setTitle:@"提现记录" forState:UIControlStateNormal];
+//    [history_button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+//    [history_button.titleLabel setFont:[UIFont fontWithName:@"SourceHanSansCN-Regular" size:14]];
+//    [history_button addTarget:self action:@selector(history_changeToMoney) forControlEvents:UIControlEventTouchUpInside];
+//    [navibar_view addSubview:history_button];
     
     UILabel* title = [[UILabel alloc] initWithFrame:CGRectMake(SCREEN_WIDTH/2-80/2, 18, 80, 20)];
     title.textAlignment = NSTextAlignmentCenter;
@@ -116,10 +127,112 @@
     m_navibar_view = navibar_view;
 }
 
--(void)InitView{
+-(void)initHeaderView{
+    m_headerView = [[UIView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(m_navibar_view.frame), SCREEN_WIDTH, kWidth(148))];
+    m_headerView.backgroundColor = RGBA(248, 205, 4, 1);
+    [self.view addSubview:m_headerView];
+    
+    UILabel* total_label = [UILabel new];
+    total_label.text = @"累计收入";
+    total_label.textColor = RGBA(97, 88, 28, 1);
+    total_label.textAlignment = NSTextAlignmentCenter;
+    total_label.font = kFONT(14);
+    [m_headerView addSubview:total_label];
+    [total_label mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.left.equalTo(m_headerView);
+        make.top.equalTo(m_headerView.mas_top).with.offset(kWidth(20));
+        make.width.mas_equalTo(SCREEN_WIDTH/3);
+    }];
+    
+    UILabel* coin_label = [UILabel new];
+    coin_label.text = @"当前金币";
+    coin_label.textColor = RGBA(97, 88, 28, 1);
+    coin_label.textAlignment = NSTextAlignmentCenter;
+    coin_label.font = kFONT(14);
+    [m_headerView addSubview:coin_label];
+    [coin_label mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.left.equalTo(total_label.mas_right);
+        make.top.equalTo(m_headerView.mas_top).with.offset(kWidth(20));
+        make.width.mas_equalTo(SCREEN_WIDTH/3);
+    }];
+    
+    UILabel* money_label = [UILabel new];
+    money_label.text = @"当前余额";
+    money_label.textColor = RGBA(97, 88, 28, 1);
+    money_label.textAlignment = NSTextAlignmentCenter;
+    money_label.font = kFONT(14);
+    [m_headerView addSubview:money_label];
+    [money_label mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.left.equalTo(coin_label.mas_right);
+        make.top.equalTo(m_headerView.mas_top).with.offset(kWidth(20));
+        make.width.mas_equalTo(SCREEN_WIDTH/3);
+    }];
+    
+    UILabel* total_number_label = [UILabel new];
+    total_number_label.text = [Login_info share].userMoney_model.total_income;
+    total_number_label.textColor = RGBA(34, 39, 39, 1);
+    total_number_label.textAlignment = NSTextAlignmentCenter;
+    total_number_label.font = KBFONT(24);
+    [m_headerView addSubview:total_number_label];
+    [total_number_label mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.left.equalTo(m_headerView);
+        make.top.equalTo(total_label.mas_bottom).with.offset(kWidth(10));
+        make.width.mas_equalTo(SCREEN_WIDTH/3);
+    }];
+    
+    UILabel* coin_number_label = [UILabel new];
+    coin_number_label.text = [Login_info share].userMoney_model.coin;
+    coin_number_label.textColor = RGBA(34, 39, 39, 1);
+    coin_number_label.textAlignment = NSTextAlignmentCenter;
+    coin_number_label.font = KBFONT(24);
+    [m_headerView addSubview:coin_number_label];
+    [coin_number_label mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.left.equalTo(total_number_label.mas_right);
+        make.top.equalTo(total_label.mas_bottom).with.offset(kWidth(10));
+        make.width.mas_equalTo(SCREEN_WIDTH/3);
+    }];
+    
+    UILabel* money_number_label = [UILabel new];
+    money_number_label.text = [Login_info share].userMoney_model.cash;
+    money_number_label.textColor = RGBA(34, 39, 39, 1);
+    money_number_label.textAlignment = NSTextAlignmentCenter;
+    money_number_label.font = KBFONT(24);
+    [m_headerView addSubview:money_number_label];
+    [money_number_label mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.left.equalTo(coin_number_label.mas_right);
+        make.top.equalTo(total_label.mas_bottom).with.offset(kWidth(10));
+        make.width.mas_equalTo(SCREEN_WIDTH/3);
+    }];
+    
+    UIView* white_view = [UIView new];
+    white_view.backgroundColor = [UIColor whiteColor];
+    [m_headerView addSubview:white_view];
+    [white_view mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.bottom.equalTo(m_headerView.mas_bottom);
+        make.left.and.right.equalTo(m_headerView);
+        make.height.mas_equalTo(kWidth(30));
+    }];
+    
+    UIButton* changeToMoney_btn = [UIButton new];
+    changeToMoney_btn.backgroundColor = RGBA(251, 84, 31, 1);
+    [changeToMoney_btn setTitle:@"我要提现" forState:UIControlStateNormal];
+    [changeToMoney_btn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    [changeToMoney_btn.layer setCornerRadius:kWidth(20)];
+    [changeToMoney_btn addTarget:self action:@selector(replyToCash) forControlEvents:UIControlEventTouchUpInside];
+    [m_headerView addSubview:changeToMoney_btn];
+    [m_headerView bringSubviewToFront:changeToMoney_btn];
+    [changeToMoney_btn mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.height.mas_equalTo(kWidth(40));
+        make.left.equalTo(m_headerView.mas_left).with.offset(kWidth(80));
+        make.right.equalTo(m_headerView.mas_right).with.offset(-kWidth(80));
+        make.bottom.equalTo(white_view.mas_top).with.offset(kWidth(20));
+    }];
+}
+
+-(void)InitTipsView{
     //标签
-    UIView* label_view = [[UIView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(m_navibar_view.frame), SCREEN_WIDTH, 40)];
-    label_view.backgroundColor = [UIColor colorWithRed:239/255.0 green:197/255.0 blue:0/255.0 alpha:1/1.0];
+    UIView* label_view = [[UIView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(m_headerView.frame), SCREEN_WIDTH, 40)];
+    label_view.backgroundColor = [UIColor whiteColor];
     m_lable_view = label_view;
     label_view.userInteractionEnabled = YES;
     
@@ -136,14 +249,14 @@
     
     //金币下划线
     UIView* gold_line = [[UIView alloc] initWithFrame:CGRectMake((SCREEN_WIDTH/2)/3, CGRectGetMaxY(gold_label.frame)+10, (SCREEN_WIDTH/2)/3, 2)];
-    gold_line.backgroundColor = [UIColor blackColor];
+    gold_line.backgroundColor = [UIColor redColor];
     m_gold_line = gold_line;
     [label_view addSubview:m_gold_line];
     
     UILabel* package_label = [[UILabel alloc] initWithFrame:CGRectMake(SCREEN_WIDTH/2, 12, SCREEN_WIDTH/2, 16)];
     package_label.userInteractionEnabled = YES;
     package_label.text = @"钱包";
-    package_label.textColor = [UIColor blackColor];
+    package_label.textColor = [UIColor redColor];
     package_label.textAlignment = NSTextAlignmentCenter;
     package_label.font = [UIFont fontWithName:@"SourceHanSansCN-Regular" size:16];
     m_package_label = package_label;
@@ -153,7 +266,7 @@
     
     //钱包下划线
     UIView* package_line = [[UIView alloc] initWithFrame:CGRectMake(SCREEN_WIDTH/2+(SCREEN_WIDTH/2)/3, CGRectGetMaxY(gold_label.frame)+10, (SCREEN_WIDTH/2)/3, 2)];
-    package_line.backgroundColor = [UIColor blackColor];
+    package_line.backgroundColor = [UIColor redColor];
     m_package_line = package_line;
     [label_view addSubview:m_package_line];
     
@@ -186,10 +299,11 @@
     UIView* gold_view = [[UIView alloc] init];
     m_gold_view = gold_view;
     gold_view.frame = CGRectMake(0, 0, SCREEN_WIDTH, m_scrollView.frame.size.height);
-    [self initGoldHeaderView];
+//    [self initGoldHeaderView];
     Mine_goldDetail_TableViewController* gold_tableview = [[Mine_goldDetail_TableViewController alloc] init];
     gold_tableview.tableName = @"金币";
-    gold_tableview.tableView.frame = CGRectMake(0, m_headerHight, SCREEN_WIDTH, m_scrollView.frame.size.height-m_headerHight);
+//    gold_tableview.tableView.frame = CGRectMake(0, m_headerHight, SCREEN_WIDTH, m_scrollView.frame.size.height-m_headerHight);
+    gold_tableview.tableView.frame = CGRectMake(0, 0, SCREEN_WIDTH, m_scrollView.frame.size.height-m_headerHight);
     gold_tvc = gold_tableview;
     [gold_view addSubview:gold_tvc.tableView];
     
@@ -225,10 +339,12 @@
     UIView* package_view = [[UIView alloc] init];
     m_package_view = package_view;
     package_view.frame = CGRectMake(SCREEN_WIDTH, 0, SCREEN_WIDTH, m_scrollView.frame.size.height);
-    [self initPackageHeaderView];
+//    [self initPackageHeaderView];
     Mine_goldDetail_TableViewController* package_tableview = [[Mine_goldDetail_TableViewController alloc] init];
     package_tableview.tableName = @"钱包";
-    package_tableview.tableView.frame = CGRectMake(0, m_headerHight, SCREEN_WIDTH,
+//    package_tableview.tableView.frame = CGRectMake(0, m_headerHight, SCREEN_WIDTH,
+//                                                   SCREEN_HEIGHT-CGRectGetMaxY(m_lable_view.frame)-m_headerHight);
+    package_tableview.tableView.frame = CGRectMake(0, 0, SCREEN_WIDTH,
                                                    SCREEN_HEIGHT-CGRectGetMaxY(m_lable_view.frame)-m_headerHight);
     package_tvc = package_tableview;
     [package_view addSubview:package_tvc.tableView];
@@ -344,6 +460,16 @@
     [self ChangeLage:m_selectedIndex];
 }
 
+-(void)replyToCash{
+    GoldChangeToMoney_ViewController* vc = [[GoldChangeToMoney_ViewController alloc] init];
+    Mine_changeToMoney_model* model = [[Mine_changeToMoney_model alloc] init];
+    model.total_cash = [[Login_info share].userMoney_model.total_cashed floatValue];
+    model.total_income =  [[Login_info share].userMoney_model.total_income floatValue];
+    model.money = [[Login_info share].userMoney_model.cash floatValue];
+//    vc.model = model;
+    [self.navigationController pushViewController:vc animated:YES];
+}
+
 #pragma mark - 标签与scrollView页面的 对应
 -(void)ChangeLage:(NSInteger)index{
     if(index == 0){
@@ -363,7 +489,7 @@
 
 #pragma mark - scrll代理
 -(void)scrollViewDidScroll:(UIScrollView *)scrollView{
-    NSLog(@"scrollView-->x:%f",scrollView.contentOffset.x);
+//    NSLog(@"scrollView-->x:%f",scrollView.contentOffset.x);
     CGFloat currentPosition = scrollView.contentOffset.x;
     if(currentPosition > m_lastPosition){
         //往右滑
@@ -450,6 +576,9 @@
             if (type == 0) {
                 if(array_model.count != 0){
                     array_tmp = [[TimeHelper share] sortAllData_day:array_model];//[array,array]
+                    if(array_model.count < 10){
+                        gold_tvc.tableView.footer = nil;
+                    }
                 }else{
                     array_tmp = [NSArray array];
                 }
@@ -471,10 +600,10 @@
 //            NSArray* array = array_tmp;
             if(array_model.count == 0){ //当数据为空时
                 [gold_tvc.tableView.footer noticeNoMoreData];
-                if(type == 0){
+                if(type == 0 && m_gold_array.count == 0){
                     [block_self NoResult_gold];
                 }
-                return;
+                [gold_tvc.tableView.header endRefreshing];
             }else{
                 [gold_tvc.tableView reloadData];
                 m_page_gold += 1;
@@ -559,11 +688,20 @@
             
             if(array_model.count == 0){ //当数据为空时
                 [package_tvc.tableView.footer noticeNoMoreData];
-                if(type == 0){
-                    [block_self NoResult_package];
-                }
+                
+                [package_tvc.tableView.footer endRefreshing];
+                [package_tvc.tableView.header endRefreshing];
                 return;
             }else{
+                if(type == 0){
+            
+                    if(array_model.count < 10 && array_model.count > 0){
+                        package_tvc.tableView.footer = nil;
+                    }
+                    else if(array_model.count  == 0 && m_package_array.count == 0){
+                        [block_self NoResult_package];
+                    }
+                }
                 [package_tvc.tableView reloadData];
                 m_page_package += 1;
                 [package_tvc.tableView.footer endRefreshing];
@@ -582,24 +720,35 @@
 
 
 -(void)NoResult_gold{
-    DateReload_view* reload_gold = [[DateReload_view alloc] initWithFrame:CGRectMake(0, 120,
-                                                                                     gold_tvc.tableView.frame.size.width,
-                                                                                     gold_tvc.tableView.frame.size.height)];
-    m_reload_gold = reload_gold;
-    m_reload_gold.title = @"没有更多数据了";
-    [m_gold_view addSubview:reload_gold];
     
-    [reload_gold.button addTarget:self action:@selector(TVC_gold_reload) forControlEvents:UIControlEventTouchUpInside];
+    [gold_tvc.tableView removeFromSuperview];
+    UILabel* NoData_label = [UILabel new];
+    NoData_label.text               = @"暂时没有数据";
+    NoData_label.textColor          = RGBA(34, 39, 39, 1);
+    NoData_label.textAlignment      = NSTextAlignmentCenter;
+    NoData_label.font               = kFONT(12);
+    [m_gold_view addSubview:NoData_label];
+    [NoData_label mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.left.and.right.equalTo(m_gold_view);
+        make.centerY.equalTo(m_gold_view);
+    }];
+    
 }
 -(void)NoResult_package{
-    DateReload_view* reload_gold = [[DateReload_view alloc] initWithFrame:CGRectMake(0, 120,
-                                                                                     package_tvc.tableView.frame.size.width,
-                                                                                     package_tvc.tableView.frame.size.height)];
-    m_reload_package = reload_gold;
-    m_reload_package.title = @"没有更多数据了";
-    [m_package_view addSubview:reload_gold];
+
     
-    [reload_gold.button addTarget:self action:@selector(TVC_package_reload) forControlEvents:UIControlEventTouchUpInside];
+    [package_tvc.tableView removeFromSuperview];
+    UILabel* NoData_label = [UILabel new];
+    NoData_label.text               = @"暂时没有数据";
+    NoData_label.textColor          = RGBA(34, 39, 39, 1);
+    NoData_label.textAlignment      = NSTextAlignmentCenter;
+    NoData_label.font               = kFONT(12);
+    [m_package_view addSubview:NoData_label];
+    [NoData_label mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.left.and.right.equalTo(m_package_view);
+        make.centerY.equalTo(m_package_view);
+    }];
+    
 }
 -(void)TVC_gold_reload{
     

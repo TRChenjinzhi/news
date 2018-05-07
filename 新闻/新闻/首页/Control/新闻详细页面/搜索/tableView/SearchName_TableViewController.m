@@ -39,7 +39,8 @@
 //    self.tableView.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;
     [self.tableView registerClass:[Search_word_TableViewCell class] forCellReuseIdentifier:@"search_word_cell"];
     
-    array_word = [[AppConfig sharedInstance] GetSearchWord];
+    array_word = [[AppConfig sharedInstance] GetSearchWordAndType:[NSString stringWithFormat:@"%ld",self.type]];
+    
 }
 
 - (void)didReceiveMemoryWarning {
@@ -116,13 +117,13 @@
 
 #pragma mark 协议方法
 -(void)RemoveSearchWord:(NSInteger)index{
-    [[AppConfig sharedInstance] removeSearchWordByIndex:index];
-    array_word = [[AppConfig sharedInstance] GetSearchWord];
+    [[AppConfig sharedInstance] removeSearchWordByIndex:index AndType:[NSString stringWithFormat:@"%ld",self.type]];
+    array_word = [[AppConfig sharedInstance] GetSearchWordAndType:[NSString stringWithFormat:@"%ld",self.type]];
     [self.tableView reloadData];
 }
 
 -(void)RemoveAllSearchWord{
-    [[AppConfig sharedInstance] removeSearchWordAll];
+    [[AppConfig sharedInstance] removeSearchWordAllAndType:[NSString stringWithFormat:@"%ld",self.type]];
     array_word = [NSArray array];
     [self.tableView reloadData];
 }

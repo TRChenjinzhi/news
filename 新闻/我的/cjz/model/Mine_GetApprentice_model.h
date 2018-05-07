@@ -28,6 +28,7 @@
 @property (nonatomic,strong)NSString* slaver_income;
 @property (nonatomic,strong)NSString* count;
 @property (nonatomic,strong)NSString* time;
+@property (nonatomic,strong)NSString* last_login_time;
 
 
 +(NSArray*)dicToArray:(NSArray*)array_dic;

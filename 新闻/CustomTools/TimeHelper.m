@@ -20,6 +20,9 @@ static id _instance;
 }
 
 +(NSString *)showTime:(NSString *)newsTime{
+    if([NullNilHelper dx_isNullOrNilWithObject:newsTime]){
+        return @"";
+    }
     // 时间字符串
     TimeHelper* timeHelper = [[TimeHelper alloc] init];
     NSString *str_news = newsTime;
@@ -106,6 +109,9 @@ static id _instance;
 }
 
 +(NSString *)showTime_collect:(NSString *)newsTime{
+    if([NullNilHelper dx_isNullOrNilWithObject:newsTime]){
+        return @"";
+    }
     // 时间字符串
     TimeHelper* timeHelper = [[TimeHelper alloc] init];
     NSString *str_news = newsTime;
@@ -464,31 +470,44 @@ static id _instance;
     
     NSMutableArray* sorted_array = [[NSMutableArray alloc]init];
     //先找到最大的日期，从大到小排序
-//    NSInteger index = [self GetIndexOfMaxDate:array];
-    CJZdataModel* model = array[0];
-    //    NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
-    //    formatter.dateFormat = @"yyyy-MM-dd";
-    NSString* shijiancuo = [self dateChangeToTimeSecond:model.publish_time];
-    NSDate *new_date = [NSDate dateWithTimeIntervalSince1970:[shijiancuo doubleValue]];
+    NSObject* obj_model = array[0];
+    NSDate *new_date = nil;
+    if([obj_model isKindOfClass:[CJZdataModel class]]){
+        CJZdataModel* model = (CJZdataModel*)obj_model;
+        NSString* shijiancuo = model.publish_time;
+        new_date = [NSDate dateWithTimeIntervalSince1970:[shijiancuo doubleValue]];
+    }else{
+        video_info_model* model = (video_info_model*)obj_model;
+        NSString* shijiancuo = model.readingTime;
+        new_date = [NSDate dateWithTimeIntervalSince1970:[shijiancuo doubleValue]];
+    }
     
-    [sorted_array addObject:model];
+    [sorted_array addObject:obj_model];
     
     //    NSInteger index = 0;
     if(array.count == 1){
         return sorted_array;
     }
     for (int i=1;i<array.count;i++) {
-        CJZdataModel* item = array[i];
-        //        NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
-        //        formatter.dateFormat = @"yyyy-MM-dd";
-        NSString* shijiancuo1 = [self dateChangeToTimeSecond:item.publish_time];
-        NSDate *old_date = [NSDate dateWithTimeIntervalSince1970:[shijiancuo1 doubleValue]];
+        NSObject* obj_item = array[i];
+        NSDate *old_date = nil;
+        if([obj_item isKindOfClass:[CJZdataModel class]]){
+            CJZdataModel* item = (CJZdataModel*)obj_item;
+            NSString* shijiancuo1 = item.publish_time;
+            old_date = [NSDate dateWithTimeIntervalSince1970:[shijiancuo1 doubleValue]];
+        }else{
+            video_info_model* model = (video_info_model*)obj_item;
+            NSString* shijiancuo = model.readingTime;
+            old_date = [NSDate dateWithTimeIntervalSince1970:[shijiancuo doubleValue]];
+        }
+        
+        
         TimeHelper* timeHelper = [[TimeHelper alloc] init];
         if([timeHelper GetYear:new_date] == [timeHelper GetYear:old_date] &&
            [timeHelper GetMonth:new_date] == [timeHelper GetMonth:old_date] &&
            [timeHelper GetDay:new_date] == [timeHelper GetDay:old_date]){
             
-            [sorted_array addObject:item];
+            [sorted_array addObject:obj_item];
         }
     }
     
@@ -502,6 +521,12 @@ static id _instance;
     return [NSNumber numberWithDouble:second];
 }
 
+-(NSString*)getCurrentTime_seconds{
+    NSDate* date_now = [NSDate date];
+    NSTimeInterval second = [date_now timeIntervalSince1970];
+    return [NSString stringWithFormat:@"%f",second];
+}
+
 -(NSString*)getCurrentTime_YYYYMMDD{
     NSDate* date_now = [NSDate date];
     NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
@@ -513,6 +538,12 @@ static id _instance;
     NSDate* date_now = [NSDate date];
     NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
     formatter.dateFormat = @"YYYY-MM-dd HH:SS";
+    return [formatter stringFromDate:date_now];
+}
+-(NSString*)getCurrentTime_YYYYMMDDHHMMSS{
+    NSDate* date_now = [NSDate date];
+    NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
+    formatter.dateFormat = @"YYYY-MM-dd HH:mm:ss";
     return [formatter stringFromDate:date_now];
 }
 
@@ -542,6 +573,18 @@ static id _instance;
     NSTimeInterval second = [date timeIntervalSince1970];
 //    second += 8*60*60;//东8区
     return [NSString stringWithFormat:@"%ld",(long)second];
+}
+
+-(NSString*)dataChangeToYYMMDD:(NSString*)time_date{
+    // 1.创建一个时间格式化对象
+    NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
+    // 2.格式化对象的样式/z大小写都行/格式必须严格和字符串时间一样
+    formatter.dateFormat = @"YYYY-MM-dd HH:mm:ss";
+
+    NSDate* date = [formatter dateFromString:time_date];
+    formatter.dateFormat = @"yyyy-MM-dd";
+    NSString* time = [formatter stringFromDate:date];
+    return time;
 }
 
 @end

@@ -8,6 +8,7 @@
 
 #import "AppConfig.h"
 #import "ChannelName.h"
+#import "NewUserTask_model.h"
 
 @implementation AppConfig
 
@@ -76,13 +77,13 @@ static id _instance;
 }
 
 //保存搜索关键字
--(void)saveSearchWord:(NSArray*)array{
-    [[NSUserDefaults standardUserDefaults] setObject:array forKey:@"SearchWord"];
+-(void)saveSearchWord:(NSArray*)array AndType:(NSString*)type{
+    [[NSUserDefaults standardUserDefaults] setObject:array forKey:[NSString stringWithFormat:@"SearchWord-%@",type]];
     [[NSUserDefaults standardUserDefaults] synchronize];
 }
 
--(NSArray*)GetSearchWord{
-    NSArray* data = [[NSUserDefaults standardUserDefaults] objectForKey:@"SearchWord"];
+-(NSArray*)GetSearchWordAndType:(NSString*)type{
+    NSArray* data = [[NSUserDefaults standardUserDefaults] objectForKey:[NSString stringWithFormat:@"SearchWord-%@",type]];
     
     //将数组倒序
     NSArray* data_tmp = [[data reverseObjectEnumerator] allObjects];
@@ -90,8 +91,8 @@ static id _instance;
     return data_tmp;
 }
 
--(void)addSearchWord:(NSString*)searchWord{
-    NSArray* data = [[NSUserDefaults standardUserDefaults] objectForKey:@"SearchWord"];
+-(void)addSearchWord:(NSString*)searchWord AndType:(NSString*)type{
+    NSArray* data = [[NSUserDefaults standardUserDefaults] objectForKey:[NSString stringWithFormat:@"SearchWord-%@",type]];
     
     NSMutableArray* array = [[NSMutableArray alloc] initWithArray:data];
     
@@ -110,34 +111,34 @@ static id _instance;
         }
     }
     
-    [self saveSearchWord:array];
+    [self saveSearchWord:array AndType:type];
 }
 
--(void)removeSearchWord:(NSString*)searchWord{
-    NSArray* data = [[NSUserDefaults standardUserDefaults] objectForKey:@"SearchWord"];
+-(void)removeSearchWord:(NSString*)searchWord AndType:(NSString*)type{
+    NSArray* data = [[NSUserDefaults standardUserDefaults] objectForKey:[NSString stringWithFormat:@"SearchWord-%@",type]];
 
     NSMutableArray* array = [[NSMutableArray alloc] initWithArray:data];
     [array removeObject:searchWord];
     
-    [self saveSearchWord:array];
+    [self saveSearchWord:array AndType:type];
 }
 
--(void)removeSearchWordByIndex:(NSInteger)index{
-    NSArray* data = [[NSUserDefaults standardUserDefaults] objectForKey:@"SearchWord"];
+-(void)removeSearchWordByIndex:(NSInteger)index AndType:(NSString*)type{
+    NSArray* data = [[NSUserDefaults standardUserDefaults] objectForKey:[NSString stringWithFormat:@"SearchWord-%@",type]];
     
     NSMutableArray* array = [[NSMutableArray alloc] initWithArray:data];
     [array removeObjectAtIndex:index];
     
-    [self saveSearchWord:array];
+    [self saveSearchWord:array AndType:type];
 }
 
--(void)removeSearchWordAll{
-    NSArray* data = [[NSUserDefaults standardUserDefaults] objectForKey:@"SearchWord"];
+-(void)removeSearchWordAllAndType:(NSString*)type{
+    NSArray* data = [[NSUserDefaults standardUserDefaults] objectForKey:[NSString stringWithFormat:@"SearchWord-%@",type]];
     
     NSMutableArray* array = [[NSMutableArray alloc] initWithArray:data];
     [array removeAllObjects];
     
-    [self saveSearchWord:array];
+    [self saveSearchWord:array AndType:type];
 }
 
 //新闻详细页面 阅读字体
@@ -157,13 +158,22 @@ static id _instance;
 
 //用户信息
 -(void)saveUserInfo:(NSDictionary *)dic{
-    [[NSUserDefaults standardUserDefaults] setObject:dic forKey:@"userInfo"];//内的值 不允许有nil值
+    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:dic options:NSJSONWritingPrettyPrinted error:nil];
+    
+    NSString* str_dic = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+    [[NSUserDefaults standardUserDefaults] setObject:str_dic forKey:@"userInfo"];//内的值 不允许有nil值
     [[NSUserDefaults standardUserDefaults] synchronize];
 }
 
 
 -(NSDictionary*)GetUserInfo{
-    NSDictionary* dic = [[NSUserDefaults standardUserDefaults] objectForKey:@"userInfo"];
+    NSString* str_dic = [[NSUserDefaults standardUserDefaults] objectForKey:@"userInfo"];
+    if(str_dic == nil){
+        return nil;
+    }
+    
+    NSData *jsonData = [str_dic dataUsingEncoding:NSUTF8StringEncoding];
+    NSDictionary *dic = [NSJSONSerialization JSONObjectWithData:jsonData options:NSJSONReadingMutableContainers error:nil];
     return dic;
 }
 
@@ -207,11 +217,11 @@ static id _instance;
 //用户头像
 -(void)saveUserIcon:(UIImage*)img{
     NSData* data = UIImagePNGRepresentation(img);
-    [[NSUserDefaults standardUserDefaults] setObject:data forKey:@"userIcon"];
+    [[NSUserDefaults standardUserDefaults] setObject:data forKey:[NSString stringWithFormat:@"userIcon-%@",[Login_info share].userInfo_model.user_id]];
     [[NSUserDefaults standardUserDefaults] synchronize];
 }
 -(UIImage*)getUserIcon{
-    NSData* data = [[NSUserDefaults standardUserDefaults] objectForKey:@"userIcon"];
+    NSData* data = [[NSUserDefaults standardUserDefaults] objectForKey:[NSString stringWithFormat:@"userIcon-%@",[Login_info share].userInfo_model.user_id]];
     UIImage *image = [UIImage imageWithData:data];
     return image;
 }
@@ -232,7 +242,7 @@ static id _instance;
     [[NSUserDefaults standardUserDefaults] setObject:array forKey:[NSString stringWithFormat:@"news-%@",channel_id]];
     [[NSUserDefaults standardUserDefaults] synchronize];
 }
--(NSMutableArray*)getNewsByChannel_id:(NSString*)channel_id{
+-(NSArray*)getNewsByChannel_id:(NSString*)channel_id{
     NSArray* array = [[NSUserDefaults standardUserDefaults] objectForKey:[NSString stringWithFormat:@"news-%@",channel_id]];
     NSArray *dataarray = [CJZdataModel DicToArrayModel_top50:array];
     NSMutableArray *statusArray = [NSMutableArray arrayWithArray:dataarray];
@@ -243,7 +253,7 @@ static id _instance;
 //显示的频道
 -(void)saveChannel:(NSArray*)array {
     if(array == nil){
-        [[NSUserDefaults standardUserDefaults] setObject:@[] forKey:@"channel_normal"];
+        [[NSUserDefaults standardUserDefaults] setObject:@[] forKey:[NSString stringWithFormat:@"channel_normal-%@",[Login_info share].userInfo_model.user_id]];
         [[NSUserDefaults standardUserDefaults] synchronize];
         return;
     }
@@ -261,11 +271,11 @@ static id _instance;
         [dic setObject:str_bool forKey:@"isNewChannel"];
         [tmp addObject:dic];
     }
-    [[NSUserDefaults standardUserDefaults] setObject:(NSArray*)tmp forKey:@"channel_normal"];
+    [[NSUserDefaults standardUserDefaults] setObject:(NSArray*)tmp forKey:[NSString stringWithFormat:@"channel_normal-%@",[Login_info share].userInfo_model.user_id]];
     [[NSUserDefaults standardUserDefaults] synchronize];
 }
 -(NSArray*)getChannel{
-    NSArray* array = [[NSUserDefaults standardUserDefaults] objectForKey:@"channel_normal"];
+    NSArray* array = [[NSUserDefaults standardUserDefaults] objectForKey:[NSString stringWithFormat:@"channel_normal-%@",[Login_info share].userInfo_model.user_id]];
     NSMutableArray* tmp = [NSMutableArray array];
     for (NSDictionary* dic in array) {
         ChannelName* channel = [[ChannelName alloc] init];
@@ -294,11 +304,14 @@ static id _instance;
 
 //保存打开消息中心的时间
 -(void)saveMessageDate:(NSString *)date{
-    [[NSUserDefaults standardUserDefaults] setObject:date forKey:@"messageBox"];
+    [[NSUserDefaults standardUserDefaults] setObject:date forKey:[NSString stringWithFormat:@"messageBox-%@",[Login_info share].userInfo_model.user_id]];
     [[NSUserDefaults standardUserDefaults] synchronize];
 }
 -(NSString*)getMessageDate{
-    NSString* date = [[NSUserDefaults standardUserDefaults] objectForKey:@"messageBox"];
+    NSString* date = (NSString*)[[NSUserDefaults standardUserDefaults] objectForKey:[NSString stringWithFormat:@"messageBox-%@",[Login_info share].userInfo_model.user_id]];
+    if([date isEqualToString:@""]){
+        return nil;
+    }
     return date;
 }
 
@@ -309,6 +322,9 @@ static id _instance;
 }
 -(NSString*)getRedPackage{
     NSString* date = [[NSUserDefaults standardUserDefaults] objectForKey:@"redPack_tips"];
+    if([date isEqualToString:@""]){
+        return nil;
+    }
     return date;
 }
 
@@ -321,6 +337,118 @@ static id _instance;
 -(NSString*)getUserId:(NSString*)userId{
     NSString* date = [[NSUserDefaults standardUserDefaults] objectForKey:userId];
     return date;
+}
+
+//记录验证码时间
+-(void)saveIdifyCode:(NSNumber*)time{
+    [[NSUserDefaults standardUserDefaults] setObject:time forKey:@"idifycode"];
+    [[NSUserDefaults standardUserDefaults] synchronize];
+}
+-(NSNumber*)getIdefyCode{
+    NSNumber* date = [[NSUserDefaults standardUserDefaults] objectForKey:@"idifycode"];
+    return date;
+}
+
+//记录视频信息
+-(void)saveVideo:(NSString *)channelId AndArray:(NSArray *)array{
+    [[NSUserDefaults standardUserDefaults] setObject:array forKey:[NSString stringWithFormat:@"video-%@-%@",channelId,[Login_info share].userInfo_model.user_id]];
+    [[NSUserDefaults standardUserDefaults] synchronize];
+}
+-(NSArray *)getVideo:(NSString *)channelId{
+    NSArray* array = [[NSUserDefaults standardUserDefaults] objectForKey:[NSString stringWithFormat:@"video-%@-%@",channelId,[Login_info share].userInfo_model.user_id]];
+    array = [video_info_model collectData_ToArray:array];
+    return array;
+}
+
+//记录新手任务信息
+-(void)saveNewUserTaskInfo{
+    NSLog(@"保存用户新手任务信息");
+    NSMutableArray* array = [NSMutableArray array];
+    for (NewUserTask_model* model in [TaskCountHelper share].get_task_newUser_name_array) {
+        NSMutableDictionary* dic = [NSMutableDictionary dictionary];
+        /*
+         {
+         "type":8,    //绑定微信
+         "max":1,     //无用
+         "count":0,   //无用
+         "status":0   //完成状态    0：未完成   1：完成
+         }
+         */
+        [dic setObject:[NSNumber numberWithInteger:model.type] forKey:@"type"];
+        [dic setObject:[NSNumber numberWithInteger:model.max] forKey:@"max"];
+        [dic setObject:[NSNumber numberWithInteger:model.count] forKey:@"count"];
+        [dic setObject:[NSNumber numberWithInteger:model.status] forKey:@"status"];
+        
+        [array addObject:dic];
+    }
+    [[NSUserDefaults standardUserDefaults] setObject:array forKey:[NSString stringWithFormat:@"NewUserTaskInfo-%@",[Login_info share].userInfo_model.user_id]];
+    [[NSUserDefaults standardUserDefaults] synchronize];
+}
+-(void)getNewUserTaskInfo{
+    NSArray* dic = [[NSUserDefaults standardUserDefaults] objectForKey:[NSString stringWithFormat:@"NewUserTaskInfo-%@",[Login_info share].userInfo_model.user_id]];
+    if(dic == nil || dic.count == 0){
+        NSLog(@"获取用户新手任务信息-失败");
+        [TaskCountHelper share].task_newUser_name_array = nil;
+        [InternetHelp GetNewUserTaskCount_Sucess:^(NSDictionary *dic) {
+            NSArray* array = [NewUserTask_model dicToArray:dic[@"list"]];
+            [TaskCountHelper share].task_newUser_name_array = array;
+            NSLog(@"获取用户新手任务信息");
+        } Fail:^(NSDictionary *dic) {
+            NSLog(@"获取用户新手任务信息-再次失败");
+        }];
+        return;
+    }
+    else{
+        NSLog(@"获取用户新手任务信息");
+       [TaskCountHelper share].task_newUser_name_array = [NewUserTask_model dicToArray:dic];
+    }
+}
+
+-(void)clearNewUserTaskInfo{
+    NSLog(@"清除用户新手任务信息");
+    [[NSUserDefaults standardUserDefaults] setObject:@[] forKey:[NSString stringWithFormat:@"NewUserTaskInfo-%@",[Login_info share].userInfo_model.user_id]];
+    [[NSUserDefaults standardUserDefaults] synchronize];
+}
+
+//新手任务完成弹窗
+-(void)saveShowWinForFirstDone_newUserTask:(BOOL)isDone{
+    [[NSUserDefaults standardUserDefaults] setBool:isDone forKey:[NSString stringWithFormat:@"NewUserTaskInfo_isDone-%@",[Login_info share].userInfo_model.user_id]];
+    [[NSUserDefaults standardUserDefaults] synchronize];
+}
+-(BOOL)getShowWinForFirstDone_newUserTask{
+    BOOL isDone = [[NSUserDefaults standardUserDefaults] boolForKey:[NSString stringWithFormat:@"NewUserTaskInfo_isDone-%@",[Login_info share].userInfo_model.user_id]];
+    return isDone;
+}
+
+//新手任务指导
+-(void)saveGuideOfNewUser:(BOOL)isGuide{
+    [[NSUserDefaults standardUserDefaults] setBool:isGuide forKey:[NSString stringWithFormat:@"GuideOfNewUser_isDone-%@",[Login_info share].userInfo_model.user_id]];
+    [[NSUserDefaults standardUserDefaults] synchronize];
+}
+-(BOOL)getGuideOfNewUser{
+    BOOL isDone = [[NSUserDefaults standardUserDefaults] boolForKey:[NSString stringWithFormat:@"GuideOfNewUser_isDone-%@",[Login_info share].userInfo_model.user_id]];
+    return isDone;
+}
+
+//支付账号信息
+-(void)saveZhifuInfo:(Mine_zhifu_model*)model{
+    NSDictionary* dic = [Mine_zhifu_model modelToDic:model];
+    [[NSUserDefaults standardUserDefaults] setObject:dic forKey:[NSString stringWithFormat:@"zhifuInfo-%@",[Login_info share].userInfo_model.user_id]];
+    [[NSUserDefaults standardUserDefaults] synchronize];
+}
+-(NSDictionary*)getZhifuInfo{
+    NSDictionary* str = [[NSUserDefaults standardUserDefaults] objectForKey:[NSString stringWithFormat:@"zhifuInfo-%@",[Login_info share].userInfo_model.user_id]];
+    return str;
+}
+
+//抽奖提示弹窗
+-(void)saveChoujiangTips:(BOOL)isShow{
+    [[NSUserDefaults standardUserDefaults] setBool:isShow forKey:[NSString stringWithFormat:@"choujiangTips_isDone-%@",[Login_info share].userInfo_model.user_id]];
+    [[NSUserDefaults standardUserDefaults] synchronize];
+}
+-(BOOL)getChoujiangTips_isShow{
+    BOOL isDone = [[NSUserDefaults standardUserDefaults] boolForKey:[NSString stringWithFormat:@"choujiangTips_isDone-%@",[Login_info share].userInfo_model.user_id]];
+    return isDone;
 }
 
 @end

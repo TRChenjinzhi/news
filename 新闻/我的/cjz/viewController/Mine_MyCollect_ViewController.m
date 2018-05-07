@@ -12,6 +12,8 @@
 #import "OneImageCell.h"
 #import "ThreeImageCell.h"
 #import "DetailWeb_ViewController.h"
+#import "Video_detail_tuijianTableViewCell.h"
+#import "Video_detail_ViewController.h"
 
 @interface Mine_MyCollect_ViewController ()<UITableViewDelegate,UITableViewDataSource>
 
@@ -61,12 +63,12 @@
     [back_button addTarget:self action:@selector(back) forControlEvents:UIControlEventTouchUpInside];
     [navibar_view addSubview:back_button];
     
-    UIButton* edit_button = [[UIButton alloc] initWithFrame:CGRectMake(SCREEN_WIDTH-56-14, 21, 56, 14)];
-    [edit_button setTitle:@"编辑" forState:UIControlStateNormal];
-    [edit_button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
-    [edit_button.titleLabel setFont:[UIFont fontWithName:@"SourceHanSansCN-Regular" size:14]];
-    [edit_button addTarget:self action:@selector(edit:) forControlEvents:UIControlEventTouchUpInside];
-    [navibar_view addSubview:edit_button];
+//    UIButton* edit_button = [[UIButton alloc] initWithFrame:CGRectMake(SCREEN_WIDTH-56-14, 21, 56, 14)];
+//    [edit_button setTitle:@"编辑" forState:UIControlStateNormal];
+//    [edit_button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+//    [edit_button.titleLabel setFont:[UIFont fontWithName:@"SourceHanSansCN-Regular" size:14]];
+//    [edit_button addTarget:self action:@selector(edit:) forControlEvents:UIControlEventTouchUpInside];
+//    [navibar_view addSubview:edit_button];
     
     UILabel* title = [[UILabel alloc] initWithFrame:CGRectMake(SCREEN_WIDTH/2-150/2, 18, 150, 20)];
     m_title = title;
@@ -109,6 +111,10 @@
     [self.tableview setSeparatorInset:UIEdgeInsetsZero];
     [self.tableview setLayoutMargins:UIEdgeInsetsZero];
     self.tableview.separatorStyle = UITableViewCellSeparatorStyleNone;
+    [self.tableview registerClass:[Video_detail_tuijianTableViewCell class] forCellReuseIdentifier:@"Video_detail_tuijianTableViewCell"];
+    [self.tableview registerClass:[NoImageCell class] forCellReuseIdentifier:@"NoImg"];
+    [self.tableview registerClass:[OneImageCell class] forCellReuseIdentifier:@"OneImg"];
+    [self.tableview registerClass:[ThreeImageCell class] forCellReuseIdentifier:@"ThreeImg"];
     GYHHeadeRefreshController* header = [GYHHeadeRefreshController headerWithRefreshingBlock:^{
         m_page = 0;
         [self getData:m_page];
@@ -130,14 +136,8 @@
     [self.view addSubview:m_NoResult_view];
 }
 
--(void)deleteNews:(UIButton *)sender{
-    NSInteger index = sender.tag;
-    
-    if(self.totalArray.count == 0){
-        NSLog(@"收藏页面 数组为空");
-        return;
-    }
-    NSLog(@"totalArray count:%ld",self.totalArray.count);
+-(void)deleteNews:(NSInteger)index{
+
     CJZdataModel* model  = self.totalArray[index];
     
     [self CollectedAction:0 AndNewsId:model.ID AndNewsIndex:index];
@@ -185,60 +185,68 @@
 }
 -(UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath{
     ThemeManager *defaultManager = [ThemeManager sharedInstance];
-    CJZdataModel *Model = self.totalArray[indexPath.row];
-    //    CJZdataModel *Model = self.totalArray[indexPath.row];
+//    CJZdataModel *Model = self.totalArray[indexPath.row];
+
+    CJZdataModel *Model = nil;
+    NSObject* obj_model = self.totalArray[indexPath.row];
     
-    NSString *ID = [NoImageCell idForRow:Model];
-    if([ID isEqualToString:@"NoImg"]){
-        NoImageCell* cell = [NoImageCell cellWithTableView:tableView];
-        if ([defaultManager.themeName isEqualToString:@"高贵紫"]) {
-            cell.backgroundColor = [[ThemeManager sharedInstance] GetBackgroundColor];
-            cell.title.textColor = [defaultManager GetTitleColor];
-        }else{
-            cell.backgroundColor = [UIColor whiteColor];
-            cell.title.textColor = [UIColor blackColor];
+    if([obj_model isKindOfClass:[CJZdataModel class]]){
+        
+        Model = (CJZdataModel*)obj_model;
+        NSString *ID = [NoImageCell idForRow:Model];
+        if([ID isEqualToString:@"NoImg"]){
+            NoImageCell* cell = [NoImageCell cellWithTableView:tableView];
+            if ([defaultManager.themeName isEqualToString:@"高贵紫"]) {
+                cell.backgroundColor = [[ThemeManager sharedInstance] GetBackgroundColor];
+                cell.title.textColor = [defaultManager GetTitleColor];
+            }else{
+                cell.backgroundColor = [UIColor whiteColor];
+                cell.title.textColor = [UIColor blackColor];
+            }
+            cell.model = Model;
+            cell.IsDelete = m_IsEdit;
+            cell.m_tag = indexPath.row;
+            cell.IsCollect = YES;
+            cell.delete_button.tag = indexPath.row;
+            return cell;
         }
-        cell.model = Model;
-        cell.IsDelete = m_IsEdit;
-        cell.m_tag = indexPath.row;
-        cell.IsCollect = YES;
-        [cell.delete_button addTarget:self action:@selector(deleteNews:) forControlEvents:UIControlEventTouchUpInside];
-        cell.delete_button.tag = indexPath.row;
-        return cell;
-    }
-    else if([ID isEqualToString:@"OneImg"]){
-        OneImageCell* cell = [OneImageCell cellWithTableView:tableView];
-        if ([defaultManager.themeName isEqualToString:@"高贵紫"]) {
-            cell.backgroundColor = [[ThemeManager sharedInstance] GetBackgroundColor];
-            cell.title.textColor = [defaultManager GetTitleColor];
-        }else{
-            cell.backgroundColor = [defaultManager GetBackgroundColor];
-            cell.title.textColor = [defaultManager GetTitleColor];
+        else if([ID isEqualToString:@"OneImg"]){
+            OneImageCell* cell = [OneImageCell cellWithTableView:tableView];
+            if ([defaultManager.themeName isEqualToString:@"高贵紫"]) {
+                cell.backgroundColor = [[ThemeManager sharedInstance] GetBackgroundColor];
+                cell.title.textColor = [defaultManager GetTitleColor];
+            }else{
+                cell.backgroundColor = [defaultManager GetBackgroundColor];
+                cell.title.textColor = [defaultManager GetTitleColor];
+            }
+            cell.model = Model;
+            cell.m_tag = indexPath.row;
+            cell.IsDelete = m_IsEdit;
+            cell.IsCollect = YES;
+            cell.delete_button.tag = indexPath.row;
+            return cell;
         }
-        cell.model = Model;
-        cell.m_tag = indexPath.row;
-        cell.IsDelete = m_IsEdit;
-        cell.IsCollect = YES;
-        [cell.delete_button addTarget:self action:@selector(deleteNews:) forControlEvents:UIControlEventTouchUpInside];
-        cell.delete_button.tag = indexPath.row;
-        return cell;
-    }
-    else{
-        //ThreeImage
-        ThreeImageCell* cell = [ThreeImageCell cellWithTableView:tableView];
-        if ([defaultManager.themeName isEqualToString:@"高贵紫"]) {
-            cell.backgroundColor = [[ThemeManager sharedInstance] GetBackgroundColor];
-            cell.title.textColor = [defaultManager GetTitleColor];
-        }else{
-            cell.backgroundColor = [defaultManager GetBackgroundColor];
-            cell.title.textColor = [defaultManager GetTitleColor];
+        else{
+            //ThreeImage
+            ThreeImageCell* cell = [ThreeImageCell cellWithTableView:tableView];
+            if ([defaultManager.themeName isEqualToString:@"高贵紫"]) {
+                cell.backgroundColor = [[ThemeManager sharedInstance] GetBackgroundColor];
+                cell.title.textColor = [defaultManager GetTitleColor];
+            }else{
+                cell.backgroundColor = [defaultManager GetBackgroundColor];
+                cell.title.textColor = [defaultManager GetTitleColor];
+            }
+            cell.model = Model;
+            cell.IsDelete = m_IsEdit;
+            cell.m_tag = indexPath.row;
+            cell.IsCollect = YES;
+            cell.delete_button.tag = indexPath.row;
+            return cell;
         }
-        cell.model = Model;
-        cell.IsDelete = m_IsEdit;
-        cell.m_tag = indexPath.row;
-        cell.IsCollect = YES;
-        [cell.delete_button addTarget:self action:@selector(deleteNews:) forControlEvents:UIControlEventTouchUpInside];
-        cell.delete_button.tag = indexPath.row;
+    }else if([obj_model isKindOfClass:[video_info_model class]]){
+        video_info_model* video_model = (video_info_model*)obj_model;
+        Video_detail_tuijianTableViewCell* cell = [Video_detail_tuijianTableViewCell CellFormTable:tableView];
+        cell.model = video_model;
         return cell;
     }
     
@@ -246,25 +254,76 @@
 }
 
 -(CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath{
-    CJZdataModel *newsModel = self.totalArray[indexPath.row];
+//    CJZdataModel *newsModel = self.totalArray[indexPath.row];
+//
+//    CGFloat rowHeight = [NoImageCell heightForRow:newsModel];
+//    return rowHeight;
     
-    CGFloat rowHeight = [NoImageCell heightForRow:newsModel];
-    return rowHeight;
+    NSObject *newsModel = self.totalArray[indexPath.row];
+    if([newsModel isKindOfClass:[CJZdataModel class]]){
+        CGFloat rowHeight = [NoImageCell heightForRow:(CJZdataModel*)newsModel];
+        return rowHeight;
+    }else if([newsModel isKindOfClass:[video_info_model class]]){
+        return [Video_detail_tuijianTableViewCell cellForHeight];
+    }
+    
+    return 100;
 }
 
 -(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath{
     
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
-    CJZdataModel *data = self.totalArray[indexPath.row];
-    DetailWeb_ViewController* vc = [[DetailWeb_ViewController alloc] init];
-    vc.CJZ_model = data;
-    [self.navigationController pushViewController:vc animated:YES];
+    NSObject *obj_model = self.totalArray[indexPath.row];
+    if([obj_model isKindOfClass:[CJZdataModel class]]){
+//        //新闻
+//        ((CJZdataModel*)obj_model).isRreading = YES;
+        
+        DetailWeb_ViewController* vc = [[DetailWeb_ViewController alloc] init];
+        vc.CJZ_model = ((CJZdataModel*)obj_model);
+        vc.isFromHistory = YES;
+        [self.navigationController pushViewController:vc animated:YES];
+    }else{
+        //视频
+        ((video_info_model*)obj_model).isReading = YES;
+        Video_detail_ViewController* vc = [[Video_detail_ViewController alloc] init];
+        vc.model = (video_info_model*)obj_model;
+        vc.isFromHistory = YES;
+        [self.navigationController pushViewController:vc animated:YES];
+    }
     
+    //一个cell刷新
+    [tableView reloadRowsAtIndexPaths:[NSArray arrayWithObjects:indexPath,nil] withRowAnimation:UITableViewRowAnimationNone];
 }
 
 -(void)tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath{
     [cell setSeparatorInset:UIEdgeInsetsZero];
     [cell setLayoutMargins:UIEdgeInsetsZero];
+}
+
+//先要设Cell可编辑
+- (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
+    return YES;
+}
+//定义编辑样式
+- (UITableViewCellEditingStyle)tableView:(UITableView *)tableView editingStyleForRowAtIndexPath:(NSIndexPath *)indexPath {
+    return UITableViewCellEditingStyleDelete;
+}
+//修改编辑按钮文字
+- (NSString *)tableView:(UITableView *)tableView titleForDeleteConfirmationButtonForRowAtIndexPath:(NSIndexPath *)indexPath {
+    return @"删除";
+}
+//设置进入编辑状态时，Cell不会缩进
+- (BOOL)tableView: (UITableView *)tableView shouldIndentWhileEditingRowAtIndexPath:(NSIndexPath *)indexPath {
+    return NO;
+}
+//点击删除
+- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
+    //在这里实现删除操作
+    [self deleteNews:indexPath.row];
+    
+    //删除数据，和删除动画
+    [self.totalArray removeObjectAtIndex:indexPath.row];
+    [tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject:[NSIndexPath indexPathForRow:indexPath.row inSection:0]] withRowAnimation:UITableViewRowAnimationTop];
 }
 
 #pragma mark - API
@@ -304,12 +363,17 @@
             
             NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:data options:(NSJSONReadingMutableLeaves) error:nil];
             NSArray* array_news = dict[@"list"];
-            NSArray *dataarray = [CJZdataModel jsonArrayToModelArray:array_news];
+            NSArray *dataarray = [video_info_model collectData_ToArray:array_news];
             NSMutableArray *statusArray = [NSMutableArray array];
-            for (CJZdataModel *data in dataarray) {
-                [statusArray addObject:[self SetData:data]];
-                NSString* time = [[MyDataBase shareManager] Collect_GetTime:[data.ID integerValue]];
-                data.publish_time = time;
+            for (NSObject *item in dataarray) {
+                if([item isKindOfClass:[CJZdataModel class]]){
+                    CJZdataModel* data = (CJZdataModel*)item;
+                    [statusArray addObject:[self SetData:data]];
+                    NSString* time = [[MyDataBase shareManager] Collect_GetTime:[data.ID integerValue]];
+                    data.publish_time = time;
+                }else{
+                    [statusArray addObject:item];
+                }
             }
             
             if (type == 0) {
@@ -336,7 +400,7 @@
             //如果不满10条数据，就隐藏footer
             if(type == 0){
                 if(statusArray.count < 10){
-                    [block_self.tableview.footer setHidden:YES];
+                    [block_self.tableview.footer removeFromSuperview];
                 }
             }
             
@@ -376,8 +440,6 @@
                 [[AlertHelper Share] ShowMe:self And:1.5 And:@"网络错误，请重试"];
                 return ;
             }
-            [self.totalArray removeObjectAtIndex:index];
-            [self.tableview reloadData];
             [self hideWaittingView];
         });
         

@@ -12,6 +12,8 @@
 #import "CJZdataModel.h"
 #import "SocietyViewController.h"
 #import "DetailWeb_ViewController.h"
+#import "Video_channel_ViewController.h"
+#import "Video_detail_ViewController.h"
 
 @interface Search_ViewController ()<SearchName_tableView_delegate,UITextFieldDelegate>
 
@@ -29,7 +31,8 @@
     UIButton*       m_search_button;
     
     SearchName_TableViewController*     m_searchName_tableVIew;
-    SocietyViewController*              m_searchResult_VC;
+    SocietyViewController*              m_searchResultOfNews_VC;
+    Video_channel_ViewController*       m_searchResultOfVideo_VC;
     
     DateReload_view*        m_reload_view;
     UIActivityIndicatorView*m_waiting_view;
@@ -116,9 +119,9 @@
 -(void)InitTableView{
     
     //获取本地的关键词记录-未完成
-    if([[AppConfig sharedInstance] GetSearchWord] == nil){
-//        [[AppConfig sharedInstance] saveSearchWord:@[@"number_ome",@"number_two",@"number_three"]];
-    }
+//    if([[AppConfig sharedInstance] GetSearchWordAndType:(NSString *)] == nil){
+////        [[AppConfig sharedInstance] saveSearchWord:@[@"number_ome",@"number_two",@"number_three"]];
+//    }
     
     UIView* view = [[UIView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(m_navibar_view.frame),
                                                             SCREEN_WIDTH,
@@ -127,6 +130,7 @@
     
     SearchName_TableViewController* searchName_TVC = [[SearchName_TableViewController alloc] init];
     m_searchName_tableVIew = searchName_TVC;
+    m_searchName_tableVIew.type = self.type;
     m_searchName_tableVIew.delegate = self;
     [view addSubview:m_searchName_tableVIew.tableView];
     [self.view addSubview:view];
@@ -163,14 +167,26 @@
     [[[UIApplication sharedApplication] keyWindow] endEditing:YES];//收起键盘
     
     //保存搜索关键字
-    [[AppConfig sharedInstance] addSearchWord:m_textfield.text];
+    if(self.type == SearchType_video){
+        m_searchResultOfVideo_VC = [[Video_channel_ViewController alloc] init];
+        m_searchResultOfVideo_VC.searchWord = m_textfield.text;
+        m_searchResultOfVideo_VC.isSearchVC = YES;
+        m_searchResultOfVideo_VC.delegate = self;
+        
+        [m_mainView addSubview:m_searchResultOfVideo_VC.view];
+        
+    }else if(self.type == SearchType_news){
+        m_searchResultOfNews_VC = [[SocietyViewController alloc] init];
+        
+        m_searchResultOfNews_VC.isSearchVC = YES;
+        m_searchResultOfNews_VC.keyWords = m_textfield.text;
+        
+        [m_mainView addSubview:m_searchResultOfNews_VC.view];
+    }
     
-    m_searchResult_VC = [[SocietyViewController alloc] init];
-
-    m_searchResult_VC.isSearchVC = YES;
-    m_searchResult_VC.keyWords = m_textfield.text;
+    [[AppConfig sharedInstance] addSearchWord:m_textfield.text AndType:[NSString stringWithFormat:@"%ld",self.type]];
     
-    [m_mainView addSubview:m_searchResult_VC.view];
+    
 }
 
 
@@ -180,12 +196,71 @@
     [m_search_button sendActionsForControlEvents:UIControlEventTouchUpInside];
 }
 
+-(void)goToFullScreen:(video_info_model *)model{
+    
+}
+-(void)video_channel_GoToDetail:(video_info_model *)model AndChannel:(video_channel_model*)channel_model{
+    Video_detail_ViewController* vc  = [[Video_detail_ViewController alloc] init];
+    vc.model = model;
+    [self.navigationController pushViewController:vc animated:YES];
+}
+
+-(void)shareMore:(video_info_model *)model{
+    [self shareMore_InMainView:model];
+}
+
+-(void)shareMore_InMainView:(video_info_model*)m_share_model{
+    //要分享的内容，加在一个数组里边，初始化UIActivityViewController
+    NSString *textToShare = m_share_model.title;
+    //    UIImageView* img = [[UIImageView alloc] init];
+    //    [img sd_setImageWithURL:[NSURL URLWithString:m_share_model.cover]];
+    UIImage *imageToShare = [UIImage imageWithData:[NSData dataWithContentsOfURL:[NSURL URLWithString:m_share_model.cover]]];
+    NSURL *urlToShare = [NSURL URLWithString:[NSString stringWithFormat:@"%@",m_share_model.url]];
+    NSArray *activityItems = @[urlToShare,textToShare,imageToShare];
+    
+    //    MyActivity* myActivity = [[MyActivity alloc] init];
+    UIActivityViewController *activity = [[UIActivityViewController alloc] initWithActivityItems:activityItems applicationActivities:nil];
+    activity.excludedActivityTypes = @[];
+    
+    UIActivityViewControllerCompletionWithItemsHandler itemsBlock = ^(UIActivityType __nullable activityType, BOOL completed, NSArray * __nullable returnedItems, NSError * __nullable activityError){
+        NSLog(@"activityType == %@",activityType);
+        if (completed == YES) {
+            NSLog(@"原生分享回调 completed");
+        }else{
+            NSLog(@"原生分享回调 cancel");
+        }
+    };
+    activity.completionWithItemsHandler = itemsBlock;
+    
+    // incorrect usage
+    // [self.navigationController pushViewController:activity animated:YES];
+    
+    UIPopoverPresentationController *popover = activity.popoverPresentationController;
+    if (popover) {
+        popover.sourceView = self.view;
+        popover.permittedArrowDirections = UIPopoverArrowDirectionUp;
+    }
+    
+    [self presentViewController:activity animated:YES completion:NULL];
+    //    [self.navigationController pushViewController:activity animated:YES];
+}
+
+
 #pragma mark - 广播方法
 -(void)GoToDetailVC:(NSNotification*)noti{
-    CJZdataModel* model = noti.object;
-    DetailWeb_ViewController* vc = [[DetailWeb_ViewController alloc] init];
-    vc.CJZ_model = model;
-    [self.navigationController pushViewController:vc animated:YES];
+    if(self.type == SearchType_news){
+        CJZdataModel* model = noti.object;
+        DetailWeb_ViewController* vc = [[DetailWeb_ViewController alloc] init];
+        vc.CJZ_model = model;
+        [self.navigationController pushViewController:vc animated:YES];
+    }
+    else if(self.type == SearchType_video){
+        video_info_model* model = noti.object;
+        Video_detail_ViewController* vc = [[Video_detail_ViewController alloc] init];
+        vc.model = model;
+        [self.navigationController pushViewController:vc animated:YES];
+    }
+    
 }
 
 /*

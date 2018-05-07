@@ -19,6 +19,8 @@
 #import "Video_Main_ViewController.h"
 #import "TabbarButton.h"
 #import "Mine_login_ViewController.h"
+#import "Video_ViewController.h"
+#import "NewUserTask_model.h"
 
 @interface TabbarViewController ()<UITextViewDelegate>
 @property (nonatomic , strong) TabbarView *tabbar;
@@ -35,6 +37,9 @@
     UITextView* m_textField;
     CGFloat     _transformY;
     CGFloat     _currentKeyboardH;
+    
+    UIImageView*    m_redPackage_newUser_NoShifu_centerView;
+    CGFloat         m_redPackage_newUser_NoShifu_centerView_maxY;
 }
 
 - (void)viewDidLoad {
@@ -46,19 +51,10 @@
     
     [self autoLogin];//用来登陆奖励
     
+    
     [self IsShowRedPackage];
 //    [self RedPackage_newUser]; //测试弹窗
     
-    [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(handleThemeChanged) name:Notice_Theme_Changed object:nil];
-    [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(changeSelectIndex:) name:@"频道切换" object:nil];
-    [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(ShowReward) name:@"autoLogin-tabbarVC" object:nil];
-    [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(RedPackage_newUser) name:@"登陆_TabBarVCL_红包活动_老用户" object:nil];
-    [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(RedPackage_oldUser) name:@"登陆_TabBarVCL_红包活动_新用户" object:nil];
-    /* 增加监听（当键盘出现或改变时） */
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(transformDialog:) name:UIKeyboardWillShowNotification object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillHide:) name:UIKeyboardWillHideNotification object:nil];
-    
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(BaiShi:) name:@"拜师_TabBarVCL" object:nil];
     
 }
 
@@ -67,12 +63,21 @@
     [super viewWillAppear:animated];
     [self.navigationController.navigationBar setHidden:YES];
     
-//    for (UIView *child in self.tabBar.subviews) {
-//        if([child isKindOfClass:[UIControl class]])
-//        {
-//            [child removeFromSuperview];
-//        }
-//    }
+    [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(handleThemeChanged) name:Notice_Theme_Changed object:nil];
+    [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(changeSelectIndex:) name:@"频道切换" object:nil];
+    [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(ShowReward) name:@"autoLogin-tabbarVC" object:nil];
+    [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(redPackage_oldUser) name:RedPackage_oldUser object:nil];
+    [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(redPackage_newUser) name:RedPackage_newUser object:nil];
+    /* 增加监听（当键盘出现或改变时） */
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(transformDialog:) name:UIKeyboardWillShowNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillHide:) name:UIKeyboardWillHideNotification object:nil];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(BaiShi:) name:@"拜师_TabBarVCL" object:nil];
+}
+
+-(void)viewWillDisappear:(BOOL)animated{
+    [super viewWillDisappear:animated];
+//    [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 - (void)selectIndex:(int)index
@@ -118,6 +123,7 @@
     if([[Login_info share] GetIsLogined]){
         [InternetHelp AutoLogin];
         [InternetHelp GetMaxTaskCount];
+        [[AppConfig sharedInstance] getNewUserTaskInfo];//获取新手任务信息
     }
 }
 
@@ -169,7 +175,8 @@
     [self setupChildViewController:new title:@"刷新" imageName:@"ic_menu_index" selectedImage:@"ic_menu_refresh"];
 
 //    VideoViewController *video = [[VideoViewController alloc]init];
-    Video_Main_ViewController* vc = [[Video_Main_ViewController alloc] init];
+//    Video_Main_ViewController* vc = [[Video_Main_ViewController alloc] init];
+    Video_ViewController* vc = [[Video_ViewController alloc] init];
     [self setupChildViewController:vc title:@"视频" imageName:@"ic_menu_video_default" selectedImage:@"ic_menu_video_pressed"];
     
 //    PhotoViewController *photo = [[PhotoViewController alloc]init];
@@ -232,11 +239,17 @@
     NSString* date = [[AppConfig sharedInstance] getDate];
     [[AppConfig sharedInstance] saveDate:date_now];
     if(![date_now isEqualToString:date]){
-        [RewardHelper ShowReward:9 AndSelf:self];
+        [RewardHelper ShowReward:Task_Login AndSelf:self AndCoin:nil];
     }
 }
 
--(void)RedPackage_newUser{
+-(void)redPackage_newUser{
+    NSLog(@"RedPackage_newUser");
+    NSString* str = [[AppConfig sharedInstance] getRedPackage];
+    if(str != nil){
+        return;
+    }
+    [[AppConfig sharedInstance] saveRedPackage:@"已发新手红包"];
     NSString* mastercode = [Login_info share].userInfo_model.mastercode;
     if([mastercode isEqualToString:@""]){
         //没拜师
@@ -246,38 +259,60 @@
         redPack_view.backgroundColor = [UIColor colorWithRed:0/255.0 green:0/255.0 blue:0/255.0 alpha:0.6/1.0];
         m_redPackage_newUser_NoShifu = redPack_view;
         
-        UIImageView* img_btn = [[UIImageView alloc] initWithFrame:CGRectMake(50, SCREEN_HEIGHT/2-kWidth(360)/2, SCREEN_WIDTH-50-50, kWidth(360))];
+        UIImageView* img_btn = [UIImageView new];
         [img_btn setImage:[UIImage imageNamed:@"bg_03"]];
         [img_btn sizeToFit];
         img_btn.userInteractionEnabled = YES;
         img_btn.center = redPack_view.center;
         [redPack_view addSubview:img_btn];
+        m_redPackage_newUser_NoShifu_centerView = img_btn;
+        [img_btn mas_makeConstraints:^(MASConstraintMaker *make) {
+            make.left.equalTo(redPack_view.mas_left).with.offset(kWidth(50));
+            make.right.equalTo(redPack_view.mas_right).with.offset(-kWidth(50));
+            make.centerY.equalTo(redPack_view.mas_centerY);
+            make.height.mas_offset(kWidth(360));
+        }];
         
-        UIButton* close_btn = [[UIButton alloc] initWithFrame:CGRectMake(img_btn.frame.size.width-kWidth(15)-kWidth(10), kWidth(10), kWidth(15), kWidth(15))];
+        UIButton* close_btn = [UIButton new];
         [close_btn setImage:[UIImage imageNamed:@"ic_delete"] forState:UIControlStateNormal];
         [close_btn addTarget:self action:@selector(closeRedPackage_oldUser) forControlEvents:UIControlEventTouchUpInside];
         [img_btn addSubview:close_btn];
+        [close_btn mas_makeConstraints:^(MASConstraintMaker *make) {
+            make.top.equalTo(img_btn.mas_top).with.offset(kWidth(10));
+            make.right.equalTo(img_btn.mas_right).with.offset(-kWidth(10));
+            make.width.and.height.mas_offset(kWidth(15));
+        }];
         
         CGFloat topHight = 110;
-        UILabel* tips = [[UILabel alloc] initWithFrame:CGRectMake(0, topHight, img_btn.frame.size.width, 15)];
+        UILabel* tips = [UILabel new];
         tips.text = @"您有一个红包待领取";
         tips.textColor = RGBA(253, 222, 177, 1);
         tips.textAlignment = NSTextAlignmentCenter;
         tips.font = kFONT(15);
         [img_btn addSubview:tips];
+        [tips mas_makeConstraints:^(MASConstraintMaker *make) {
+            make.top.equalTo(img_btn.mas_top).with.offset(kWidth(110));
+            make.left.and.right.equalTo(img_btn);
+            make.height.mas_offset(kWidth(15));
+        }];
         
-        UILabel* money_lable = [[UILabel alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(tips.frame)+14, img_btn.frame.size.width, 60)];
+        UILabel* money_lable = [UILabel new];
         NSString* money_text = [NSString stringWithFormat:@"%@元",[Login_info share].userInfo_model.reg_reward_cash];
         money_lable.text = money_text;
         money_lable.textColor = RGBA(247, 215, 85, 1);
         money_lable.textAlignment = NSTextAlignmentCenter;
-        money_lable.font = [UIFont systemFontOfSize:60];
+        money_lable.font = kFONT(60);
         NSMutableAttributedString* att_str = [[NSMutableAttributedString alloc] initWithString:money_text];
         att_str = [LabelHelper GetMutableAttributedSting_font:att_str AndIndex:money_text.length-1 AndCount:1 AndFontSize:20];
         money_lable.attributedText = att_str;
         [img_btn addSubview:money_lable];
+        [money_lable mas_makeConstraints:^(MASConstraintMaker *make) {
+            make.top.equalTo(tips.mas_bottom).with.offset(kWidth(14));
+            make.left.and.right.equalTo(img_btn);
+            make.height.mas_offset(kWidth(60));
+        }];
         
-        UITextView* textField = [[UITextView alloc] initWithFrame:CGRectMake(money_lable.center.x-175/2, CGRectGetMaxY(money_lable.frame)+30, 175, 35)];
+        UITextView* textField = [UITextView new];
         m_textField = textField;
         textField.backgroundColor = [[ThemeManager sharedInstance] GetDialogViewColor];
         //    textField.te = @"我来说两句...";
@@ -290,25 +325,41 @@
 //        [textField becomeFirstResponder];
         textField.textColor = [[ThemeManager sharedInstance] GetDialogTextColor];
         textField.font = [UIFont fontWithName:@"SourceHanSansCN-Regular" size:14];
-        [textField.layer setCornerRadius:10.0f];
+        [textField.layer setCornerRadius:6.0f];
+        textField.bounces = YES;
         [img_btn addSubview:textField];
+        [textField mas_makeConstraints:^(MASConstraintMaker *make) {
+            make.top.equalTo(money_lable.mas_bottom).with.offset(kWidth(30));
+            make.width.mas_offset(kWidth(175));
+            make.height.mas_offset(kWidth(35));
+            make.centerX.equalTo(img_btn);
+        }];
         
         //textView中添加 placeHolder
-        m_textView_placeHolder = [[UILabel alloc] initWithFrame:CGRectMake(5, 35/2-10/2, 100, 10)];
+        m_textView_placeHolder = [UILabel new];
         m_textView_placeHolder.text = @"输入邀请码(选填)";
         m_textView_placeHolder.textColor = RGBA(167, 169, 169, 1);
         m_textView_placeHolder.textAlignment = NSTextAlignmentLeft;
         m_textView_placeHolder.font = kFONT(10);
         [textField addSubview:m_textView_placeHolder];
+        [m_textView_placeHolder mas_makeConstraints:^(MASConstraintMaker *make) {
+            make.left.equalTo(textField.mas_left).with.offset(kWidth(13));
+            make.height.mas_offset(kWidth(10));
+            make.top.equalTo(textField.mas_top).with.offset(kWidth(14));
+        }];
         
-        UIButton* sendBtn = [[UIButton alloc] initWithFrame:CGRectMake(money_lable.center.x-175/2,
-                                                                       CGRectGetMaxY(textField.frame)+14,
-                                                                       175, 35)];
-        [sendBtn.layer setCornerRadius:12.0f];
+        UIButton* sendBtn = [UIButton new];
+        [sendBtn.layer setCornerRadius:6.0f];
         [sendBtn setImage:[UIImage imageNamed:@"receive_default"] forState:UIControlStateNormal];
+        sendBtn.clipsToBounds = YES;
         [sendBtn addTarget:self action:@selector(sendBtn_action) forControlEvents:UIControlEventTouchUpInside];
-        
         [img_btn addSubview:sendBtn];
+        [sendBtn mas_makeConstraints:^(MASConstraintMaker *make) {
+            make.top.equalTo(textField.mas_bottom).with.offset(kWidth(14));
+            make.width.mas_offset(kWidth(175));
+            make.height.mas_offset(kWidth(35));
+            make.centerX.equalTo(img_btn);
+        }];
         
         UILabel* tips_other = [[UILabel alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(sendBtn.frame)+8, img_btn.frame.size.width, 10)];
         tips_other.text = @"也可以在个人信息界面绑定邀请码";
@@ -316,8 +367,14 @@
         tips_other.textAlignment = NSTextAlignmentCenter;;
         tips_other.font = kFONT(10);
         [img_btn addSubview:tips_other];
+        [tips_other mas_makeConstraints:^(MASConstraintMaker *make) {
+            make.top.equalTo(sendBtn.mas_bottom).with.offset(kWidth(8));
+            make.left.and.right.equalTo(img_btn);
+            make.height.mas_offset(kWidth(10));
+        }];
         
-        [self.view addSubview:redPack_view];
+//        [self.view addSubview:redPack_view];
+        [[UIApplication sharedApplication].keyWindow addSubview:redPack_view];
     }else{
         //已拜师
         UIView* redPack_view = [[UIView alloc] initWithFrame:CGRectMake(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT)];
@@ -404,20 +461,21 @@
         master_name.font = [UIFont systemFontOfSize:10];
         [img_btn addSubview:master_name];
         
-        [self.view addSubview:redPack_view];
+//        [self.view addSubview:redPack_view];
+        [[UIApplication sharedApplication].keyWindow addSubview:redPack_view];
     }
 }
 
 -(void)sendBtn_action{
-    NSString* text = m_textField.text;
-    if(![NullNilHelper dx_isNullOrNilWithObject:text]){
+
         [InternetHelp BaiShi_API:m_textField.text Sucess:^(NSDictionary *dic) {
             NSDictionary* dic_tmp = dic[@"list"];
             [Login_info share].userInfo_model.mastercode = dic_tmp[@"master_code"];
             [Login_info share].userInfo_model.master_name = dic_tmp[@"master_name"];
             [Login_info share].userInfo_model.master_avatar = dic_tmp[@"master_avatar"];
             
-            [MyMBProgressHUD ShowMessage:@"拜师成功" ToView:self.view AndTime:1];
+            [MyMBProgressHUD ShowMessage:@"邀请成功" ToView:self.view AndTime:1];
+            [m_redPackage_newUser_NoShifu removeFromSuperview];
         } Fail:^(NSDictionary *dic) {
             if(dic == nil){
                 [MyMBProgressHUD ShowMessage:@"网络错误" ToView:self.view AndTime:1];
@@ -426,7 +484,6 @@
                 [MyMBProgressHUD ShowMessage:msg ToView:self.view AndTime:1];
             }
         }];
-    }
 }
 
 -(void)closeRedPackage_oldUser{
@@ -434,12 +491,16 @@
     [m_redPackage_newUser_HaveShifu removeFromSuperview];
 }
 
--(void)RedPackage_oldUser{
-    NSString* str = [[AppConfig sharedInstance] getUserId:[Login_info share].userInfo_model.user_id];
-    if(str == nil){
+-(void)redPackage_oldUser{
+    NSString* str = [[AppConfig sharedInstance] getRedPackage];
+    if(str != nil){
+        return;
+    }
+    [[AppConfig sharedInstance] saveRedPackage:@"已发新手红包"];
+    if(YES){
         UIButton* img_btn = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT)];
         [img_btn setImage:[UIImage imageNamed:@"bg_02"] forState:UIControlStateNormal];
-        [img_btn addTarget:self action:@selector(switchToLoginView) forControlEvents:UIControlEventTouchUpInside];
+        [img_btn addTarget:self action:@selector(redPackage_old_action) forControlEvents:UIControlEventTouchUpInside];
         img_btn.backgroundColor = [UIColor colorWithRed:0/255.0 green:0/255.0 blue:0/255.0 alpha:0.6/1.0];
         m_redPackage_oldUser = img_btn;
         [self.view addSubview:img_btn];
@@ -471,7 +532,7 @@
 -(BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text{
     
     NSString * toBeString = [textView.text stringByReplacingCharactersInRange:range withString:text]; //得到输入框的内容
-    NSInteger MaxLenth = 6;
+    NSInteger MaxLenth = 100;
     
     if (textView)  //判断是否时我们想要限定的那个输入框
     {
@@ -502,27 +563,6 @@
     return YES;
 }
 
-//移动UIView(随着键盘移动)
--(void)transformDialog:(NSNotification *)aNSNotification
-{
-    NSLog(@"移动");
-    //键盘最后的frame
-    CGRect keyboardFrame = [aNSNotification.userInfo[UIKeyboardFrameEndUserInfoKey] CGRectValue];
-    CGFloat height = keyboardFrame.size.height;
-    NSLog(@"看看这个变化的Y值:%f",height);
-    //需要移动的距离
-    if (height > 0) {
-        _transformY = height-_currentKeyboardH;
-        _currentKeyboardH = height;
-        //移动
-        [UIView animateWithDuration:0.25f animations:^{
-            CGRect frame = m_redPackage_newUser_NoShifu.frame;
-            frame.origin.y -= _transformY;
-            m_redPackage_newUser_NoShifu.frame = frame;
-        }];
-    }
-}
-
 #pragma mark - 通知
 -(void)BaiShi:(NSNotification*)noti{
     NSNumber* number = noti.object;
@@ -538,17 +578,49 @@
 }
 
 #pragma mark - 键盘
+//移动UIView(随着键盘移动)
+-(void)transformDialog:(NSNotification *)aNSNotification
+{
+    if(m_redPackage_newUser_NoShifu == nil){
+        return ;
+    }
+    NSLog(@"TabbarVCL移动");
+    //键盘最后的frame
+    CGRect keyboardFrame = [aNSNotification.userInfo[UIKeyboardFrameEndUserInfoKey] CGRectValue];
+    CGFloat height = keyboardFrame.size.height;
+    NSLog(@"TabbarVCL看看这个变化的Y值:%f",height);
+    //需要移动的距离
+    [self setCenterViewFrame:height];
+}
 -(void)keyboardWillHide:(NSNotification *)aNSNotification{
-    /* 输入框下移 */
-    [UIView animateWithDuration:0.25f animations:^ {
-        
-        CGRect frame = m_redPackage_newUser_NoShifu.frame;
-        frame.origin.y = 0;
-        m_redPackage_newUser_NoShifu.frame = frame;
+    if(m_redPackage_newUser_NoShifu == nil){
+        return ;
+    }
+    [self setCenterViewFrame:0];
+}
+
+-(void)setCenterViewFrame:(CGFloat)height{
+    if(m_redPackage_newUser_NoShifu_centerView_maxY == 0){
+        m_redPackage_newUser_NoShifu_centerView_maxY = CGRectGetMaxY(m_redPackage_newUser_NoShifu_centerView.frame);
+    }
+    // 修改下边距约束
+    CGFloat centerView_maxY = SCREEN_HEIGHT-m_redPackage_newUser_NoShifu_centerView_maxY;
+    CGFloat height_offset = height - centerView_maxY;
+    if(height == 0){
+        [m_redPackage_newUser_NoShifu_centerView mas_updateConstraints:^(MASConstraintMaker *make) {
+            make.centerY.equalTo(m_redPackage_newUser_NoShifu.mas_centerY);
+        }];
+    }
+    else{
+        [m_redPackage_newUser_NoShifu_centerView mas_updateConstraints:^(MASConstraintMaker *make) {
+            make.centerY.mas_equalTo(-height_offset);
+        }];
+    }
+    
+    // 更新约束
+    [UIView animateWithDuration:0.25f animations:^{
+        [m_redPackage_newUser_NoShifu layoutIfNeeded];
     }];
-    //记得再收键盘后 初始化键盘参数
-    _transformY = 0;
-    _currentKeyboardH = 0;
 }
 
 //键盘回收

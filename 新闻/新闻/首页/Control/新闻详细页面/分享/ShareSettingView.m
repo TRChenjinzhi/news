@@ -84,7 +84,8 @@
     //发通知
     [[NSNotificationCenter defaultCenter] postNotificationName:@"取消" object:nil];
     if([m_model.type isEqualToString:@"举报"]){
-        [[NSNotificationCenter defaultCenter] postNotificationName:@"举报" object:m_report_type];
+//        [[NSNotificationCenter defaultCenter] postNotificationName:@"举报" object:m_report_type];
+        [self.delegate reportToSever:m_report_type];
     }
 }
 
@@ -164,7 +165,8 @@
         [collectionView reloadData];
         NSNumber* number = [NSNumber numberWithInteger:indexPath.row];
         [[AppConfig sharedInstance] saveFontSize:indexPath.row];
-        [[NSNotificationCenter defaultCenter] postNotificationName:@"字体改变" object:number];
+//        [[NSNotificationCenter defaultCenter] postNotificationName:@"字体改变" object:number];
+        [self.delegate shareSetting_changeFont:number];
     }else if([m_model.type isEqualToString:@"举报"]){
         NSMutableArray* arrya_tmp = [NSMutableArray arrayWithArray:m_model.array_Selected];
         [arrya_tmp replaceObjectsInRange:NSMakeRange(0, arrya_tmp.count-1) withObjectsFromArray:@[@NO,@NO,@NO,@NO,@NO,@NO]];//全部变No
@@ -174,7 +176,8 @@
         [collectionView reloadData];
     }else{
         NSString* name = m_model.name_array[indexPath.row];
-        [[NSNotificationCenter defaultCenter] postNotificationName:@"分享点击事件" object:name];
+//        [[NSNotificationCenter defaultCenter] postNotificationName:@"分享点击事件" object:name];
+        [self.delegate shareByName:name];
     }
 }
 

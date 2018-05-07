@@ -53,7 +53,11 @@
     }
 
 }
-
+- (BOOL)shouldAutorotate
+{
+    //在viewControllers中返回需要改变的viewController
+    return [[self.viewControllers firstObject] shouldAutorotate];
+}
 
 #pragma mark  拦截push，一旦进入下个视图，隐藏tabbar，自定义返回按钮
 -(void)pushViewController:(UIViewController *)viewController animated:(BOOL)animated

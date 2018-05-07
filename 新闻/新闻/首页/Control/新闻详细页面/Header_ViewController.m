@@ -36,7 +36,7 @@
     UIView*     m_ReadingWithOther_view;//相关阅读区域
     NSArray*    m_ReadingWithOther_model;//相关阅读model数组
     UITableView*    m_tableView;
-    NSMutableArray* _mUrlArray;
+//    NSMutableArray* _mUrlArray;
     
     CGSize      m_size;
     BOOL        m_isFirst;

@@ -32,11 +32,13 @@
 
 +(NSString*)Box_taskId:(NSString*)userId;
 +(NSString*)Read_taskId:(NSString*)userId AndNewsId:(NSString*)newsId;
++(NSString*)Video_taskId:(NSString*)userId AndVideoId:(NSString*)videoId;
 +(NSString*)Share_taskId:(NSString*)userId AndNewsId:(NSString*)newsId;
 +(NSString*)Reply_taskId:(NSString*)userId AndNewsId:(NSString*)replyId;
 +(NSString*)ShowIncome_taskId:(NSString*)userId;
 +(NSString*)Choujiang_taskId:(NSString*)userId AndUrl:(NSString*)url;
 +(NSString*)Question_taskId:(NSString*)userId;
 +(NSString*)Wechat_taskId:(NSString*)userId;
++(NSString*)wechatShareFriend_task:(NSString*)userId;
 
 @end

@@ -99,6 +99,15 @@
     [StartManager sharedInstance];
     [AppConfig sharedInstance];
     
+    //存储设备唯一标识
+    NSString* weiyi = (NSString*)[MyKeychain queryDataWithService:MyKeychain_server];
+    if(weiyi == nil){
+//        NSString* str_IDFA = IDFA;
+        NSString *uuid = [[NSUUID UUID] UUIDString];
+        [MyKeychain addData:[NSString stringWithFormat:@"%@",uuid] forService:MyKeychain_server];
+        NSLog(@"uuid:%@",(NSString*)[MyKeychain queryDataWithService:MyKeychain_server] );
+    }
+    
     NSLog(@"width-->%f",[UIScreen mainScreen].bounds.size.width);
     NSLog(@"hight-->%f",[UIScreen mainScreen].bounds.size.height);
     
@@ -207,6 +216,8 @@
 -(void)applicationDidEnterBackground:(UIApplication *)application{
     NSLog(@"app进入后台");
     [[NSNotificationCenter defaultCenter] postNotificationName:@"AppDelegate_SocietyViewCtl" object:nil];
+    //新手任务存储
+    [[AppConfig sharedInstance] saveNewUserTaskInfo];
 }
 
 -(void)applicationWillEnterForeground:(UIApplication *)application{

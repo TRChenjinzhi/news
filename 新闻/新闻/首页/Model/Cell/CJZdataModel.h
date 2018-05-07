@@ -27,17 +27,19 @@
  "comment_num":"",    //评论数
  "collect_count":"",  //收藏数
  "url":"http://39.104.13.61:3389/kl.php?id=29",   //详情页地址
+ "origin_channel":"4", //新增:channel为推荐[1] origin_channel标识原频道 默认空  相关推荐接口需要传此参数
  },
  */
 @property (nonatomic,copy)NSString* ID;
 @property (nonatomic,copy)NSString* title;
 
-@property (nonatomic,copy)NSString* channel;
+@property (nonatomic,copy)NSString* channel;// 一般channel he channe_main 相同，但是推荐频道 是各种频道混合的，所以在推荐频道 这两个不同
+@property (nonatomic,copy)NSString* origin_channel;
 
 @property (nonatomic,copy)NSArray* images;
 
 @property (nonatomic,copy)NSString* publish_time;
-@property (nonatomic,copy)NSString* comment_num;
+@property (nonatomic,copy)NSNumber* comment_num;
 @property (nonatomic,copy)NSString* collect_count;
 @property (nonatomic,copy)NSString* source;
 
@@ -53,7 +55,7 @@
 
 
 //将json转换为模型数组
-+(NSArray*)jsonArrayToModelArray:(NSArray*)array;
++(NSMutableArray*)jsonArrayToModelArray:(NSArray*)array;
 
 +(NSArray*)ArrayModelToDic_top50:(NSArray*)array;
 +(NSArray*)DicToArrayModel_top50:(NSArray*)array;

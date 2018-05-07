@@ -21,6 +21,8 @@
     UIScrollView*          m_channel_scrollview;
     UIScrollView*          m_MoreChannel_scrollview;
     
+    UIView*                 m_more_view;
+    
     ChannelName*               selected_name;
     
     CGPoint startPoint;
@@ -113,9 +115,6 @@
     [self.view addSubview:edit_bt];
     
     //我的频道 列表
-    
-
-    
     m_channel_scrollview = [[UIScrollView alloc] init];
     m_channel_scrollview.frame = CGRectMake(20, CGRectGetMaxY(lable1.frame)+20, SCREEN_WIDTH-20-20, 208);
     m_channel_scrollview.bounces = NO;
@@ -131,19 +130,23 @@
         [m_channel_scrollview addSubview:item];
         lastOne = item;
     }
+    m_channel_scrollview.frame = CGRectMake(20, CGRectGetMaxY(lable1.frame)+20, SCREEN_WIDTH-20-20, CGRectGetMaxY(lastOne.frame));
     m_channel_scrollview.contentSize = CGSizeMake(SCREEN_WIDTH-20-20, CGRectGetMaxY(lastOne.frame));
     
     //
+    m_more_view = [[UIView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(m_channel_scrollview.frame)+40, SCREEN_WIDTH, SCREEN_HEIGHT-CGRectGetMaxY(m_channel_scrollview.frame)-40)];
+    [self.view addSubview:m_more_view];
+    
     NSString* str4 = @"更多频道";
     UIFont* font4 = [UIFont boldSystemFontOfSize:20];
     CGFloat width4 = [LabelHelper GetLabelWidth:font4 AndText:str4];
     CGFloat hight4 = [LabelHelper GetLabelHight:font4 AndText:str4 AndWidth:width4];
-    UILabel* lable4 = [[UILabel alloc] initWithFrame:CGRectMake(20, CGRectGetMaxY(m_channel_scrollview.frame)+40, width4, hight4)];
+    UILabel* lable4 = [[UILabel alloc] initWithFrame:CGRectMake(20, 0, width4, hight4)];
     lable4.text = str4;
     lable4.font = font4;
     lable4.textColor = RGBA(34, 39, 39, 1);
     lable4.textAlignment = NSTextAlignmentLeft;
-    [self.view addSubview:lable4];
+    [m_more_view addSubview:lable4];
     
     NSString* str3 = @"点击添加频道";
     UIFont* font3 = [UIFont boldSystemFontOfSize:12];
@@ -154,14 +157,14 @@
     lable3.font = font3;
     lable3.textColor = RGBA(122, 125, 125, 1);
     lable3.textAlignment = NSTextAlignmentLeft;
-    [self.view addSubview:lable3];
+    [m_more_view addSubview:lable3];
     
     //更多频道列表
     m_MoreChannel_scrollview = [[UIScrollView alloc] initWithFrame:CGRectMake(20, CGRectGetMaxY(lable4.frame)+20, SCREEN_WIDTH-20-20, SCREEN_HEIGHT-CGRectGetMaxY(lable4.frame)-20)];
     m_MoreChannel_scrollview.bounces = NO;
     m_MoreChannel_scrollview.showsVerticalScrollIndicator = NO;
     m_MoreChannel_scrollview.showsHorizontalScrollIndicator = NO;
-    [self.view addSubview:m_MoreChannel_scrollview];
+    [m_more_view addSubview:m_MoreChannel_scrollview];
     UIButton* last_bt = nil;
     for(int i=0;i<[IndexOfNews share].channel_more_array.count;i++){
         UIButton* item = [self button_create:i];
@@ -176,7 +179,7 @@
     CGFloat item_space = 7;
     CGFloat item_width = (SCREEN_WIDTH - 20-20-3*item_space) / 4;
     CGFloat item_hight = 49.0f;
-    CGFloat line_space = 24.0f;
+    CGFloat line_space = kWidth(5);
     NSInteger number_line = 0;
     
     number_line = i/4;
@@ -207,7 +210,7 @@
     CGFloat item_space = 7;
     CGFloat item_width = (SCREEN_WIDTH - 20-20-3*item_space) / 4;
     CGFloat item_hight = 49.0f;
-    CGFloat line_space = 24.0f;
+    CGFloat line_space = kWidth(5);
     NSInteger number_line = 0;
     
     number_line = i/4;
@@ -231,7 +234,7 @@
     CGFloat item_space = 7;
     CGFloat item_width = (SCREEN_WIDTH - 20-20-3*item_space) / 4;
     CGFloat item_hight = 49.0f;
-    CGFloat line_space = 24.0f;
+    CGFloat line_space = kWidth(5);
     NSInteger number_line = 0;
     number_line = i/4;
     NSInteger count = i%4;
@@ -245,7 +248,7 @@
     CGFloat item_space = 7;
     CGFloat item_width = (SCREEN_WIDTH - 20-20-3*item_space) / 4;
     CGFloat item_hight = 49.0f;
-    CGFloat line_space = 24.0f;
+    CGFloat line_space = kWidth(5);
     NSInteger number_line = 0;
     number_line = i/4;
     NSInteger count = i%4;
@@ -341,6 +344,8 @@
         m_MoreChannel_scrollview.contentSize = CGSizeMake(SCREEN_WIDTH-20-20, CGRectGetMaxY(button.frame));
     }
     
+    //重新计算scrollview
+    [self scrollviewSetFrame];
 }
 -(void)button_click:(UIButton*)sender{
     NSNumber* number_index = nil;
@@ -353,8 +358,24 @@
             item.isSelectedBtn = NO;
         }
     }
-    [self.delegate naviSelectedIndex:[number_index integerValue]];
+    //保存频道信息
+    [[AppConfig sharedInstance] saveChannel:[IndexOfNews share].channel_array];
+    
+    //    [[NSNotificationCenter defaultCenter] postNotificationName:@"channel_guanli-SCNaviTabBar" object:nil];
+    NSInteger index = 0;
+    for (int i=0; i<My_channel_array.count; i++) {
+        button_del_view* item = My_channel_array[i];
+        if(item.isSelectedBtn){
+            index = i;
+            break;
+        }
+    }
+    [IndexOfNews share].index = index;
+//    NSLog(@"-viewWillDisappear--index:%ld",[IndexOfNews share].index);
+    
+    [self.delegate initNavi];
     [self.navigationController popViewControllerAnimated:YES];
+    [self.delegate naviSelectedIndex:[number_index integerValue]];
 }
 
 -(void)more_button_click:(UIButton*)sender{
@@ -399,7 +420,36 @@
     [m_channel_scrollview addSubview:button_del];
     m_channel_scrollview.contentSize = CGSizeMake(SCREEN_WIDTH-20-20, CGRectGetMaxY(button_del.frame));
     
+    //重新计算scrollview
+    [self scrollviewSetFrame];
+}
+
+-(void)scrollviewSetFrame{
+    //我的频道
+    NSInteger My_count = [IndexOfNews share].channel_array.count;
+    NSInteger my_lineNumber = 0;
+    if(My_count%4 != 0){
+        my_lineNumber = My_count/4 + 1;
+    }else{
+        my_lineNumber = My_count/4;
+    }
+    m_channel_scrollview.frame = CGRectMake(20, m_channel_scrollview.frame.origin.y, SCREEN_WIDTH-20-20, my_lineNumber*(49.0f+kWidth(5)));
+    m_channel_scrollview.contentSize = CGSizeMake(SCREEN_WIDTH-20-20, my_lineNumber*(49.0f+kWidth(5)));
     
+    //更多频道
+    NSInteger more_count = [IndexOfNews share].channel_more_array.count;
+    NSInteger more_lineNumber = 0;
+    if(more_count%4 != 0){
+        more_lineNumber = more_count/4 + 1;
+    }else{
+        more_lineNumber = more_count/4;
+    }
+    m_more_view.frame = CGRectMake(0, CGRectGetMaxY(m_channel_scrollview.frame)+40, SCREEN_WIDTH, SCREEN_HEIGHT-CGRectGetMaxY(m_channel_scrollview.frame)-40);
+    m_MoreChannel_scrollview.frame = CGRectMake(20, m_MoreChannel_scrollview.frame.origin.y, SCREEN_WIDTH-20-20, more_lineNumber*(49.0f+kWidth(5)));
+    m_MoreChannel_scrollview.contentSize = CGSizeMake(SCREEN_WIDTH-20-20, more_lineNumber*(49.0f+kWidth(5)));
+    
+    
+    [self.view layoutIfNeeded];
 }
 
 #pragma mark 移动

@@ -19,6 +19,11 @@
     
 }
 
+- (BOOL)shouldAutorotate
+{
+    return NO;
+}
+
 - (BOOL)canSwipBack
 {
     return YES;

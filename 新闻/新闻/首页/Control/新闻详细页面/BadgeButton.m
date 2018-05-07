@@ -98,10 +98,12 @@
         _badgeLabel.hidden = NO;
         
         if(_count < 100){
-            NSString* str = [NSString stringWithFormat:@"%ld",_count];
+//            NSString* str = [NSString stringWithFormat:@"%ld",_count];
+            NSString* str = [NSString stringWithFormat:@" "];//只要小红点
             _badgeLabel.text = str;
         }else{
-            _badgeLabel.text = @"99+";
+//            _badgeLabel.text = @"99+";
+            _badgeLabel.text = @" ";
         }
     }
 }

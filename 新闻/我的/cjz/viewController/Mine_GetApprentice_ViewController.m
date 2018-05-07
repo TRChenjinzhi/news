@@ -10,27 +10,31 @@
 #import "Mine_MyApprentice_TableViewController.h"
 #import "Mine_ShowToFriend_ViewController.h"
 #import "Mine_apprenceInfo_ViewController.h"
+#import "Mine_inviteApprence_ViewController.h"
+#import "Mine_GetApprentice_TableViewCell.h"
 
-@interface Mine_GetApprentice_ViewController ()<MyApprenceTVCL_GetApprenceVCL_protocl>
+@interface Mine_GetApprentice_ViewController ()<MyApprenceTVCL_GetApprenceVCL_protocl,UITableViewDelegate,UITableViewDataSource>
+
 
 @end
 
 @implementation Mine_GetApprentice_ViewController{
     UIView*         m_navibar_view;
-    Mine_MyApprentice_TableViewController*      m_tableView;
     NSInteger       m_page;
     
     UIView*         m_No_apprentice_View;
     NSArray*        m_tableview_array_model;
+    
+    NSArray*        m_array_model;
+    UITableView*    m_tableview;
 }
 
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
     self.view.backgroundColor = [UIColor whiteColor];
-    [self GetApprenticeData:0];
+    m_page = 0;
     [self initNavi];
-
     [self initTabeView];
 
 }
@@ -73,32 +77,41 @@
 }
 
 -(void)initTabeView{
-    UIView* main_view = [[UIView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(m_navibar_view.frame)-StaTusHight,
-                                                                 SCREEN_WIDTH, SCREEN_HEIGHT-CGRectGetMaxY(m_navibar_view.frame))];
+//    UIView* main_view = [[UIView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(m_navibar_view.frame)-StaTusHight,
+//                                                                 SCREEN_WIDTH, SCREEN_HEIGHT-CGRectGetMaxY(m_navibar_view.frame)+StaTusHight)];
+//    main_view.clipsToBounds = YES;
     
-    Mine_MyApprentice_TableViewController* tableView = [[Mine_MyApprentice_TableViewController alloc] init];
-    tableView.array_model = self.array_model;
-    tableView.delegate = self;
-    m_tableView = tableView;
-    [main_view addSubview:tableView.tableView];
+//    Mine_MyApprentice_TableViewController* tableView = [[Mine_MyApprentice_TableViewController alloc] init];
+//    tableView.array_model = self.array_model;
+//    tableView.delegate = self;
+//    m_tableView = tableView;
+//    [main_view addSubview:tableView.tableView];
+    
+    m_tableview = [[UITableView alloc] init];
+    m_tableview.frame = CGRectMake(0, CGRectGetMaxY(m_navibar_view.frame),
+                                   SCREEN_WIDTH, SCREEN_HEIGHT-CGRectGetMaxY(m_navibar_view.frame));
+    m_tableview.bounces = YES;
+    m_tableview.delegate = self;
+    m_tableview.dataSource = self;
+    m_tableview.separatorStyle = UITableViewCellSeparatorStyleNone;
+    m_tableview.estimatedRowHeight = [Mine_GetApprentice_TableViewCell HightForCell];
     
     GYHHeadeRefreshController* headerView = [GYHHeadeRefreshController headerWithRefreshingBlock:^{
-        m_page = 0;
-        [self GetApprenticeData:m_page];
+        [self GetApprenticeData:0];
     }];
     //头部刷新视图设置
     headerView.lastUpdatedTimeLabel.hidden = YES;
     headerView.stateLabel.hidden = YES;
-    m_tableView.tableView.header = headerView;
+    m_tableview.header = headerView;
     [headerView beginRefreshing];
     
-    MJRefreshAutoFooter* footer = [MJRefreshAutoFooter footerWithRefreshingBlock:^{
+    MJRefreshAutoFooter* footer = [MJRefreshAutoNormalFooter footerWithRefreshingBlock:^{
         [self GetApprenticeData:m_page];
     }];
-    m_tableView.tableView.footer = footer;
+    m_tableview.footer = footer;
     
     
-    [self.view addSubview:main_view];
+    [self.view addSubview:m_tableview];
 }
 
 -(void)initView{
@@ -136,6 +149,44 @@
     [m_No_apprentice_View removeFromSuperview];
 }
 
+#pragma mark - Table view data source
+
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
+    return 1;
+}
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    if(m_tableview_array_model){
+        return m_tableview_array_model.count;
+    }else{
+        return 0;
+    }
+}
+
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+    
+    Mine_GetApprentice_TableViewCell* cell = [Mine_GetApprentice_TableViewCell CellForTableView:tableView];
+    cell.model = m_tableview_array_model[indexPath.row];
+    return cell;
+}
+
+-(BOOL)tableView:(UITableView *)tableView shouldHighlightRowAtIndexPath:(NSIndexPath *)indexPath{
+    return YES;
+}
+
+-(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath{
+    //    NSLog(@"我的徒弟 cell click");
+    Mine_GetApprentice_model* model = m_tableview_array_model[indexPath.row];
+    [self showApprenceInfo:model];
+    
+    [tableView deselectRowAtIndexPath:indexPath animated:NO];
+}
+
+-(CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath{
+    return [Mine_GetApprentice_TableViewCell HightForCell];
+}
+
 #pragma mark - 协议方法
 -(void)showApprenceInfo:(Mine_GetApprentice_model *)model{
     Mine_apprenceInfo_ViewController* vc = [[Mine_apprenceInfo_ViewController alloc] init];
@@ -150,8 +201,7 @@
 
 -(void)GetFreinds{
     NSLog(@"马上邀请好友");
-    Mine_ShowToFriend_ViewController* vc = [[Mine_ShowToFriend_ViewController alloc] init];
-    vc.number = [[[Login_info share] GetUserInfo].appren integerValue];
+    Mine_inviteApprence_ViewController* vc = [[Mine_inviteApprence_ViewController alloc] init];
     [self.navigationController pushViewController:vc animated:YES];
 }
 
@@ -181,12 +231,12 @@
             
             
             if(error){
-                NSLog(@"网络获取失败");
+                NSLog(@"GetApprenticeData网络获取失败");
                 //发送失败消息
                 [[AlertHelper Share] ShowMe:self And:2.0 And:@"网络失败"];
             }
             
-            NSLog(@"从服务器获取到数据");
+            NSLog(@"GetApprenticeData从服务器获取到数据");
             
             NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:data options:(NSJSONReadingMutableLeaves) error:nil];
             NSArray* list_array = dict[@"list"];
@@ -194,32 +244,39 @@
                 NSArray* array_model = [Mine_GetApprentice_model dicToArray:list_array];
                 if (type == 0) {
                     m_tableview_array_model = array_model;
-                    m_tableView.array_model = m_tableview_array_model;
                     if(array_model.count == 0){//没有数据
                         [block_self initView];
-                        [m_tableView.tableView removeFromSuperview];
+                        [m_tableview removeFromSuperview];
                         [block_self show_NoApprentice_view];
                     }else{
                         [block_self hide_NoApprentice_view];
-                        [m_tableView.tableView reloadData];
+                        if(array_model.count < 10){
+                            [m_tableview.header endRefreshing];
+                            [m_tableview.footer removeFromSuperview];
+                            [m_tableview reloadData];
+                            return ;
+                        }
+                        [m_tableview reloadData];
+                        m_page++;
                     }
+                    [m_tableview.header endRefreshing];
                     
                 }else{
                     [block_self hide_NoApprentice_view];
                     NSMutableArray* mutable_array = [NSMutableArray arrayWithArray:m_tableview_array_model];
                     [mutable_array addObjectsFromArray:array_model];
                     m_tableview_array_model = mutable_array;
-                    m_tableView.array_model = m_tableview_array_model;
                     if(array_model.count == 0){//没有更多数据
-                        [m_tableView.tableView.footer noticeNoMoreData];
+                        [m_tableview.footer noticeNoMoreData];
                     }else{
-                        [m_tableView.tableView reloadData];
+                        [m_tableview reloadData];
                         m_page += 1;
+                        
+                        [m_tableview.footer endRefreshing];
                     }
-          
+                    
                 }
-            [m_tableView.tableView.footer endRefreshing];
-            [m_tableView.tableView.header endRefreshing];
+            
         
         });
                        

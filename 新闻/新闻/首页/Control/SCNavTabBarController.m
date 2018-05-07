@@ -36,6 +36,7 @@
     FloatView*      m_boxView;
     UIView*         m_boxWin;
     BOOL            m_isShowBox;
+    BOOL            m_VCL_isShow;
 }
 
 
@@ -71,7 +72,7 @@
     [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(DownloadedData:) name:@"dataLoaded" object:nil]; //成功
     [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(DownloadedDataFailed) name:@"netFailed" object:nil]; //失败
     [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(initNavi) name:@"Society_SCNavi_订阅" object:nil];
-    [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(showBoxWin:) name:@"InternetHelp_SCNavi_openBox" object:nil];
+//    [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(showBoxWin:) name:@"InternetHelp_SCNavi_openBox" object:nil];
     [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(IsShowBox) name:@"TaskVCL_SCNaci_宝箱重置提醒" object:nil];
     
     [self initWaiting];
@@ -152,6 +153,8 @@
                 isHave = YES;
                 item = vc;
                 break;
+            }else{
+                
             }
         }
         
@@ -174,10 +177,10 @@
     _subViewControllers = array;
     _titles = array_titles;
     [_navTabBar removeFromSuperview];
-    _navTabBar = [[SCNavTabBar alloc] initWithFrame:CGRectMake(40, 0, SCREEN_WIDTH-40-40 , 64)];
+    _navTabBar = [[SCNavTabBar alloc] initWithFrame:CGRectMake(kWidth(40), StaTusHight, SCREEN_WIDTH-kWidth(40)-kWidth(40) , kWidth(44))];
     _navTabBar.backgroundColor = [[ThemeManager sharedInstance] GetBackgroundColor];
     _navTabBar.delegate = self;
-    _navTabBar.lineColor = _navTabBarLineColor;
+    _navTabBar.lineColor = RGBA(248, 205, 4, 1);;
     _navTabBar.itemTitles = _titles;
     [_navTabBar updateDataAgain];
     [self.view addSubview:_navTabBar];
@@ -259,15 +262,15 @@
 
 - (void)viewInit
 {
-    _navTabBar = [[SCNavTabBar alloc] initWithFrame:CGRectMake(40, 0, SCREEN_WIDTH , 64)];
+    _navTabBar = [[SCNavTabBar alloc] initWithFrame:CGRectMake(kWidth(40), StaTusHight, SCREEN_WIDTH-kWidth(40)-kWidth(40) , kWidth(44))];
     _navTabBar.backgroundColor = [[ThemeManager sharedInstance] GetBackgroundColor];
     _navTabBar.delegate = self;
-    _navTabBar.lineColor = _navTabBarLineColor;
+    _navTabBar.lineColor = RGBA(248, 205, 4, 1);;
     _navTabBar.itemTitles = _titles;
     [_navTabBar updateData];
     [self.view addSubview:_navTabBar];
     
-    _mainView = [[UIScrollView alloc] initWithFrame:CGRectMake(0, 64, SCREEN_WIDTH, SCREEN_HEIGHT-64)];
+    _mainView = [[UIScrollView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(_navTabBar.frame), SCREEN_WIDTH, SCREEN_HEIGHT-CGRectGetMaxY(_navTabBar.frame))];
     _mainView.delegate = self;
     _mainView.pagingEnabled = YES;
     _mainView.bounces = _mainViewBounces;
@@ -276,19 +279,19 @@
     _mainView.contentSize = CGSizeMake(SCREEN_WIDTH * _subViewControllers.count, 0);
     [self.view addSubview:_mainView];
     
-    UIView *linev = [[UIView alloc]initWithFrame:CGRectMake(0, 64, SCREEN_WIDTH, 1)];
+    UIView *linev = [[UIView alloc]initWithFrame:CGRectMake(0, CGRectGetMaxY(_navTabBar.frame), SCREEN_WIDTH, 1)];
     linev.backgroundColor = [UIColor colorWithRed:216/255.0f green:216/255.0f blue:216/255.0f alpha:1];
     [self.view addSubview:linev];
     
     //搜索
-    UIButton *btn = [[UIButton alloc]initWithFrame:CGRectMake(0, 20, 40, 44)];
+    UIButton *btn = [[UIButton alloc]initWithFrame:CGRectMake(0, StaTusHight, kWidth(40), kWidth(44))];
 //    btn.backgroundColor = [UIColor greenColor];
     [btn setImage:[UIImage imageNamed:@"ic_nav_search"] forState:UIControlStateNormal];
     [btn addTarget:self action:@selector(searchClick) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:btn];
     
     //频道添加
-    UIButton *addChannel = [[UIButton alloc]initWithFrame:CGRectMake(SCREEN_WIDTH-40, 20, 40, 44)];
+    UIButton *addChannel = [[UIButton alloc]initWithFrame:CGRectMake(SCREEN_WIDTH-40, StaTusHight, 40, kWidth(44))];
     //    btn.backgroundColor = [UIColor greenColor];
     [addChannel setImage:[UIImage imageNamed:@"ic_nav_more"] forState:UIControlStateNormal];
     [addChannel addTarget:self action:@selector(EditChannel) forControlEvents:UIControlEventTouchUpInside];
@@ -301,6 +304,7 @@
 //    WeatherViewController *vc = [[WeatherViewController alloc]init];
     
     Search_ViewController* vc = [[Search_ViewController alloc] init];
+    vc.type = SearchType_news;
     [self.navigationController pushViewController:vc animated:YES];
 }
 
@@ -337,6 +341,9 @@
         [m_boxView.close_btn addTarget:self action:@selector(boxClosebtn_action) forControlEvents:UIControlEventTouchUpInside];
         [m_boxView.box_btn addTarget:self action:@selector(boxOpenBtn_action) forControlEvents:UIControlEventTouchUpInside];
         [[UIApplication sharedApplication].keyWindow addSubview:m_boxView];
+        if(!m_VCL_isShow){
+            [m_boxView setHidden:YES];
+        }
 //        [self.view addSubview:m_boxView];
 //        [self.view bringSubviewToFront:m_boxView];
         
@@ -354,15 +361,29 @@
 }
 
 -(void)boxOpenBtn_action{
+    //非绑定设备不能执行任务
+        if([[Login_info share].userInfo_model.device_mult_user integerValue] == NotTheDevice){
+            [MyMBProgressHUD ShowMessage:@"非绑定设备，不能执行任务" ToView:self.view AndTime:1.0f];
+            return;
+        }
+
+    
     [m_boxView removeFromSuperview];
     NSString* box_taskId = [Md5Helper Box_taskId:[Login_info share].userInfo_model.user_id];
-    [InternetHelp SendTaskId:box_taskId AndType:1];
+    [InternetHelp SendTaskId:box_taskId AndType:Task_box Sucess:^(NSInteger type, NSDictionary *dic) {
+        if(type == Task_box){
+            NSString* coin = dic[@"list"][@"reward_coin"];
+            [self showBoxWin:coin];
+        }
+    } Fail:^(NSDictionary *dic) {
+        NSLog(@"SCNAv-宝箱任务上传失败");
+    }];
     m_isShowBox = YES;
 }
 
--(void)showBoxWin:(NSNotification*)noti{
+-(void)showBoxWin:(NSString*)coin{
     
-    NSString* coin = noti.object;
+//    NSString* coin = noti.object;
     
     UIView* view = [[UIView alloc] initWithFrame:CGRectMake(SCREEN_WIDTH/2, SCREEN_HEIGHT/2, 10, 10)];
     view.backgroundColor = [UIColor colorWithRed:0/255.0 green:0/255.0 blue:0/255.0 alpha:0.6/1.0];
@@ -373,13 +394,15 @@
     blackground_view.alpha = 0.6;
     
     //图片
-    UIImageView* imgView = [[UIImageView alloc] initWithFrame:CGRectMake(30, 109, 300, 300)];
+    CGFloat img_width = SCREEN_WIDTH-30-30;
+    UIImageView* imgView = [[UIImageView alloc] initWithFrame:CGRectMake(30, 109, img_width, img_width)];
     [imgView setImage:[UIImage imageNamed:@"box_open"]];
     [view addSubview:imgView];
     
-    UILabel* label = [[UILabel alloc] initWithFrame:CGRectMake(SCREEN_WIDTH/2 -98/2, CGRectGetMaxY(imgView.frame)+16, 98, 14)];
+    UILabel* label = [[UILabel alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(imgView.frame)+16, SCREEN_WIDTH, 14)];
     label.text = @"恭喜您获得金币";
     label.textColor = [[ThemeManager sharedInstance] TaskGetTitleSmallLableColor];
+    label.textAlignment = NSTextAlignmentCenter;
     label.font = [UIFont fontWithName:@"SourceHanSansCN-Regular" size:14];
     [view addSubview:label];
     
@@ -501,6 +524,7 @@
 {
     [super viewWillAppear:animated];
     [self.navigationController setNavigationBarHidden:YES];
+    m_VCL_isShow = YES;
     [self IsShowBox];
 }
 
@@ -508,6 +532,7 @@
 {
     [super viewWillDisappear:animated];
     [self.navigationController setNavigationBarHidden:NO];
+    m_VCL_isShow = NO;
     [m_boxView  setHidden:YES];
 }
 
@@ -589,21 +614,30 @@
         for (ChannelName* item in array) {
             BOOL isHave = NO;
             for (ChannelName* item_tmp in channel_array) {
+                
                 if([item.ID isEqualToString:item_tmp.ID]){
                     isHave = YES;
                     break;
+                }else{
+                    //如果是新添加频道，就直接添加到显示频道中
+                    if(item_tmp.isNewChannel){
+                        BOOL isHaveNewChannel = NO;
+                        for (ChannelName* item_tmp1 in array_tmp) { //防止重复添加新频道
+                            if([item_tmp1.title isEqualToString:item_tmp.title]){
+                                isHaveNewChannel = YES;
+                                break;
+                            }
+                        }
+                        if(!isHaveNewChannel){
+                            [array_tmp addObject:item_tmp];
+                        }
+                    }
                 }
             }
             if(isHave){
                 [array_tmp addObject:item];
             }else{
                 [array_more addObject:item];
-            }
-        }
-        //如果是新添加频道，就直接添加到现实频道中
-        for (ChannelName* item_tmp in channel_array) {
-            if(item_tmp.isNewChannel){
-                [array_tmp addObject:item_tmp];
             }
         }
         

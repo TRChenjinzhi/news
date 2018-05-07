@@ -136,6 +136,12 @@
         [self addSubview:rescLb];
         self.resouce = rescLb;
     }
+    else{
+        CGSize TextSize = [model.source sizeWithAttributes:@{NSFontAttributeName:[UIFont fontWithName:@"SourceHanSansCN-Regular" size:10]}];
+        CGSize size = CGSizeMake(ceilf(TextSize.width), ceilf(TextSize.height));
+        self.resouce.frame = CGRectMake(margin, CGRectGetMaxY(self.img1.frame)+10, size.width, size.height);
+        self.resouce.text = model.source;
+    }
     
     if(self.imgReply == nil){
         UIImageView* imgView_reply = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"ic_comment_s"]];
@@ -149,10 +155,10 @@
     if(self.lbReply == nil){
         UILabel* label_reply = [[UILabel alloc] initWithFrame:CGRectMake(CGRectGetMaxX(self.imgReply.frame)+4, CGRectGetMaxY(self.img1.frame)+10, 20, 11)];
         
-        if([model.comment_num isEqualToString:@""]){
+        if([model.comment_num integerValue] == 0){
             label_reply.text = @"0";
         }else{
-            label_reply.text = model.comment_num;
+            label_reply.text = [NSString stringWithFormat:@"%ld",[model.comment_num integerValue]];
         }
         label_reply.font = [UIFont fontWithName:@"SourceHanSansCN-Regular" size:11];
         
@@ -171,6 +177,7 @@
         [self addSubview:time_label];
         self.time = time_label;
     }else{
+        self.time.frame=CGRectMake(CGRectGetMaxX(self.resouce.frame)+10, CGRectGetMaxY(self.img1.frame)+10, 100, 11);
         self.time.text = [TimeHelper showTime:model.publish_time];
     }
     m_time = model.publish_time;

@@ -16,12 +16,23 @@
     NSArray* array_dic = dic[@"list"];
     for (NSDictionary* item_dic in array_dic) {
         TaskMaxCout_model* model = [[TaskMaxCout_model alloc]init];
+        
         NSNumber* type = item_dic[@"type"];
         model.type = [type longValue];
-        NSNumber* max = item_dic[@"max"];
-        model.maxCout = [max longValue];
+        
+        NSString* max = item_dic[@"max"];
+        model.maxCout = [max integerValue];
+        
         NSNumber* count = item_dic[@"count"];
         model.count = [count longValue];
+        
+        NSNumber* time = item_dic[@"last_time"];
+        if(time == nil){
+            model.lastOpenBox_time = 0;
+        }else{
+            model.lastOpenBox_time = [time integerValue];
+        }
+        
         
         [array addObject:model];
     }

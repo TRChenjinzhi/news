@@ -38,7 +38,7 @@
 
 -(void)setModel:(NSArray *)model{
     m_arrayModel = model;
-    [self.tableView layoutIfNeeded];
+    [self.tableView reloadData];
 }
 
 #pragma mark - Table view data source

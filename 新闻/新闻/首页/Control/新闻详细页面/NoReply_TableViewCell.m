@@ -25,19 +25,29 @@
     self = [super initWithStyle:style reuseIdentifier:reuseIdentifier];
     if(self){
         
-        UIView* view = [[UIView alloc] initWithFrame:CGRectMake(0, 0, SCREEN_WIDTH, 150)];
+        UIView* view = [[UIView alloc] initWithFrame:CGRectMake(0, 0, SCREEN_WIDTH, kWidth(150))];
         
         //图片
-        UIImageView* imgView = [[UIImageView alloc] initWithFrame:CGRectMake(135, 19, 90, 90)];
+        UIImageView* imgView = [UIImageView new];
         [imgView setImage:[UIImage imageNamed:@"ic_comment_empty"]];
         [view addSubview:imgView];
+        [imgView mas_makeConstraints:^(MASConstraintMaker *make) {
+            make.width.and.height.mas_offset(kWidth(90));
+            make.top.equalTo(view.mas_top).with.offset(kWidth(19));
+            make.centerX.equalTo(view.mas_centerX);
+        }];
         
         //文字
-        UILabel* label = [[UILabel alloc] initWithFrame:CGRectMake(136, CGRectGetMaxY(imgView.frame)+12, 99, 13)];
+        UILabel* label = [UILabel new];
         label.text = @"还没有人评论哦~";
         label.font = [UIFont fontWithName:@"SourceHanSansCN-Regular" size:13];
         label.textColor = [[ThemeManager sharedInstance] GetDialogTextColor];
+        label.textAlignment= NSTextAlignmentCenter;
         [view addSubview:label];
+        [label mas_makeConstraints:^(MASConstraintMaker *make) {
+            make.top.equalTo(imgView.mas_bottom).with.offset(kWidth(12));
+            make.left.and.right.equalTo(view);
+        }];
         
         [self addSubview:view];
     }

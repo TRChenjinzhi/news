@@ -15,6 +15,7 @@
 }
 
 @property (nonnull,strong)CJZdataModel* CJZ_model;
+@property (nonnull,strong)NSString* channel;
 
 @property (nonatomic,strong)NSArray* _Nullable reply_array;
 

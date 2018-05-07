@@ -37,7 +37,13 @@
  
          "alipay_num":"", //支付宝账号
          "alipay_name":"" //支付宝名称
- }
+    }
+     "binding_wechat":"0",  //是否绑定微信 0否   1：是
+     "withdraw_wechat":{
+     "wechat_openid":"",  //微信openid
+     "wechat_name":"",    //微信真实姓名
+     }
+     "is_wechat_withdraw":0,    //是否提现过1元  0：否 1：是
 }
  */
 
@@ -56,6 +62,10 @@ sex = "1";
 telephone = 15527747037;
 "user_id" = 578604bf65556785ad2bb87f331d3126;
 "wechat_binding" = 0;
+ 
+ wechat_icon : "xxxxx" // 微信头像
+ 
+ wechat_nickname : "xxxxx" // 微信昵称
  
  "reg_reward_cash" = 0;//要显示的金额
  "reg_reward_status" = 1;0:新用户 1:老用户
@@ -92,10 +102,14 @@ telephone = 15527747037;
     userInfo.wechat_binding = dic_userInfo[@"wechat_binding"];
     userInfo.login_times = dic_userInfo[@"login_times"];
     userInfo.appren_count = dic_userInfo[@"appren_count"];
+    userInfo.wechat_icon = dic_userInfo[@"wechat_icon"];
+    userInfo.wechat_nickname = dic_userInfo[@"wechat_nickname"];
     NSNumber* cash = dic_userInfo[@"reg_reward_cash"];
     userInfo.reg_reward_cash = [cash stringValue];
     userInfo.reg_reward_status = dic_userInfo[@"reg_reward_status"];
-
+    NSNumber* number_device_mult_user = dic_userInfo[@"device_mult_user"];
+    userInfo.device_mult_user = [number_device_mult_user stringValue];
+    userInfo.device_first_tel = dic_userInfo[@"device_first_tel"];
     
     NSMutableDictionary* dic_shareInfo = [[NSMutableDictionary alloc]initWithDictionary:dic[@"shareinfo"]];
     Login_shareInfo* shareInfo = [[Login_shareInfo alloc] init];
@@ -103,11 +117,12 @@ telephone = 15527747037;
     shareInfo.desc = dic_shareInfo[@"desc"];
     shareInfo.url = dic_shareInfo[@"url"];
     shareInfo.img = dic_shareInfo[@"img"];
+    shareInfo.shorLink = dic_shareInfo[@"shorLink"];
 
     NSMutableDictionary* dic_userMoney = [[NSMutableDictionary alloc]initWithDictionary:dic[@"money"]];
     Login_userMoney* userMoney = [[Login_userMoney alloc] init];
-    userMoney.coin = dic_userMoney[@"coin"];
-    userMoney.cash = dic_userMoney[@"cash"];
+    userMoney.coin = [JsonHelper JsonToObject_ToStringByInterger:dic_userMoney[@"coin"]];
+    userMoney.cash = [JsonHelper JsonToObject_ToStringByFloat:dic_userMoney[@"cash"]];
     userMoney.binding_alipay = dic_userMoney[@"binding_alipay"];
     NSDictionary* dic_withdraw_account = dic_userMoney[@"withdraw_account"];
     userMoney.alipay_num = dic_withdraw_account[@"alipay_num"];
@@ -120,8 +135,15 @@ telephone = 15527747037;
         [dic_userMoney setValue:@"" forKey:@"alipay_name"];
         userMoney.alipay_name = @"";
     }
-    userMoney.total_cashed = dic_userMoney[@"total_cashed"];
-    userMoney.total_income = dic_userMoney[@"total_income"];
+
+    userMoney.binding_wechat = [JsonHelper JsonToObject_ToStringByInterger:dic_userMoney[@"binding_wechat"]];
+    NSDictionary* dic_withdraw_wechat = dic_userMoney[@"withdraw_wechat"];
+    userMoney.wechat_openid = dic_withdraw_wechat[@"wechat_openid"];
+    userMoney.wechat_name = dic_withdraw_wechat[@"wechat_name"];
+    userMoney.is_wechat_withdraw = [JsonHelper JsonToObject_ToStringByInterger:dic_userMoney[@"is_wechat_withdraw"]];
+    
+    userMoney.total_cashed = [JsonHelper JsonToObject_ToStringByFloat:dic_userMoney[@"total_cashed"]];
+    userMoney.total_income = [JsonHelper JsonToObject_ToStringByFloat:dic_userMoney[@"total_income"]];
     
     Login_info* login_info = [[Login_info alloc] init];
     login_info.userInfo_model = userInfo;
@@ -149,10 +171,10 @@ static id _instance;
 }
 
 -(void)SaveLoginInfo:(Login_info *)info{
-    self.userInfo_model = info.userInfo_model;
-    self.shareInfo_model = info.shareInfo_model;
-    self.userMoney_model = info.userMoney_model;
-    self.isLogined   = YES;
+    [Login_info share].userInfo_model = info.userInfo_model;
+    [Login_info share].shareInfo_model = info.shareInfo_model;
+    [Login_info share].userMoney_model = info.userMoney_model;
+    [Login_info share].isLogined   = YES;
 }
 
 -(Login_info*)GetLoginInfo{
@@ -181,15 +203,15 @@ static id _instance;
 }
 
 -(void)GetLoginInfoFormLocal{
-    NSDictionary* dic = [[NSMutableDictionary alloc]initWithDictionary:[[AppConfig sharedInstance] GetUserInfo]];
+    NSDictionary* dic = [[NSMutableDictionary alloc] initWithDictionary:[[AppConfig sharedInstance] GetUserInfo]];
     if([NullNilHelper dx_isNullOrNilWithObject:dic]){
         Login_userInfo* userInfo = [[Login_userInfo alloc]init];
         userInfo.user_id = @"";
         [Login_info share].userInfo_model = userInfo;
-        self.isLogined = NO;
+        [Login_info share].isLogined = NO;
     }else{
         [Login_info dicToModel:dic];
-        self.isLogined = YES;
+        [Login_info share].isLogined = YES;
     }
 }
 

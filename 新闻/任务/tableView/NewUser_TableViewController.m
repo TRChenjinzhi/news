@@ -71,50 +71,85 @@
     Task_TableViewCell* cell = [Task_TableViewCell CellFormTable:tableView];
     TaskCell_model* model = m_arrayModel[indexPath.row];
     
-    NSString* readingState = [Login_info share].userInfo_model.is_read_question;
-    NSString* wechatState = [Login_info share].userInfo_model.wechat_binding;
-    NSString* masterCode = [Login_info share].userInfo_model.mastercode;
-    NSString* apprenticeCount = [Login_info share].userInfo_model.appren_count;
     //是否已经阅读过相关阅读
-    if([model.title isEqualToString:@"查看常见问题"]){
-        if([readingState isEqualToString:@"1"]){
-            model.isDone = YES;
-        }else{
-            model.isDone = NO;
+    if([model.title isEqualToString:NewUserTask_readQuestion]){
+        if(model.User_model == nil){
+            
         }
+        else{
+            if(model.User_model.status == 1 || model.User_model.count >= model.User_model.max){
+                model.isDone = YES;
+            }else{
+                model.isDone = NO;
+            }
+        }
+        cell.tag = Task_readQuestion;
     }
     
     //是否已经微信绑定
-    if([model.title isEqualToString:@"绑定微信"]){
-        if([wechatState isEqualToString:@"1"]){
-            model.isDone = YES;
-        }else{
-            model.isDone = NO;
+    if([model.title isEqualToString:NewUserTask_blindWechat]){
+        if(model.User_model == nil){
+            
         }
+        else{
+            if(model.User_model.status == 1 || model.User_model.count >= model.User_model.max){
+                model.isDone = YES;
+            }else{
+                model.isDone = NO;
+            }
+        }
+        cell.tag = Task_blindWechat;
     }
     
-    //是否已经拜师
-    if([model.title isEqualToString:@"输入邀请码"]){
-        if(![masterCode isEqualToString:@""]){
-            model.isDone = YES;
-        }else{
-            model.isDone = NO;
+    //阅读新闻
+    if([model.title isEqualToString:NewUserTask_readNews]){
+        if(model.User_model == nil){
+            
         }
+        else{
+            if(model.User_model.status == 1 || model.User_model.count >= model.User_model.max){
+                model.isDone = YES;
+            }else{
+                model.isDone = NO;
+            }
+        }
+        
+        cell.tag = Task_reading;
     }
     
-    //是否已经收徒
-    if([model.title isEqualToString:@"首次邀请好友"]){
-        if([apprenticeCount integerValue] > 0){
-            model.isDone = YES;
-        }else{
-            model.isDone = NO;
+    //观看视频
+    if([model.title isEqualToString:NewUserTask_readVideo]){
+        if(model.User_model == nil){
+            
         }
+        else{
+            if(model.User_model.status == 1 || model.User_model.count >= model.User_model.max){
+                model.isDone = YES;
+            }else{
+                model.isDone = NO;
+            }
+        }
+        cell.tag = Task_video;
+    }
+    
+    //是否朋友圈收徒
+    if([model.title isEqualToString:NewUserTask_shareByPengyouquan]){
+        if(model.User_model == nil){
+            
+        }
+        else{
+            if(model.User_model.status == 1 || model.User_model.count >= model.User_model.max){
+                model.isDone = YES;
+            }else{
+                model.isDone = NO;
+            }
+        }
+        cell.tag = Task_apprenitceByPengyouquan;
     }
     
     
     cell.taskModel = model;
     cell.type = @"新手任务";
-    cell.tag = indexPath.row;
     
     return cell;
 }

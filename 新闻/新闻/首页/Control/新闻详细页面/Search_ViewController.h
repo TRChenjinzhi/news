@@ -10,4 +10,6 @@
 
 @interface Search_ViewController : UIViewController
 
+@property (nonatomic)NSInteger type;
+
 @end

@@ -101,7 +101,7 @@
 
     [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(mynotification) name:@"新闻" object:nil];
     
-    [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(GetNetFailed) name:@"获取新闻失败" object:nil];
+//    [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(GetNetFailed) name:@"获取新闻失败" object:nil];
     [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(DeleteOne:) name:@"不感兴趣" object:nil];
     [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(SaveNews) name:@"AppDelegate_SocietyViewCtl" object:nil];
 }
@@ -133,6 +133,7 @@
 }
 
 -(void)GetNetFailed{
+    [m_Reloaded_view removeFromSuperview];
     DateReload_view* view = [[DateReload_view alloc] initWithFrame:CGRectMake(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT)];
     m_Reloaded_view = view;
     [m_Reloaded_view.button addTarget:self action:@selector(initTableView) forControlEvents:UIControlEventTouchUpInside];
@@ -207,9 +208,20 @@
 
 -(void)addTableView_data{
     //是否有缓存数据 有：直接赋值 没有：刷新获得数据
-    m_cash_array = [[AppConfig sharedInstance] getNewsByChannel_id:self.channel_id];
+    
+    if(self.totalArray.count < 50){ //保证保存最新的50信息
+        if(m_cash_array.count > 0){
+            for (CJZdataModel* model in m_cash_array) {
+                if(self.totalArray.count >= 50){
+                    break;
+                }
+                [self.totalArray addObject:model];
+            }
+        }
+    }
+    
+    m_cash_array = [NSMutableArray arrayWithArray:[[AppConfig sharedInstance] getNewsByChannel_id:self.channel_id]];
     if(m_cash_array.count > 0){
-        NSLog(@"获取新闻缓存");
         [self getCashArray];
         [self.tableview reloadData];
 //        [self IsRefresh];
@@ -220,9 +232,17 @@
 
 -(BOOL)getCashArray{
     if(m_cash_array.count >= 8){
+        NSLog(@"获取新闻缓存");
         for (int i=0; i<8; i++) {
             [self.totalArray addObject:m_cash_array[0]];
             [m_cash_array removeObjectAtIndex:0];
+        }
+        return YES;
+    }else if(0 < m_cash_array.count && m_cash_array.count < 8){
+        NSLog(@"获取新闻缓存");
+        for (CJZdataModel* model in m_cash_array.reverseObjectEnumerator) {
+            [self.totalArray addObject:model];
+            [m_cash_array removeObject:model];
         }
         return YES;
     }else{
@@ -253,7 +273,7 @@
 }
 
 -(void)addHeaderView{
-    CGFloat headerHeight = 50;
+    CGFloat headerHeight = kWidth(50);
     UIView* headerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, SCREEN_WIDTH, headerHeight)];
     
     NSString* keyword = self.keyWords;
@@ -264,7 +284,7 @@
     }
     NSString* tipStr = [NSString stringWithFormat:@"将含%@的内容添加至频道",keyword];
     CGFloat labelWidth = [LabelHelper GetLabelWidth:kFONT(16) AndText:tipStr];
-    UILabel* tipLable = [[UILabel alloc] initWithFrame:CGRectMake(16, 20, labelWidth, headerHeight-20-20)];
+    UILabel* tipLable = [[UILabel alloc] initWithFrame:CGRectMake(16, 20, labelWidth, headerHeight-kWidth(20)-kWidth(20))];
     tipLable.text = keyword;
     tipLable.textColor = RGBA(34, 39, 39, 1);
     tipLable.textAlignment = NSTextAlignmentLeft;
@@ -275,14 +295,23 @@
     tipLable.attributedText = attStr;
     [headerView addSubview:tipLable];
     
-    UIButton* addChannelBtn = [[UIButton alloc] initWithFrame:CGRectMake(SCREEN_WIDTH-16-headerHeight, 10, headerHeight, headerHeight-10-10)];
+    UIButton* addChannelBtn = [[UIButton alloc] initWithFrame:CGRectMake(SCREEN_WIDTH-kWidth(16)-headerHeight*1.5, kWidth(10), headerHeight*1.5, headerHeight-kWidth(10)-kWidth(10))];
     [addChannelBtn setTitle:@"添加" forState:UIControlStateNormal];
     [addChannelBtn setTitleColor:RGBA(34, 39, 39, 1) forState:UIControlStateNormal];
     [addChannelBtn.titleLabel setFont:kFONT(12)];
     [addChannelBtn.layer setCornerRadius:10.0f];
     [addChannelBtn setBackgroundColor:RGBA(248, 205, 4, 1)];
-    [addChannelBtn addTarget:self action:@selector(addChannel) forControlEvents:UIControlEventTouchUpInside];
+    [addChannelBtn addTarget:self action:@selector(addChannel:) forControlEvents:UIControlEventTouchUpInside];
     [headerView addSubview:addChannelBtn];
+    
+    //判断是否订阅过
+    if([[IndexOfNews share] isHaveChannel:self.keyWords]){
+        [addChannelBtn setEnabled:NO];
+        addChannelBtn.backgroundColor = RGBA(242, 242, 242, 1);
+    }else{
+        [addChannelBtn setEnabled:YES];
+        addChannelBtn.backgroundColor = RGBA(248, 205, 4, 1);
+    }
     
     UIView* line = [[UIView alloc] initWithFrame:CGRectMake(16, headerHeight-1, SCREEN_WIDTH-16-16, 1)];
     line.backgroundColor = RGBA(242, 242, 242, 1);
@@ -292,7 +321,9 @@
     [self.tableview reloadData];
 }
 
--(void)addChannel{
+-(void)addChannel:(UIButton*)sender{
+    [sender setEnabled:NO];
+    sender.backgroundColor = RGBA(242, 242, 242, 1);
     //给新频道添加channelId
     //tabbar 重置
     //提示消息
@@ -303,13 +334,10 @@
     
     NSArray* tmp = [IndexOfNews share].channel_array;
     NSMutableArray* newChannels = [NSMutableArray arrayWithArray:tmp];
-    [newChannels addObject:channelName];
+    [newChannels insertObject:channelName atIndex:1];
     [IndexOfNews share].channel_array = newChannels;
     
     [[AlertHelper Share] ShowMe:self And:0.5f And:@"订阅成功"];
-    
-    self.tableview.tableHeaderView = nil;
-    [self.tableview reloadData];
     
     [[NSNotificationCenter defaultCenter] postNotificationName:@"Society_SCNavi_订阅" object:nil];
     
@@ -422,9 +450,9 @@
         [[NSNotificationCenter defaultCenter] postNotificationName:@"搜索-详情页面" object:data];
     }else{
         
-        
         DetailWeb_ViewController* vc = [[DetailWeb_ViewController alloc] init];
         vc.CJZ_model = data;
+        vc.channel = self.channel_id;
         [self.navigationController pushViewController:vc animated:YES];
     }
     //标记阅读与否
@@ -580,7 +608,9 @@
             //发送失败消息
             [block_self.tableview.header endRefreshing];
             [block_self.tableview.footer endRefreshing];
-            [[NSNotificationCenter defaultCenter] postNotificationName:@"获取新闻失败" object:nil];
+//            [[NSNotificationCenter defaultCenter] postNotificationName:@"获取新闻失败" object:nil];
+            [block_self GetNetFailed];
+            return ;
         }
         
         NSLog(@"从服务器获取到数据");
@@ -591,17 +621,27 @@
             NSNumber* code = dict[@"code"];
             if([code integerValue] == 200){
             }else{
-                [[NSNotificationCenter defaultCenter] postNotificationName:@"获取新闻失败" object:nil];
+//                [[NSNotificationCenter defaultCenter] postNotificationName:@"获取新闻失败" object:nil];
+                [block_self GetNetFailed];
                 return ;
             }
         NSArray* array_news = dict[@"list"];
-        NSArray *dataarray = [CJZdataModel jsonArrayToModelArray:array_news];
+        NSMutableArray *dataarray = [CJZdataModel jsonArrayToModelArray:array_news];
         NSMutableArray *statusArray = [NSMutableArray array];
         NSString* newsTime = nil;
         for (CJZdataModel *data in dataarray) {
             [statusArray addObject:[self SetData:data]];
             newsTime = data.publish_time;
         }
+            
+            //去重
+            for (CJZdataModel* tmp in dataarray.reverseObjectEnumerator) {
+                for (CJZdataModel* tmp_other in block_self.totalArray.reverseObjectEnumerator) {
+                    if([tmp.ID isEqualToString:tmp_other.ID]){
+                        [dataarray removeObject:tmp];
+                    }
+                }
+            }
         
         [[AppConfig sharedInstance] saveTheTime_lastRefresh:self.channel_id];//记录最新刷新时间,间隔2小时 就自动刷新
             
@@ -622,11 +662,13 @@
                 }];
                 
                 //添加阅读到这里
-                CJZdataModel* item_readHere = statusArray[statusArray.count-1];
-                item_readHere.isRreadHere = YES;
-                for (CJZdataModel* model in block_self.totalArray) {
-                    model.isRreadHere = NO;
-                    [statusArray addObject:model];
+                if(block_self.totalArray.count > 0){
+                    CJZdataModel* item_readHere = statusArray[statusArray.count-1];
+                    item_readHere.isRreadHere = YES;
+                    for (CJZdataModel* model in block_self.totalArray) {
+                        model.isRreadHere = NO;
+                        [statusArray addObject:model];
+                    }
                 }
                 block_self.totalArray = statusArray;
             }
@@ -692,7 +734,8 @@
                 [block_self.tableview.header endRefreshing];
                 [block_self.tableview.footer endRefreshing];
                 
-                [[NSNotificationCenter defaultCenter] postNotificationName:@"获取新闻失败" object:nil];
+//                [[NSNotificationCenter defaultCenter] postNotificationName:@"获取新闻失败" object:nil];
+                [block_self GetNetFailed];
                 return ;
             }
             
@@ -705,7 +748,8 @@
                 NSNumber* code = dict[@"code"];
                 if([code integerValue] == 200){
                 }else{
-                    [[NSNotificationCenter defaultCenter] postNotificationName:@"获取新闻失败" object:nil];
+//                    [[NSNotificationCenter defaultCenter] postNotificationName:@"获取新闻失败" object:nil];
+                    [block_self GetNetFailed];
                     return ;
                 }
                 NSArray* array_news = dict[@"list"];
@@ -775,10 +819,7 @@
             if(self.isSearchVC){
                 NSNumber* subscribe = dict[@"subscribe"];
                 if([subscribe integerValue] == 1){ // 可以订阅
-                    //判断是否已经订阅过
-                    if([[IndexOfNews share] isHaveChannel:self.keyWords]){
-                        [self addHeaderView];
-                    }
+                    [self addHeaderView];
                 }
             }
             NSArray* array_news = dict[@"list"];

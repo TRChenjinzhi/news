@@ -13,7 +13,13 @@
 #import "AFHTTPRequestOperation.h"
 #import "AFHTTPRequestOperationManager.h"
 
-@interface Mine_userInfo_ViewController ()<UINavigationControllerDelegate,UIImagePickerControllerDelegate>
+typedef enum : NSUInteger {
+    Type_userInfo_name,
+    Type_userInfo_sex,
+    Type_userInfo_masterCode
+} Type_userInfo;
+
+@interface Mine_userInfo_ViewController ()<UINavigationControllerDelegate,UIImagePickerControllerDelegate,MyWindos_protocol>
 
 @end
 
@@ -31,6 +37,9 @@
     
     UIImageView*    m_test_img;
     UIImagePickerController *ipc;
+    
+    MyWindows*              m_windows;
+    NSInteger               m_type_index;//1.昵称 2.性别 3.邀请码
 }
 
 - (void)viewDidLoad {
@@ -44,6 +53,18 @@
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
+}
+
+-(void)viewWillAppear:(BOOL)animated{
+    [super viewWillAppear:animated];
+    /* 增加监听（当键盘出现或改变时） */
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(transformDialog:) name:UIKeyboardWillShowNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillHide:) name:UIKeyboardWillHideNotification object:nil];
+}
+
+-(void)viewWillDisappear:(BOOL)animated{
+    [super viewWillDisappear:animated];
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 -(void)initNavibar{
@@ -101,9 +122,14 @@
     shifu_view.title = @"我的师傅";
     NSString* masterCode = [Login_info share].userInfo_model.mastercode;
     
-    CGFloat text_width = [LabelHelper GetLabelWidth:[UIFont fontWithName:@"SourceHanSansCN-Regular" size:16] AndText:[Login_info share].userInfo_model.master_name];
+    
+    NSString* master_text = [Login_info share].userInfo_model.master_name;
+    if(master_text.length > 6){
+        master_text = [NSString stringWithFormat:@"%@..%@",[master_text substringToIndex:2],[master_text substringFromIndex:master_text.length-2]];
+    }
+    CGFloat text_width = [LabelHelper GetLabelWidth:[UIFont fontWithName:@"SourceHanSansCN-Regular" size:16] AndText:master_text];
     UILabel* master_label = [[UILabel alloc] initWithFrame:CGRectMake(10+24, 60/2-24/2, text_width, 24)];
-    master_label.text = [Login_info share].userInfo_model.master_name;
+    master_label.text = master_text;
     master_label.textColor = [[ThemeManager sharedInstance] MineUserInfoCellNameColor];
     master_label.textAlignment = NSTextAlignmentRight;
     master_label.font = [UIFont fontWithName:@"SourceHanSansCN-Regular" size:16];
@@ -254,8 +280,6 @@
         [formData appendPartWithFileData:UIImagePNGRepresentation(m_selected_image) name:@"avatar" fileName:@"avatar.png" mimeType:@"image/png"];
 //        [formData appendPartWithFileURL:fileURL name:@"avatar" error:NULL];
     } success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        
-        
             
         NSString *result = [[NSString alloc] initWithData:responseObject encoding:NSUTF8StringEncoding];
         //{"code":200,"msg":"succ","list":{"user_id":"f25ec3a25a3e60f0a41cbb7d8f6ff6e5","avatar":"http://ad-manager.b0.upaiyun.com/avatar/f25ec3a25a3e60f0a41cbb7d8f6ff6e5.jpg","name":"3823_5529821","sex":"0"}}
@@ -275,7 +299,7 @@
         [[AppConfig sharedInstance]saveUserIcon:m_selected_image];
 
         dispatch_async(dispatch_get_main_queue(), ^{
-            [MBProgressHUD showSuccess:@"头像修改成功"];
+            [MBProgressHUD showSuccess:@"修改成功"];
             //修改头像
             m_img.icon = m_userInfo_model.icon;
         });
@@ -283,53 +307,28 @@
         
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"错误 %@", error.localizedDescription);
+        [MBProgressHUD showSuccess:@"修改失败"];
     }];
 }
 
 
 -(void)xiugai_name{
-    UIAlertController* Alert_ctr = [UIAlertController alertControllerWithTitle:@"用户资料修改" message:@"用户名称" preferredStyle:UIAlertControllerStyleAlert];
-    
-    [Alert_ctr addTextFieldWithConfigurationHandler:^(UITextField * _Nonnull textField) {
-        textField.placeholder = @"输入名称";
-    }];
-    
-    [Alert_ctr addAction:[UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-        //获取第1个输入框；
-        UITextField *userNameTextField = Alert_ctr.textFields.firstObject;
-        m_userInfo_model.name = userNameTextField.text;
-        m_name.name = m_userInfo_model.name;
-        [self xiugai_userInfo];
-        [self upDateUserInfo];
-    }]];
-    
-    [Alert_ctr addAction:[UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-        
-    }]];
-    
-    [self presentViewController:Alert_ctr animated:true completion:nil];
+    m_type_index = Type_userInfo_name;
+    m_windows = [[MyWindows alloc] initWithFrame:[UIScreen mainScreen].bounds];
+    m_windows.title = @"编辑昵称";
+    m_windows.delegate = self;
+    m_windows.type  = Type_TextField;
+    [[UIApplication sharedApplication].keyWindow addSubview:m_windows];
 }
 
 -(void)xiugai_sex{
-    UIAlertController* Alert_ctr = [UIAlertController alertControllerWithTitle:@"用户资料修改" message:@"性别" preferredStyle:UIAlertControllerStyleActionSheet];
-    
-    [Alert_ctr addAction:[UIAlertAction actionWithTitle:@"男" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-        m_userInfo_model.sex = @"1";
-        m_sex.name = @"男";
-        [self xiugai_userInfo];
-        [self upDateUserInfo];
-    }]];
-    [Alert_ctr addAction:[UIAlertAction actionWithTitle:@"女" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-        m_userInfo_model.sex = @"0";
-        m_sex.name = @"女";
-        [self xiugai_userInfo];;
-        [self upDateUserInfo];
-    }]];
-    [Alert_ctr addAction:[UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
-
-    }]];
-    
-    [self presentViewController:Alert_ctr animated:true completion:nil];
+    m_type_index = Type_userInfo_sex;
+    m_windows = [[MyWindows alloc] initWithFrame:[UIScreen mainScreen].bounds];
+    m_windows.title = @"选择性别";
+    m_windows.array_choose = @[@"男",@"女"];
+    m_windows.delegate = self;
+    m_windows.type  = Type_Choose;
+    [[UIApplication sharedApplication].keyWindow addSubview:m_windows];
 }
 
 -(void)xiugai_userInfo{
@@ -373,7 +372,7 @@
             if(error){
                 NSLog(@"网络获取失败");
                 //发送失败消息
-                [MBProgressHUD showError:@"上传失败."];
+                [MyMBProgressHUD ShowMessage:@"网络错误" ToView:self.view AndTime:1.0f];
                 return ;
             }
             
@@ -382,10 +381,10 @@
             NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:data options:(NSJSONReadingMutableLeaves) error:nil];
             NSNumber* code = dict[@"code"];
             if([code longValue] != 200){
-                [MBProgressHUD showError:@"上传失败"];
+                [MyMBProgressHUD ShowMessage:@"修改失败" ToView:self.view AndTime:1.0f];
                 return;
             }
-            [MBProgressHUD showSuccess:@"上传成功"];
+            [MyMBProgressHUD ShowMessage:@"修改成功" ToView:self.view AndTime:1.0f];
         });
         
     }];
@@ -395,43 +394,118 @@
 
 //拜师
 -(void)addShifu{
-    UIAlertController* Alert_ctr = [UIAlertController alertControllerWithTitle:@"我的师傅" message:@"输入邀请码" preferredStyle:UIAlertControllerStyleAlert];
+    m_type_index = Type_userInfo_masterCode;
+    m_windows = [[MyWindows alloc] initWithFrame:[UIScreen mainScreen].bounds];
+    m_windows.title = @"输入邀请码";
+    m_windows.delegate = self;
+    m_windows.type  = Type_TextField;
+    [[UIApplication sharedApplication].keyWindow addSubview:m_windows];
+//    UIAlertController* Alert_ctr = [UIAlertController alertControllerWithTitle:@"我的师傅" message:@"输入邀请码" preferredStyle:UIAlertControllerStyleAlert];
+//
+//    [Alert_ctr addTextFieldWithConfigurationHandler:^(UITextField * _Nonnull textField) {
+//        textField.placeholder = @"输入邀请码";
+//    }];
+//
+//    [Alert_ctr addAction:[UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+//        //获取第1个输入框；
+//        UITextField *userNameTextField = Alert_ctr.textFields.firstObject;
+//
+//        [InternetHelp BaiShi_API:userNameTextField.text Sucess:^(NSDictionary *dic) {
+//            NSDictionary* dic_tmp = dic[@"list"];
+//            [Login_info share].userInfo_model.mastercode = dic_tmp[@"master_code"];
+//            [Login_info share].userInfo_model.master_name = dic_tmp[@"master_name"];
+//            [Login_info share].userInfo_model.master_avatar = dic_tmp[@"master_avatar"];
+//
+//            [MyMBProgressHUD ShowMessage:@"拜师成功" ToView:self.view AndTime:1];
+//
+//            m_shifu.m_view_shifu = m_shifuInfo_view;
+//            tap_shifu.enabled = NO;
+//
+//        } Fail:^(NSDictionary *dic) {
+//            if(dic == nil){
+//                [MyMBProgressHUD ShowMessage:@"网络错误" ToView:self.view AndTime:1];
+//            }else{
+//                NSString* msg = dic[@"msg"];
+//                [MyMBProgressHUD ShowMessage:msg ToView:self.view AndTime:1];
+//            }
+//        }];
+//    }]];
+//
+//    [Alert_ctr addAction:[UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
     
-    [Alert_ctr addTextFieldWithConfigurationHandler:^(UITextField * _Nonnull textField) {
-        textField.placeholder = @"输入邀请码";
-    }];
-    
-    [Alert_ctr addAction:[UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-        //获取第1个输入框；
-        UITextField *userNameTextField = Alert_ctr.textFields.firstObject;
-        
-        [InternetHelp BaiShi_API:userNameTextField.text Sucess:^(NSDictionary *dic) {
-            NSDictionary* dic_tmp = dic[@"list"];
-            [Login_info share].userInfo_model.mastercode = dic_tmp[@"master_code"];
-            [Login_info share].userInfo_model.master_name = dic_tmp[@"master_name"];
-            [Login_info share].userInfo_model.master_avatar = dic_tmp[@"master_avatar"];
-            
-            [MyMBProgressHUD ShowMessage:@"拜师成功" ToView:self.view AndTime:1];
-            
-            m_shifu.m_view_shifu = m_shifuInfo_view;
-            tap_shifu.enabled = NO;
-            
-        } Fail:^(NSDictionary *dic) {
-            if(dic == nil){
-                [MyMBProgressHUD ShowMessage:@"网络错误" ToView:self.view AndTime:1];
-            }else{
-                NSString* msg = dic[@"msg"];
-                [MyMBProgressHUD ShowMessage:msg ToView:self.view AndTime:1];
-            }
-        }];
-    }]];
-    
-    [Alert_ctr addAction:[UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-        
-    }]];
-    
-    [self presentViewController:Alert_ctr animated:true completion:nil];
+//    }]];
+//
+//    [self presentViewController:Alert_ctr animated:true completion:nil];
 }
+
+#pragma mark - 协议
+-(void)returnString:(NSString *)str{
+    switch (m_type_index) {
+        case Type_userInfo_name:{
+            m_userInfo_model.name = str;
+            m_name.name = m_userInfo_model.name;
+            [self xiugai_userInfo];
+            [self upDateUserInfo];
+            break;
+        }
+        case Type_userInfo_sex:{
+            if([str isEqualToString:@"男"]){
+                m_userInfo_model.sex = @"1";
+                m_sex.name = @"男";
+            }
+            else{
+                m_userInfo_model.sex = @"0";
+                m_sex.name = @"女";
+            }
+            [self xiugai_userInfo];
+            [self upDateUserInfo];
+            break;
+        }
+        case Type_userInfo_masterCode:{
+            [InternetHelp BaiShi_API:str Sucess:^(NSDictionary *dic) {
+                NSDictionary* dic_tmp = dic[@"list"];
+                [Login_info share].userInfo_model.mastercode = dic_tmp[@"master_code"];
+                [Login_info share].userInfo_model.master_name = dic_tmp[@"master_name"];
+                [Login_info share].userInfo_model.master_avatar = dic_tmp[@"master_avatar"];
+                
+                [MyMBProgressHUD ShowMessage:@"邀请成功" ToView:self.view AndTime:1];
+                
+                m_shifu.m_view_shifu = m_shifuInfo_view;
+                tap_shifu.enabled = NO;
+                
+            } Fail:^(NSDictionary *dic) {
+                if(dic == nil){
+                    [MyMBProgressHUD ShowMessage:@"网络错误" ToView:self.view AndTime:1];
+                }else{
+                    NSString* msg = dic[@"msg"];
+                    [MyMBProgressHUD ShowMessage:msg ToView:self.view AndTime:1];
+                }
+            }];
+            break;
+        }
+            
+        default:
+            break;
+    }
+}
+
+#pragma mark - 通知
+//移动UIView(随着键盘移动)
+-(void)transformDialog:(NSNotification *)aNSNotification
+{
+    NSLog(@"Mine_userInfo_VCL移动");
+    //键盘最后的frame
+    CGRect keyboardFrame = [aNSNotification.userInfo[UIKeyboardFrameEndUserInfoKey] CGRectValue];
+    CGFloat height = keyboardFrame.size.height;
+    NSLog(@"Mine_userInfo_VCL看看这个变化的Y值:%f",height);
+
+    [m_windows setCenterViewFrame:height];
+}
+
+-(void)keyboardWillHide:(NSNotification *)aNSNotification{
+    [m_windows setCenterViewFrame:0];
+}
+
 
 #pragma mark - 按钮方法
 -(void)back{

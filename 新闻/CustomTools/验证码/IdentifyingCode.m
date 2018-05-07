@@ -41,7 +41,7 @@ static id _instance;
 
 -(void)GetIdentifyingCode:(NSString *)PhoneNumber{
     //请求验证码
-    [BmobSMS requestSMSCodeInBackgroundWithPhoneNumber:PhoneNumber andTemplate:nil resultBlock:^(int msgId, NSError *error) {
+    [BmobSMS requestSMSCodeInBackgroundWithPhoneNumber:PhoneNumber andTemplate:@"手机注册验证码" resultBlock:^(int msgId, NSError *error) {
         if (error) {
 //            self.smsIdTf.text = error.description;
             NSLog(@"%@",error);

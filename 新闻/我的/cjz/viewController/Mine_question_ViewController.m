@@ -115,7 +115,7 @@
                 [m_timeLabel layoutIfNeeded];
                 
                 //任务类型  1:提供开宝箱  2：阅读文章 3：分享文章  4:优质评论 5：晒收入 6：参与抽奖任务  7：查看常见问题奖励 8：微信绑定奖励
-                [[NSNotificationCenter defaultCenter] postNotificationName:@"任务完成157" object:[NSNumber numberWithInteger:7]];
+                [[NSNotificationCenter defaultCenter] postNotificationName:@"任务完成157" object:[NSNumber numberWithInteger:Task_readQuestion]];
             });
         }else{
             m_timer_count--;

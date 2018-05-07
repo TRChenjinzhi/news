@@ -12,5 +12,6 @@
 
 @property (nonatomic,strong)NSString* title;
 @property (nonatomic,strong)NSString* title_img;
+@property (nonatomic,strong)NSString* subTitle;
 
 @end

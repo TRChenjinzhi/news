@@ -47,7 +47,7 @@
 
 - (void)viewConfig
 {
-    _navgationTabBar = [[UIScrollView alloc] initWithFrame:CGRectMake(0, 20, SCREENW - 40 - 40, 44)];
+    _navgationTabBar = [[UIScrollView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, self.frame.size.height)];
     _navgationTabBar.backgroundColor = [UIColor clearColor];
     _navgationTabBar.showsHorizontalScrollIndicator = NO;
     [self addSubview:_navgationTabBar];
@@ -150,8 +150,9 @@
 - (void)showLineWithButtonWidth:(CGFloat)width
 {
     //第一个线的位置
-    _line = [[UIView alloc] initWithFrame:CGRectMake(15, 45 - 3.0f, width, 2.0f)];
-    _line.backgroundColor = [UIColor redColor];
+    _line = [[UIView alloc] initWithFrame:CGRectMake(15, 45 - kWidth(5), width, kWidth(5))];
+    _line.backgroundColor = self.lineColor;
+    [_line.layer setCornerRadius:kWidth(5)/2];
     [_navgationTabBar addSubview:_line];
     
     UIButton *btn = _items[0];
@@ -161,8 +162,9 @@
 - (void)showLineWithButtonWidth_again:(CGFloat)width
 {
     //第一个线的位置
-    _line = [[UIView alloc] initWithFrame:CGRectMake(15, 45 - 3.0f, width, 2.0f)];
-    _line.backgroundColor = [UIColor redColor];
+    _line = [[UIView alloc] initWithFrame:CGRectMake(15, 45 - kWidth(5), width, kWidth(5))];
+    _line.backgroundColor = self.lineColor;
+    [_line.layer setCornerRadius:kWidth(5)/2];
     [_navgationTabBar addSubview:_line];
     
 //    UIButton *btn = _items[0];
@@ -198,7 +200,7 @@
     _currentItemIndex = currentItemIndex;
     UIButton *button = _items[currentItemIndex];
 
-    CGFloat flag = SCREENW - 40 - 40;
+    CGFloat flag = self.frame.size.width;
     
     if (button.frame.origin.x + button.frame.size.width + 50 >= flag)
     {

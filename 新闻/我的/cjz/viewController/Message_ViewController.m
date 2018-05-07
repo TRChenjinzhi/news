@@ -154,6 +154,9 @@
     [m_viewForTableView removeFromSuperview];
     [self InitView];
     [self.view addSubview:emptyMessage_View];
+    
+    //数据库数据也清空
+    [[MyDataBase shareManager] clearTable_Message];
 }
 -(void)backAction{
     NSLog(@"返回");
@@ -192,7 +195,7 @@
             if(error){
                 NSLog(@"网络获取失败");
                 //发送失败消息
-                [[AlertHelper Share] ShowMe:self And:2.0 And:@"网络失败"];
+                [[AlertHelper Share] ShowMe:self And:1.0 And:@"网络失败"];
                 return ;
             }
             
@@ -206,12 +209,30 @@
             NSArray* array_model = [Mine_message_model dicToModelArray:dict];
             
             if(array_model.count == 0){
-                [block_self setMessageVC_state:NO];
+                //从数据库中取出数据添加到message中
+                NSArray* array_dataBase = [[MyDataBase shareManager] Message_getData];
+                block_self.message_arrayModel = [block_self.message_arrayModel arrayByAddingObjectsFromArray:array_dataBase];
+                if(block_self.message_arrayModel.count == 0){
+                    [block_self setMessageVC_state:NO];
+                }else{
+                    [block_self setMessageVC_state:YES];
+                }
+                
             }else{
-                NSNumber* date = [[TimeHelper share] getCurrentTime_number];
-                [[AppConfig sharedInstance] saveMessageDate:[NSString stringWithFormat:@"%ld",[date integerValue]]];
+                Mine_message_model* model = array_model[0];
+                [[AppConfig sharedInstance] saveMessageDate:model.time]; //记录最新一条信息的时间戳
                 block_self.message_arrayModel = array_model;
+                
+                //从数据库中取出数据添加到message中
+                NSArray* array_dataBase = [[MyDataBase shareManager] Message_getData];
+                block_self.message_arrayModel = [block_self.message_arrayModel arrayByAddingObjectsFromArray:array_dataBase];
+                
                 [block_self setMessageVC_state:YES];
+                
+                //存储新数据
+                for (Mine_message_model* item in array_model) {
+                    [[MyDataBase shareManager] Message_insertData:item];
+                }
             }
 
         });

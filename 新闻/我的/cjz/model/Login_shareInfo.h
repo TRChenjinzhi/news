@@ -21,5 +21,6 @@
 @property (nonatomic,strong)NSString* desc;
 @property (nonatomic,strong)NSString* url;
 @property (nonatomic,strong)NSString* img;
+@property (nonatomic,strong)NSString* shorLink;
 
 @end

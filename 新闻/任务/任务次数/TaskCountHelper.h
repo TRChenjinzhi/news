@@ -20,7 +20,10 @@
 -(NSArray*)get_task_dayDay_name_array;
 -(NSArray*)get_taskcountModel_array;
 
--(void)addCountByType:(NSInteger)type;
+-(void)DayDayTask_addCountByType:(NSInteger)type;
 -(void)initData;
+
+-(BOOL)newUserTask_isOver;
+-(void)newUserTask_addCountByType:(NSInteger)type;
 
 @end

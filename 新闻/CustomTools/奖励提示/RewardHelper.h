@@ -10,6 +10,6 @@
 
 @interface RewardHelper : NSObject
 
-+(void)ShowReward:(NSInteger)type AndSelf:(id)vc;
++(void)ShowReward:(NSInteger)type AndSelf:(NSObject*)vc AndCoin:(NSString*)coin;
 
 @end

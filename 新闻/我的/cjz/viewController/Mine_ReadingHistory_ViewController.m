@@ -12,6 +12,9 @@
 #import "OneImageCell.h"
 #import "ThreeImageCell.h"
 #import "DetailWeb_ViewController.h"
+#import "Video_detail_tuijianTableViewCell.h"
+#import "video_info_model.h"
+#import "Video_detail_ViewController.h"
 
 @interface Mine_ReadingHistory_ViewController ()<UITableViewDelegate,UITableViewDataSource>
 
@@ -88,6 +91,10 @@
     m_tableView.dataSource = self;
     m_tableView.bounces = YES;
     m_tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
+    [m_tableView registerClass:[Video_detail_tuijianTableViewCell class] forCellReuseIdentifier:@"Video_detail_tuijianTableViewCell"];
+    [m_tableView registerClass:[NoImageCell class] forCellReuseIdentifier:@"NoImg"];
+    [m_tableView registerClass:[OneImageCell class] forCellReuseIdentifier:@"OneImg"];
+    [m_tableView registerClass:[ThreeImageCell class] forCellReuseIdentifier:@"ThreeImg"];
     [self.view addSubview:m_tableView];
 }
 
@@ -131,22 +138,65 @@
 
 #pragma mark - 数据库获取数据
 -(void)GetData{
-    m_array_model = [[MyDataBase shareManager] ReadingNews_GetLastMaxCountData];
+    //新闻记录 和 视频记录 进行排序 整合
+//    m_array_model = [[MyDataBase shareManager] ReadingNews_GetLastMaxCountData];
+    NSMutableArray* news_array = [[MyDataBase shareManager] ReadingNews_GetLastMaxCountData];
+    NSMutableArray* video_array = [[MyDataBase shareManager] ReadingVideo_GetLastMaxCountData];
+    
+    //将视频和新闻整合
+    [news_array addObjectsFromArray:video_array];
+    m_array_model = news_array;
     
     if(m_array_model.count == 0){
         [self.view addSubview:m_NoResult_view];
         return;
     }
-    //再将 m_array_model 分时间 今天的新闻 ，昨天的新闻 ，2018-03-06
+    //再分时间 今天的新闻 ，昨天的新闻 ，2018-03-06
     m_array_model = [[TimeHelper share] sortAllData_day_news:m_array_model];
+    
+    //同一组的顺序进行排序
+    [self sortArray:m_array_model];
     
     m_header_array = [NSMutableArray array];
     for (NSArray* tmp in m_array_model) {
-        CJZdataModel* model = tmp[0];
-        NSString* time = model.publish_time;
+        NSObject* model = tmp[0];
+        NSString* time = @"";
+        if([model isKindOfClass:[CJZdataModel class]]){
+            time = ((CJZdataModel*)model).publish_time;
+        }else if([model isKindOfClass:[video_info_model class]]){
+            time = ((video_info_model*)model).readingTime;
+        }
+        
         [m_header_array addObject:time];
     }
+}
+
+-(void)sortArray:(NSArray*)array{
+    NSMutableArray* total_array = [NSMutableArray array];
+    for (NSArray* array_item in array) {
+        NSMutableArray* array_tmp = [NSMutableArray arrayWithArray:array_item];
+        NSArray *result = [array_tmp sortedArrayUsingComparator:^NSComparisonResult(id  _Nonnull obj1, id  _Nonnull obj2) {
+            //我们要降序  大到小 (时间戳比较)
+            if([obj1 isKindOfClass:[CJZdataModel class]]){
+                if([obj2 isKindOfClass:[CJZdataModel class]]){
+                    return [((CJZdataModel*)obj2).publish_time compare:((CJZdataModel*)obj1).publish_time];
+                }else{
+                    return [((video_info_model*)obj2).readingTime compare:((CJZdataModel*)obj1).publish_time];
+                }
+            }else{
+                if([obj2 isKindOfClass:[CJZdataModel class]]){
+                    return [((CJZdataModel*)obj2).publish_time compare:((video_info_model*)obj1).readingTime];
+                }else{
+                    return [((video_info_model*)obj2).readingTime compare:((video_info_model*)obj1).readingTime];
+                }
+            }
+//            NSLog(@"%@~%@",obj1,obj2); //3~4 2~1 3~1 3~2
+//            return [obj1 compare:obj2]; //升序
+        }];
+        [total_array addObject:result];
+    }
     
+    m_array_model = total_array;
 }
 
 #pragma mark - tableview代理
@@ -160,49 +210,59 @@
 -(UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath{
     ThemeManager *defaultManager = [ThemeManager sharedInstance];
     NSArray* array = m_array_model[indexPath.section];
-    CJZdataModel *Model = array[indexPath.row];
-    Model.publish_time = @"";
+    CJZdataModel *Model = nil;
+    NSObject* obj_model = array[indexPath.row];
+    if([obj_model isKindOfClass:[CJZdataModel class]]){
+        Model = (CJZdataModel*)obj_model;
+        Model.publish_time = [[TimeHelper share] dataChangeToYYMMDD:Model.publish_time];
+        Model.publish_time = @"";//不显示时间
     //    CJZdataModel *Model = self.totalArray[indexPath.row];
     
-    NSString *ID = [NoImageCell idForRow:Model];
-    if([ID isEqualToString:@"NoImg"]){
-        NoImageCell* cell = [NoImageCell cellWithTableView:tableView];
-        if ([defaultManager.themeName isEqualToString:@"高贵紫"]) {
-            cell.backgroundColor = [[ThemeManager sharedInstance] GetBackgroundColor];
-            cell.title.textColor = [defaultManager GetTitleColor];
-        }else{
-            cell.backgroundColor = [UIColor whiteColor];
-            cell.title.textColor = [UIColor blackColor];
+        NSString *ID = [NoImageCell idForRow:Model];
+        if([ID isEqualToString:@"NoImg"]){
+            NoImageCell* cell = [NoImageCell cellWithTableView:tableView];
+            if ([defaultManager.themeName isEqualToString:@"高贵紫"]) {
+                cell.backgroundColor = [[ThemeManager sharedInstance] GetBackgroundColor];
+                cell.title.textColor = [defaultManager GetTitleColor];
+            }else{
+                cell.backgroundColor = [UIColor whiteColor];
+                cell.title.textColor = [UIColor blackColor];
+            }
+            cell.model = Model;
+            cell.IsReading = Model.isRreading;
+            return cell;
         }
-        cell.model = Model;
-        cell.IsReading = Model.isRreading;
-        return cell;
-    }
-    else if([ID isEqualToString:@"OneImg"]){
-        OneImageCell* cell = [OneImageCell cellWithTableView:tableView];
-        if ([defaultManager.themeName isEqualToString:@"高贵紫"]) {
-            cell.backgroundColor = [[ThemeManager sharedInstance] GetBackgroundColor];
-            cell.title.textColor = [defaultManager GetTitleColor];
-        }else{
-            cell.backgroundColor = [defaultManager GetBackgroundColor];
-            cell.title.textColor = [defaultManager GetTitleColor];
+        else if([ID isEqualToString:@"OneImg"]){
+            OneImageCell* cell = [OneImageCell cellWithTableView:tableView];
+            if ([defaultManager.themeName isEqualToString:@"高贵紫"]) {
+                cell.backgroundColor = [[ThemeManager sharedInstance] GetBackgroundColor];
+                cell.title.textColor = [defaultManager GetTitleColor];
+            }else{
+                cell.backgroundColor = [defaultManager GetBackgroundColor];
+                cell.title.textColor = [defaultManager GetTitleColor];
+            }
+            cell.model = Model;
+            cell.IsReading = Model.isRreading;
+            return cell;
         }
-        cell.model = Model;
-        cell.IsReading = Model.isRreading;
-        return cell;
-    }
-    else{
-        //ThreeImage
-        ThreeImageCell* cell = [ThreeImageCell cellWithTableView:tableView];
-        if ([defaultManager.themeName isEqualToString:@"高贵紫"]) {
-            cell.backgroundColor = [[ThemeManager sharedInstance] GetBackgroundColor];
-            cell.title.textColor = [defaultManager GetTitleColor];
-        }else{
-            cell.backgroundColor = [defaultManager GetBackgroundColor];
-            cell.title.textColor = [defaultManager GetTitleColor];
+        else{
+            //ThreeImage
+            ThreeImageCell* cell = [ThreeImageCell cellWithTableView:tableView];
+            if ([defaultManager.themeName isEqualToString:@"高贵紫"]) {
+                cell.backgroundColor = [[ThemeManager sharedInstance] GetBackgroundColor];
+                cell.title.textColor = [defaultManager GetTitleColor];
+            }else{
+                cell.backgroundColor = [defaultManager GetBackgroundColor];
+                cell.title.textColor = [defaultManager GetTitleColor];
+            }
+            cell.model = Model;
+            cell.IsReading = Model.isRreading;
+            return cell;
         }
-        cell.model = Model;
-        cell.IsReading = Model.isRreading;
+    }else if([obj_model isKindOfClass:[video_info_model class]]){
+        video_info_model* video_model = (video_info_model*)obj_model;
+        Video_detail_tuijianTableViewCell* cell = [Video_detail_tuijianTableViewCell CellFormTable:tableView];
+        cell.model = video_model;
         return cell;
     }
     
@@ -211,27 +271,42 @@
 
 -(CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath{
     NSArray* array = m_array_model[indexPath.section];
-    CJZdataModel *newsModel = array[indexPath.row];
+    NSObject *newsModel = array[indexPath.row];
+    if([newsModel isKindOfClass:[CJZdataModel class]]){
+        CGFloat rowHeight = [NoImageCell heightForRow:(CJZdataModel*)newsModel];
+        return rowHeight;
+    }else if([newsModel isKindOfClass:[video_info_model class]]){
+        return [Video_detail_tuijianTableViewCell cellForHeight];
+    }
     
-    CGFloat rowHeight = [NoImageCell heightForRow:newsModel];
-    return rowHeight;
+    return 100;
 }
 
 -(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath{
     
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
     NSArray* tmp = m_array_model[indexPath.section];
-    CJZdataModel *data = tmp[indexPath.row];
-    data.isRreading = YES;
-    
+    NSObject *obj_model = tmp[indexPath.row];
+    if([obj_model isKindOfClass:[CJZdataModel class]]){
+        //新闻
+        ((CJZdataModel*)obj_model).isRreading = YES;
+        
+        DetailWeb_ViewController* vc = [[DetailWeb_ViewController alloc] init];
+        vc.CJZ_model = ((CJZdataModel*)obj_model);
+        vc.isFromHistory = YES;
+        [self.navigationController pushViewController:vc animated:YES];
+    }else{
+        //视频
+        ((video_info_model*)obj_model).isReading = YES;
+        Video_detail_ViewController* vc = [[Video_detail_ViewController alloc] init];
+        vc.model = (video_info_model*)obj_model;
+        vc.isFromHistory = YES;
+        [self.navigationController pushViewController:vc animated:YES];
+    }
+ 
     //一个cell刷新
     [tableView reloadRowsAtIndexPaths:[NSArray arrayWithObjects:indexPath,nil] withRowAnimation:UITableViewRowAnimationNone];
-    
-    DetailWeb_ViewController* vc = [[DetailWeb_ViewController alloc] init];
-    vc.CJZ_model = data;
-    vc.isFromHistory = YES;
-    [self.navigationController pushViewController:vc animated:YES];
-    
+
 }
 
 -(void)tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath{
@@ -254,8 +329,8 @@
 //        }
         
         NSString* str_time = m_header_array[section];
-        NSString* timeSecond = [[TimeHelper share] dateChangeToTimeSecond:str_time];
-        time.text = [[TimeHelper share] dateChangeToString_day:timeSecond];
+//        NSString* timeSecond = [[TimeHelper share] dateChangeToTimeSecond:str_time];
+        time.text = [[TimeHelper share] dateChangeToString_day:str_time];
 
         time.textColor = [UIColor blackColor];
         time.textAlignment = NSTextAlignmentLeft;

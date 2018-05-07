@@ -30,6 +30,7 @@
 @property (nonatomic,strong)UIWebView* webview;
 @property (nonatomic,strong)CJZdataModel* model;
 @property (nonatomic,strong)DetailWeb_ViewController* self_parent;//父界面的self
+@property (nonatomic,strong)NSMutableArray* mUrlArray;
 
 -(CGSize)getSize;
 

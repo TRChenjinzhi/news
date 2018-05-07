@@ -27,6 +27,8 @@
 #import "Mine_login_ViewController.h"
 #import "Mine_setting_ViewController.h"
 #import "Mine_inviteApprence_ViewController.h"
+#import "NewUserTask_model.h"
+#import "Mine_choujiang_ViewController.h"
 
 @interface MineViewController ()<LoginInterfaceDelegate>
 
@@ -62,6 +64,8 @@
     
     Header_view*            m_headerView;
     BadgeButton*            m_messageButton;
+    
+    UIView*                 m_deviceInfo_view;
 }
 
 -(NSMutableArray *)array_model{
@@ -208,28 +212,148 @@
             model.sex = @"女";
         }
         model.name = loginInfo.userInfo_model.name;
-        model.icon = loginInfo.userInfo_model.avatar;
+        if(loginInfo.userInfo_model.avatar.length <= 0){ //如果 用户没有头像，但微信绑定了，就使用微信头像。否则都用用户自己头像
+            if([loginInfo.userMoney_model.binding_wechat integerValue] == 1){
+                model.icon = [Login_info share].userInfo_model.wechat_icon;
+            }
+            else{
+                model.icon = loginInfo.userInfo_model.avatar;
+            }
+        }
+        else{
+            model.icon = loginInfo.userInfo_model.avatar;
+        }
         model.gold = [loginInfo.userMoney_model.coin integerValue];
         model.package = [loginInfo.userMoney_model.cash floatValue];
         model.apprentice = [loginInfo.userInfo_model.appren_count integerValue];
         model.IsLogin = YES;
         
-        [self makeTureLogin:model];
+        //【我的】完成首次提现后，我要提现后面的红色文字改成“提现至微信、支付宝”
+        if([[Login_info share].userMoney_model.is_wechat_withdraw integerValue] == 1){
+            Mine_model* model = self.array_model[0];
+            model.subTitle = @"提现至微信、支付宝";
+        }
+        else{
+            Mine_model* model = self.array_model[0];
+            model.subTitle = @"1元提现至微信";
+        }
+        self.m_tableViewController.model = self.array_model;
+        
+        [self refreshData:model];
     }
 }
 
+-(void)refreshData:(Mine_userInfo_model *)model{
+    _IsLogined = YES;
+    
+    Login_info* loginInfo = [Login_info share];
+    if(loginInfo.userInfo_model.avatar.length <= 0){ //如果 用户没有头像，但微信绑定了，就使用微信头像。否则都用用户自己头像
+        if([loginInfo.userMoney_model.binding_wechat integerValue] == 1){
+            model.icon = [Login_info share].userInfo_model.wechat_icon;
+        }
+        else{
+            model.icon = loginInfo.userInfo_model.avatar;
+        }
+    }
+    else{
+        model.icon = loginInfo.userInfo_model.avatar;
+    }
+    
+    self.headerView.userInfo_model = model;
+    userInfo_model = model;
+    
+    //获取新手任务信息
+    [InternetHelp GetNewUserTaskCount_Sucess:^(NSDictionary *dic) {
+        [TaskCountHelper share].task_newUser_name_array = [NewUserTask_model dicToArray:dic[@"list"]];
+    } Fail:^(NSDictionary *dic) {
+        
+    }];
+}
 
+-(void)showDeviceInfo{
+    m_deviceInfo_view = [[UIView alloc] initWithFrame:[UIScreen mainScreen].bounds];
+    m_deviceInfo_view.backgroundColor = RGBA(0, 0, 0, 0.6);
+    [[UIApplication sharedApplication].keyWindow addSubview:m_deviceInfo_view];
+    
+    UIView* center_view = [UIView new];
+    center_view.backgroundColor = RGBA(255, 255, 255, 1);
+    [center_view.layer setCornerRadius:3.0f];
+    [m_deviceInfo_view addSubview:center_view];
+    [center_view mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.left.equalTo(m_deviceInfo_view.mas_left).with.offset(kWidth(45));
+        make.right.equalTo(m_deviceInfo_view.mas_right).with.offset(-kWidth(45));
+        make.height.mas_offset(kWidth(166));
+        make.centerY.equalTo(m_deviceInfo_view.mas_centerY);
+    }];
+    
+    UILabel* title = [UILabel new];
+    title.text          = @"提示";
+    title.textColor     = RGBA(122, 125, 125, 1);
+    title.font          = kFONT(14);
+    title.textAlignment = NSTextAlignmentCenter;
+    [center_view addSubview:title];
+    [title mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.left.equalTo(center_view.mas_left);
+        make.right.equalTo(center_view.mas_right);
+        make.top.equalTo(center_view.mas_top);
+        make.height.mas_offset(kWidth(56));
+    }];
+    
+    UILabel* tips = [UILabel new];
+    NSString* phoneNumber = [Login_info share].userInfo_model.device_first_tel;
+    phoneNumber = [NSString stringWithFormat:@"此设备已和%@****%@账号绑定，继续登录将不会获得金币",[phoneNumber substringToIndex:3],[phoneNumber substringFromIndex:phoneNumber.length-4]];
+    tips.text          = phoneNumber;
+    tips.textColor     = RGBA(34, 39, 39, 1);
+    tips.font          = kFONT(14);
+    tips.textAlignment = NSTextAlignmentLeft;
+    tips.numberOfLines = 0;
+    
+    NSMutableAttributedString* str_att = [[NSMutableAttributedString alloc] initWithString:phoneNumber];
+    str_att = [LabelHelper GetMutableAttributedSting_lineSpaceing:str_att AndSpaceing:5.0f];
+    tips.attributedText = str_att;
+    [center_view addSubview:tips];
+    [tips mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.left.equalTo(center_view.mas_left).with.offset(kWidth(14));
+        make.right.equalTo(center_view.mas_right).with.offset(-kWidth(14));
+        make.top.equalTo(title.mas_bottom);
+    }];
+    
+    UIButton* know = [UIButton new];
+    [know setTitle:@"知道了" forState:UIControlStateNormal];
+    [know setTitleColor:RGBA(34, 39, 39, 1) forState:UIControlStateNormal];
+    [know setBackgroundColor:RGBA(248, 205, 4, 1)];
+    [know.layer setCornerRadius:3.0f];
+    [know addTarget:self action:@selector(deviceInfo_action) forControlEvents:UIControlEventTouchUpInside];
+    [center_view addSubview:know];
+    [know mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(tips.mas_bottom).with.offset(kWidth(20));
+        make.left.equalTo(center_view.mas_left).with.offset(kWidth(75));
+        make.right.equalTo(center_view.mas_right).with.offset(-kWidth(75));
+        make.height.mas_offset(kWidth(36));
+    }];
+}
 
 #pragma mark - 协议方法
 -(void)makeTureLogin:(Mine_userInfo_model *)model{
-    _IsLogined = YES;
-    self.headerView.userInfo_model = model;
-    userInfo_model = model;
+    [self refreshData:model];
+    
+    //账号与设备是否已经绑定
+    if([[Login_info share].userInfo_model.device_mult_user integerValue] == 1){//0:第一个用户 1：不是第一个用户
+        [self showDeviceInfo];
+    }
+    else{
+        NSString* status = [Login_info share].userInfo_model.reg_reward_status;
+        if([status isEqualToString:@"1"]){
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"登陆_TabBarVCL_红包活动_老用户" object:nil];
+        }else{
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"登陆_TabBarVCL_红包活动_新用户" object:nil];
+        }
+    }
 }
 
 #pragma mark - 广播监听
 -(void)LoginIn{
-    NSLog(@"进入登陆界面");
+    NSLog(@"进入登陆界面1");
     //登陆注册界面
     Mine_login_ViewController* vc = [[Mine_login_ViewController alloc] init];
     vc.delegate = self;
@@ -289,7 +413,9 @@
 -(void)GoToGold_vc{
     NSLog(@"GoToGold_vc");
     if(![Login_info share].isLogined){
-        [MBProgressHUD showMessage:@"未登录！"];
+        Mine_login_ViewController* vc = [[Mine_login_ViewController alloc] init];
+        vc.delegate = self;
+        [self.navigationController pushViewController:vc animated:YES];
         return;
     }
     
@@ -301,6 +427,9 @@
 -(void)GoToPackage_vc{
     NSLog(@"GoToPackage_vc");
     if(![Login_info share].isLogined){
+        Mine_login_ViewController* vc = [[Mine_login_ViewController alloc] init];
+        vc.delegate = self;
+        [self.navigationController pushViewController:vc animated:YES];
         return;
     }
     Mine_goldDetail_ViewController* vc = [[Mine_goldDetail_ViewController alloc] init];
@@ -311,6 +440,9 @@
 -(void)GoToApprentice_vc{
     NSLog(@"GoToApprentice_vc");
     if(![Login_info share].isLogined){
+        Mine_login_ViewController* vc = [[Mine_login_ViewController alloc] init];
+        vc.delegate = self;
+        [self.navigationController pushViewController:vc animated:YES];
         return;
     }
     Mine_GetApprentice_ViewController* vc = [[Mine_GetApprentice_ViewController alloc] init];
@@ -343,7 +475,7 @@
         model.total_cash = [[Login_info share].userMoney_model.total_cashed floatValue];
         model.total_income =  [[Login_info share].userMoney_model.total_income floatValue];
         model.money = [[Login_info share].userMoney_model.cash floatValue];
-        vc.model = model;
+//        vc.model = model;
         [self.navigationController pushViewController:vc animated:YES];
     }
     if([@"邀请收徒" isEqualToString:model.title]){
@@ -397,16 +529,20 @@
     }
 }
 
-
+-(void)deviceInfo_action{
+    [m_deviceInfo_view removeFromSuperview];
+}
 
 #pragma mark - 获取数据
 -(void)GetData{
     NSArray* img_str = @[@"ic_list_take",@"ic_list_invite",@"ic_list_collect",@"ic_list_history",@"ic_list_question",@"ic_list_system",@"ic_list_contact"];
-    NSArray* lable_str = @[@"我要提现",@"邀请收徒",@"我的收藏",@"阅读历史",@"常见问题",@"系统设置",@"联系我们"];
+    NSArray* lable_str = @[@"我要提现"  ,@"邀请收徒"                  ,@"我的收藏"  ,@"阅读历史",@"常见问题"        ,@"系统设置",@"联系我们"];
+    NSArray* sub_str = @[@"1元提现至微信",@"现金奖励加提成，收益暴涨"     ,@""        ,@""       ,@"30s了解有料这么玩",@""       ,@""];
     for(int i=0;i<img_str.count;i++){
         Mine_model* model = [[Mine_model alloc] init];
         model.title_img = img_str[i];
         model.title = lable_str[i];
+        model.subTitle = sub_str[i];
         
         [self.array_model addObject:model];
     }
@@ -446,7 +582,18 @@
     self.headerView.number_apprentice = userInfo_model.apprentice;
     self.headerView.IsLognin = NO;
     
+    //新手任务信息
     [[TaskCountHelper share] initData];
+    [[AppConfig sharedInstance] clearNewUserTaskInfo];
+    [[AppConfig sharedInstance] saveShowWinForFirstDone_newUserTask:NO];
+    [[AppConfig sharedInstance] saveGuideOfNewUser:NO];
+    
+    //message信息
+    [[AppConfig sharedInstance] saveMessageDate:@""];
+    [[MyDataBase shareManager] clearTable_Message];
+    
+    //新手红包
+    [[AppConfig sharedInstance] saveRedPackage:@""];
 }
 
 -(void)getGoldDetailData{

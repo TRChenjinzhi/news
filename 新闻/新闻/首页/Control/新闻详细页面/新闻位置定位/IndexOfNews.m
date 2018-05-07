@@ -22,10 +22,10 @@ static id _instance;
 -(BOOL)isHaveChannel:(NSString*)title{
     for (ChannelName* channelName in self.channel_array) {
         if([channelName.title isEqualToString:title]){
-            return NO;
+            return YES;
         }
     }
-    return YES;
+    return NO;
 }
 
 @end

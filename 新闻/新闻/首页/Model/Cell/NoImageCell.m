@@ -108,10 +108,10 @@
     
     if(self.lbReply == nil){
         UILabel* label_reply = [[UILabel alloc] initWithFrame:CGRectMake(CGRectGetMaxX(self.imgReply.frame)+4, cellHight-16-11, 20, 11)];
-        if([model.comment_num isEqualToString:@""]){
+        if([model.comment_num integerValue] == 0){
             label_reply.text = @"0";
         }else{
-            label_reply.text = model.comment_num;
+            label_reply.text = [NSString stringWithFormat:@"%ld",[model.comment_num integerValue]];
         }
         label_reply.font = [UIFont fontWithName:@"SourceHanSansCN-Regular" size:11];
         

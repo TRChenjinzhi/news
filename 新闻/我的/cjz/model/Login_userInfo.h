@@ -23,8 +23,14 @@
   "is_read_question":"1",            //是否阅读常见问题  0：否   1：是
   "wechat_binding":"1"               //是否绑定微信     0：否  1：是
   
+  wechat_icon : "xxxxx" // 微信头像
+  
+  wechat_nickname : "xxxxx" // 微信昵称
+  
   "reg_reward_cash" = 0;            //要显示的金额
   "reg_reward_status" = 1;          //0:新用户 1:老用户
+  "device_mult_user":0,            //0:一个用户 1：不是第一个用户
+  "device_first_tel":"13241690070"   //用户在此设备首次登陆时候的手机号没号码 缺省空  更换账号时候有值
   }
  */
 
@@ -48,7 +54,11 @@
 @property (nonatomic,strong)NSString* is_read_question;//0:未阅读 1:阅读
 @property (nonatomic,strong)NSString* wechat_binding;//0:未绑定 1:绑定
 @property (nonatomic,strong)NSString* login_times;
+@property (nonatomic,strong)NSString* wechat_icon;
+@property (nonatomic,strong)NSString* wechat_nickname;
 @property (nonatomic,strong)NSString* reg_reward_cash;
 @property (nonatomic,strong)NSString* reg_reward_status;
+@property (nonatomic,strong)NSString* device_mult_user;
+@property (nonatomic,strong)NSString* device_first_tel;
 
 @end

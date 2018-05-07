@@ -14,4 +14,7 @@
 + (NSString *)arrayToJSONString:(NSArray *)array;
 +(NSDictionary*)StringToDictionary:(NSString*)string;
 
++(NSString *)JsonToObject_ToStringByFloat:(NSObject *)obj;
++(NSString *)JsonToObject_ToStringByInterger:(NSObject *)obj;
+
 @end

@@ -8,13 +8,19 @@
 
 #import "RewardHelper.h"
 #import "TabbarViewController.h"
+#import "Video_detail_ViewController.h"
+#import "Video_channel_ViewController.h"
+#import "TaskViewController.h"
+#import "TaskMaxCout_model.h"
 
 @implementation RewardHelper
 
-+(void)ShowReward:(NSInteger)type AndSelf:(NSObject*)vc{
++(void)ShowReward:(NSInteger)type AndSelf:(NSObject*)vc AndCoin:(NSString*)coin{
     //任务类型  1:提供开宝箱  2：阅读文章 3：分享文章  4:优质评论 5：晒收入 6：参与抽奖任务 7,查看常见问题 8：微信绑定奖励 9:登陆奖励
     //    NSNumber* number = noti.object;
     //    NSInteger type = [number integerValue];
+    
+    [[TaskCountHelper share] DayDayTask_addCountByType:type];//增加完成任务次数
     
     CGFloat reward_width = SCREEN_WIDTH/2;
     UIView* reward_view = [[UIView alloc] initWithFrame:CGRectMake(SCREEN_WIDTH/2-reward_width/2, SCREEN_HEIGHT/2-reward_width/2, reward_width, reward_width)];
@@ -46,20 +52,82 @@
     money.font = [UIFont boldSystemFontOfSize:kWidth(24)];
     [reward_view addSubview:money];
     
-    if(type == 9){
+    if(type == Task_Login){
         tips.text = @"登陆奖励";
         money.text = [NSString stringWithFormat:@"+%ld",5+5*times];
         TabbarViewController* blok_self = (TabbarViewController*)vc;
         [blok_self.view addSubview:reward_view];
     }
-    if(type == 3){
-        //        tips.text = @"新闻分享成功";
-        //        NSString* taskId = [Md5Helper Share_taskId:[Login_info share].userInfo_model.user_id AndNewsId:self.CJZ_model.ID];
-        //        [InternetHelp SendTaskId:taskId AndType:3];
+    if(type == Task_video){
+        NSArray* model_array = [[TaskCountHelper share] get_task_dayDay_name_array];
+        TaskMaxCout_model* model = nil;
+        for (TaskMaxCout_model* item in model_array) {
+            if(item.type == Task_video){
+                model = item;
+            }
+        }
+        NSString* str = [NSString stringWithFormat:@"视频奖励 (%ld/%ld)",model.count,model.maxCout];
+        NSMutableAttributedString* str_att = [[NSMutableAttributedString alloc] initWithString:str];
+        NSRange index_start = [str rangeOfString:@"("];
+        NSRange index_end = [str rangeOfString:@"/"];
+        str_att = [LabelHelper GetMutableAttributedSting_color:str_att AndIndex:index_start.location+1 AndCount:index_end.location-index_start.location AndColor:RGBA(248, 205, 4, 1)];
+        tips.attributedText = str_att;
+//        tips.text = @"视频奖励";
+        money.text = [NSString stringWithFormat:@"+%@",coin];
+        if([vc isKindOfClass:[Video_channel_ViewController class]]){
+            Video_channel_ViewController* blok_self = (Video_channel_ViewController*)vc;
+            [blok_self.view addSubview:reward_view];
+        }
+        if([vc isKindOfClass:[Video_detail_ViewController class]]){
+            Video_detail_ViewController* blok_self = (Video_detail_ViewController*)vc;
+            [blok_self.view addSubview:reward_view];
+        }
+    }
+    if(type == Task_chouJiang){
+        NSArray* model_array = [[TaskCountHelper share] get_task_dayDay_name_array];
+        TaskMaxCout_model* model = nil;
+        for (TaskMaxCout_model* item in model_array) {
+            if(item.type == Task_chouJiang){
+                model = item;
+            }
+        }
+        NSString* str = [NSString stringWithFormat:@"抽奖奖励 (%ld/%ld)",model.count,model.maxCout];
+        NSMutableAttributedString* str_att = [[NSMutableAttributedString alloc] initWithString:str];
+        NSRange index_start = [str rangeOfString:@"("];
+        NSRange index_end = [str rangeOfString:@"/"];
+        str_att = [LabelHelper GetMutableAttributedSting_color:str_att AndIndex:index_start.location+1 AndCount:index_end.location-index_start.location AndColor:RGBA(248, 205, 4, 1)];
+        tips.attributedText = str_att;
+        //        tips.text = @"视频奖励";
+        money.text = [NSString stringWithFormat:@"+%@",coin];
+        if([vc isKindOfClass:[TaskViewController class]]){
+            TaskViewController* blok_self = (TaskViewController*)vc;
+            [blok_self.view addSubview:reward_view];
+        }
+    }
+    if(type == Task_showIncome){
+        NSArray* model_array = [[TaskCountHelper share] get_task_dayDay_name_array];
+        TaskMaxCout_model* model = nil;
+        for (TaskMaxCout_model* item in model_array) {
+            if(item.type == Task_showIncome){
+                model = item;
+            }
+        }
+        NSString* str = [NSString stringWithFormat:@"晒收入奖励 (%ld/%ld)",model.count,model.maxCout];
+        NSMutableAttributedString* str_att = [[NSMutableAttributedString alloc] initWithString:str];
+        NSRange index_start = [str rangeOfString:@"("];
+        NSRange index_end = [str rangeOfString:@"/"];
+        str_att = [LabelHelper GetMutableAttributedSting_color:str_att AndIndex:index_start.location+1 AndCount:index_end.location-index_start.location AndColor:RGBA(248, 205, 4, 1)];
+        tips.attributedText = str_att;
+        //        tips.text = @"视频奖励";
+        money.text = [NSString stringWithFormat:@"+%@",coin];
+        if([vc isKindOfClass:[TaskViewController class]]){
+            TaskViewController* blok_self = (TaskViewController*)vc;
+            [blok_self.view addSubview:reward_view];
+        }
     }
     
     
-    [UIView animateWithDuration:3 delay:0 options:UIViewAnimationOptionBeginFromCurrentState animations:^{
+    [UIView animateWithDuration:3.0 delay:0 options:UIViewAnimationOptionBeginFromCurrentState animations:^{
         reward_view.alpha = 0.0;
     } completion:^(BOOL finished) {
         [reward_view removeFromSuperview];

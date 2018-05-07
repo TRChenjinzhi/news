@@ -23,10 +23,11 @@
 #import "TaskMaxCout_model.h"
 #import "Second_ViewController.h"
 #import "MyActivity.h"
+#import "Task_reward_model.h"
 
 #define HideAllDialog @"HideAllDialog"
 
-@interface DetailWeb_ViewController ()<UITableViewDelegate,UITableViewDataSource,UITextViewDelegate,ClickWebImageInterfaceDelegate,SectionHeader_DetailWeb_InterfaceDelegate>
+@interface DetailWeb_ViewController ()<UITableViewDelegate,UITableViewDataSource,UITextViewDelegate,ClickWebImageInterfaceDelegate,SectionHeader_DetailWeb_InterfaceDelegate,shareSetting_protocol>
 
 @property (nonatomic,strong)UIWebView* webView;
 
@@ -109,12 +110,12 @@
 //    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(WebviewDidLoad) name:@"webViewDidLoad" object:nil];
     
     //监听分享窗口点击shi jian
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(ItemClick:) name:@"分享点击事件" object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(SendReportToServer:) name:@"举报" object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(ChangeFont:) name:@"字体改变" object:nil];
+//    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(ItemClick:) name:@"分享点击事件" object:nil];
+//    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(SendReportToServer:) name:@"举报" object:nil];
+//    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(ChangeFont:) name:@"字体改变" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(DianZanAction:) name:@"点赞" object:nil];
 //    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(ReadingWithOther:) name:@"相关阅读点击" object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(SectionHight:) name:@"sectionHight" object:nil];
+//    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(SectionHight:) name:@"sectionHight" object:nil];
     
     
     //注册观察键盘的变化
@@ -127,8 +128,8 @@
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(TakeBackAllDialog) name:HideAllDialog object:nil];
     
     //监听任务情况
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(ShowRewardWin:) name:@"阅读文章任务完成" object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(ShowRewardWin:) name:@"分享文章任务完成" object:nil];
+//    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(ShowRewardWin:) name:@"阅读文章任务完成" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(Task_shareNews_Over:) name:@"分享文章任务完成" object:nil];
     
     //热点
 //    [[ NSNotificationCenter defaultCenter ] addObserver:self selector:@selector(statusBarFrameWillChange:) name:UIApplicationWillChangeStatusBarFrameNotification object:nil ];
@@ -277,10 +278,22 @@
 -(void)initSectionHeader{
     m_sectionHeader_VC = [[SectionHeader_ViewController alloc]init];
     m_sectionHeader_VC.model = self.CJZ_model;
+    if(self.channel != nil){ //如果是自定义频道时
+        if(self.CJZ_model.origin_channel == nil){
+            m_sectionHeader_VC.channel_id = self.CJZ_model.channel;
+        }
+        else{
+            m_sectionHeader_VC.channel_id = self.CJZ_model.origin_channel;
+        }
+        
+    }else{
+        m_sectionHeader_VC.channel_id = self.CJZ_model.channel;
+    }
     m_sectionHeader_VC.delegate = self;
     m_sectionHeader_Hight = m_sectionHeader_VC.view.frame.size.height;
     
     m_sectionHeader_view = [[UIView alloc]initWithFrame:CGRectMake(0, 0, SCREEN_WIDTH, m_sectionHeader_Hight)];
+    m_sectionHeader_view.backgroundColor = [UIColor redColor];
     m_sectionHeader_view.clipsToBounds = YES;
     [m_sectionHeader_view addSubview:m_sectionHeader_VC.view];
 }
@@ -319,6 +332,7 @@
     
     ShareSettingView* view = [[ShareSettingView alloc] initWithFrame:CGRectMake(0, SCREEN_HEIGHT+248, SCREEN_WIDTH, 248)];
     view.model = model;
+    view.delegate = self;
     view.backgroundColor = [[ThemeManager sharedInstance] GetBackgroundColor];
     m_youshangjiao_shareSettingView = view;
     
@@ -455,6 +469,7 @@
     
     ShareSettingView* view = [[ShareSettingView alloc] initWithFrame:CGRectMake(0, SCREEN_HEIGHT+248, SCREEN_WIDTH, 248)];
     view.model = model;
+    view.delegate = self;
     view.backgroundColor = [[ThemeManager sharedInstance] GetBackgroundColor];
     m_fenxiang_shareSettingView = view;
     
@@ -490,6 +505,7 @@
     
     ShareSettingView* view = [[ShareSettingView alloc] initWithFrame:CGRectMake(0, SCREEN_HEIGHT+140, SCREEN_WIDTH, 140)];
     view.model = model;
+    view.delegate = self;
     view.backgroundColor = [[ThemeManager sharedInstance] GetBackgroundColor];
     m_fenxiang_shareSettingView = view;
     
@@ -517,6 +533,7 @@
     
     ShareSettingView* view = [[ShareSettingView alloc] initWithFrame:CGRectMake(0, SCREEN_HEIGHT+268, SCREEN_WIDTH, 268)];
     view.model = model;
+    view.delegate = self;
     view.backgroundColor = [[ThemeManager sharedInstance] GetBackgroundColor];
     m_fenxiang_shareSettingView = view;
     
@@ -557,13 +574,18 @@
             touming.backgroundColor = RGBA(255, 255, 255, 0.7);
             [readingAll addSubview:touming];
             
-            UIButton* read_btn = [[UIButton alloc] initWithFrame:CGRectMake(0, 10, SCREEN_WIDTH, 60)];
-            [read_btn setTitle:@"查看全文" forState:UIControlStateNormal];
-            [read_btn setTitleColor:RGBA(248, 205, 4, 1) forState:UIControlStateNormal];
+            UIView* view_button = [[UIView alloc] initWithFrame:CGRectMake(0, 10, SCREEN_WIDTH, 60)];
+            view_button.backgroundColor = [UIColor whiteColor];
+            [readingAll addSubview:view_button];
+            
+            UIButton* read_btn = [[UIButton alloc] initWithFrame:CGRectMake(SCREEN_WIDTH/2-kWidth(240)/2, 60/2-44/2, kWidth(240), 44)];
+            [read_btn setTitle:@"点击查看全文" forState:UIControlStateNormal];
+            [read_btn.layer setCornerRadius:44/2];
+            [read_btn setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
             [read_btn.titleLabel setFont:[UIFont systemFontOfSize:14]];
             [read_btn addTarget:self action:@selector(readingAll_action) forControlEvents:UIControlEventTouchUpInside];
-            read_btn.backgroundColor = [UIColor whiteColor];
-            [readingAll addSubview:read_btn];
+            read_btn.backgroundColor = RGBA(248, 205, 4, 1);
+            [view_button addSubview:read_btn];
             
             UIView* line = [[UIView alloc] initWithFrame:CGRectMake(0, 70, SCREEN_WIDTH, 10)];
             line.backgroundColor = RGBA(242, 242, 242, 1);
@@ -585,6 +607,7 @@
 -(void)showNews:(CJZdataModel *)model{
     DetailWeb_ViewController* vc = [[DetailWeb_ViewController alloc]init];
     vc.CJZ_model = model;
+    vc.channel = self.channel;
     [self.navigationController pushViewController:vc animated:YES];
 }
 
@@ -599,16 +622,25 @@
     [readingAll removeFromSuperview];
 }
 
--(void)initSectionFrame{
-
-//    [self initSectionHeader];
-//    [self.tableView reloadData];
+-(void)initSectionFrame:(CGFloat)height{
+    m_sectionHeader_Hight = height;
+    [self.tableView reloadData];
 }
 
 -(void)showGuangGao:(NSURLRequest *)request{
     Second_ViewController* vc = [[Second_ViewController alloc] init];
     vc.request = request;
     [self.navigationController pushViewController:vc animated:YES];
+}
+
+-(void)reportToSever:(NSNumber *)type{
+    [self SendReportToServer:type];
+}
+-(void)shareSetting_changeFont:(NSNumber *)type{
+    [self ChangeFont:type];
+}
+-(void)shareByName:(NSString *)name{
+    [self ItemClick:name];
 }
 
 #pragma mark - 按钮方法
@@ -629,11 +661,20 @@
 }
 
 -(void)shareMore{
+    if(![Login_info share].isLogined){
+        [MyMBProgressHUD ShowMessage:@"未登陆" ToView:self.view AndTime:1.0f];
+        return;
+    }
     //要分享的内容，加在一个数组里边，初始化UIActivityViewController
     NSString *textToShare = [Login_info share].shareInfo_model.title;
-    UIImageView* img = [[UIImageView alloc] init];
-    [img sd_setImageWithURL:[NSURL URLWithString:[Login_info share].shareInfo_model.img]];
-    UIImage *imageToShare = [UIImage imageNamed:@"200icon"];
+//    UIImageView* img = [[UIImageView alloc] init];
+//    [img sd_setImageWithURL:[NSURL URLWithString:[Login_info share].shareInfo_model.img]];
+    UIImage *imageToShare = nil;
+    if(self.headerView.mUrlArray.count == 0){
+        imageToShare = [UIImage imageWithData:[NSData dataWithContentsOfURL:[NSURL URLWithString:[Login_info share].shareInfo_model.img]]];
+    }else{
+        imageToShare = [UIImage imageWithData:[NSData dataWithContentsOfURL:[NSURL URLWithString:self.headerView.mUrlArray[0]]]];
+    }
     NSURL *urlToShare = [NSURL URLWithString:[NSString stringWithFormat:@"%@",self.CJZ_model.url]];
     NSArray *activityItems = @[urlToShare,textToShare,imageToShare];
     
@@ -704,6 +745,7 @@
 }
 
 -(CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section{
+    NSLog(@"m_sectionHeader_Hight:%f",m_sectionHeader_Hight);
     return m_sectionHeader_Hight;
 }
 
@@ -716,19 +758,37 @@
     //判断滑动5次 然后给予奖励
     //任务类型  1:提供开宝箱  2：阅读文章 3：分享文章  4:优质评论 5：晒收入 6：参与抽奖任务 7,查看常见问题 8：微信绑定奖励
     if([Login_info share].isLogined){
+            if([[Login_info share].userInfo_model.device_mult_user integerValue] == NotTheDevice){
+                [MyMBProgressHUD ShowMessage:@"非绑定设备，不能执行任务" ToView:self.view AndTime:1.0f];
+                return;
+            }
+
         NSString* userId = [Login_info share].userInfo_model.user_id;
 //        NSLog(@"新闻详细阅读 offse.y:%f",scrollView.contentOffset.y);
 //        NSLog(@"新闻详细高度 height:%f",m_headerSize.height);
 //        NSLog(@"新闻详细高度 tableview hight:%f",self.tableView.frame.size.height);
         if(![[MyDataBase shareManager] IsGetIncomeNews:self.CJZ_model.ID]){//防止重复 阅读奖励
-            [m_ruleOfReading AddReadingCountType:2
-                                       AndTaskId:[Md5Helper Read_taskId:userId AndNewsId:self.CJZ_model.ID]
-                                       AndNewsId:self.CJZ_model.ID
-                                   AndScrollview:scrollView
-                                    AndTableview:self.tableView
-                                   AndHeaderSize:m_headerSize
-                                    AndIsReadAll:Is_readingAll
-                                  AndScrollCount:m_scroll_count];
+            BOOL isOk = [m_ruleOfReading AddReadingCountType:Task_reading
+                                                   AndTaskId:[Md5Helper Read_taskId:userId AndNewsId:self.CJZ_model.ID]
+                                                   AndNewsId:self.CJZ_model.ID
+                                               AndScrollview:scrollView
+                                                AndTableview:self.tableView
+                                               AndHeaderSize:m_headerSize
+                                                AndIsReadAll:Is_readingAll
+                                              AndScrollCount:m_scroll_count];
+            if(isOk){
+                [InternetHelp SendTaskId:[Md5Helper Read_taskId:userId AndNewsId:self.CJZ_model.ID]
+                                 AndType:Task_reading
+                                  Sucess:^(NSInteger type, NSDictionary *dic) {
+                                      NSString* coin = dic[@"list"][@"reward_coin"];
+                                      [[TaskCountHelper share] newUserTask_addCountByType:Task_reading];// 新手任务添加count
+                                      [self ShowRewardWin:type AndMoney:coin];
+                                      [[MyDataBase shareManager] AddGetIncomeNews:self.CJZ_model.ID];
+                                      
+                } Fail:^(NSDictionary *dic) {
+                    NSLog(@"阅读任务上传失败");
+                }];
+            }
         }
     }
 }
@@ -740,11 +800,11 @@
 //    NSLog(@"新闻详情页 scrollViewDidZoom");
 }
 -(void)scrollViewWillBeginDragging:(UIScrollView *)scrollView{
-    NSLog(@"新闻详情页 scrollViewWillBeginDragging");
+//    NSLog(@"新闻详情页 scrollViewWillBeginDragging");
     m_start_point = scrollView.contentOffset;
 }
 -(void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate{
-    NSLog(@"新闻详情页 scrollViewDidEndDragging");
+//    NSLog(@"新闻详情页 scrollViewDidEndDragging");
     m_end_point = scrollView.contentOffset;
     
     if(m_end_point.y > m_start_point.y){ //保证只有向下滑动才算一次滚动
@@ -808,11 +868,11 @@
 //移动UIView(随着键盘移动)
 -(void)transformDialog:(NSNotification *)aNSNotification
 {
-    NSLog(@"移动"); 
+    NSLog(@"DetailWeb_VCL移动");
     //键盘最后的frame
     CGRect keyboardFrame = [aNSNotification.userInfo[UIKeyboardFrameEndUserInfoKey] CGRectValue];
     CGFloat height = keyboardFrame.size.height;
-    NSLog(@"看看这个变化的Y值:%f",height);
+    NSLog(@"DetailWeb_VCL看看这个变化的Y值:%f",height);
     //需要移动的距离
     if (height > 0) {
         _transformY = height-_currentKeyboardH;
@@ -856,8 +916,8 @@
     [self.shareSetting_View Hide];//收回 右上角分享Dialog
     [self.share_View Hide];
 }
--(void)ItemClick:(NSNotification *)noti{
-    NSString* name = noti.object;
+-(void)ItemClick:(NSString *)name{
+//    NSString* name = noti.object;
     if([@"朋友圈" isEqualToString:name]){
         NSLog(@"朋友圈");
         [UMShareHelper ShareNews:@"朋友圈" AndModel:self.CJZ_model AndImg:self.shareImg.image];
@@ -912,8 +972,8 @@
     pasteboard.string = [NSString stringWithFormat:@"%@ %@&source=link",self.CJZ_model.title,self.CJZ_model.url];
 }
 // 实例： http://39.104.13.61：8090/api/report?json={"user_id":"YangYiTestNumber1713841009","news_id":0,"type":1}
--(void)SendReportToServer:(NSNotification*)noti{
-    NSNumber* number = noti.object;
+-(void)SendReportToServer:(NSNumber*)number{
+//    NSNumber* number = noti.object;
     NSInteger type = [number integerValue];
     // 1.创建一个网络路径
     NSURL *url = [NSURL URLWithString:@"http://younews.3gshow.cn/api/report"];
@@ -955,9 +1015,9 @@
     
 }
 
--(void)ChangeFont:(NSNotification*)noti{
+-(void)ChangeFont:(NSNumber*)number{
     NSLog(@"ChangeFont");
-    NSNumber* number = noti.object;
+//    NSNumber* number = noti.object;
     NSInteger type = [number integerValue];
     
     //存储用户需要的字体
@@ -1030,22 +1090,25 @@
 }
 
 -(void)SectionHight:(NSNotification*)noti{
-    SectionHeader_ViewController* vc = noti.object;
-    CGFloat hight = vc.m_ReadingWithOther_view.frame.size.height;
-//    [self.tableView setSectionHeaderHeight:hight];
-//    NSLog(@"hight---->%.2f",SCREEN_HEIGHT);
-    m_sectionHeader_Hight = hight;
-    [self.tableView reloadData];
+    
 }
 
--(void)ShowRewardWin:(NSNotification*)noti{
+-(void)Task_shareNews_Over:(NSNotification*)noti{
+    Task_reward_model* model = noti.object;
+    [self ShowRewardWin:model.type AndMoney:model.coin];
+    [[TaskCountHelper share] newUserTask_addCountByType:Task_shareNews];// 新手任务添加count
+}
+
+-(void)ShowRewardWin:(NSInteger)type AndMoney:(NSString*)GetGold{
     if(![Login_info share].isLogined){
 //        [MBProgressHUD showError:@"未登陆无法领取奖励"];
         return;
     }
     //任务类型  1:提供开宝箱  2：阅读文章 3：分享文章  4:优质评论 5：晒收入 6：参与抽奖任务 7,查看常见问题 8：微信绑定奖励
-    NSNumber* number = noti.object;
-    NSInteger type = [number integerValue];
+//    NSNumber* number = noti.object;
+//    NSInteger type = [number integerValue];
+    
+    [[TaskCountHelper share] DayDayTask_addCountByType:type];//增加完成任务次数
     
     CGFloat reward_width = SCREEN_WIDTH/2;
     UIView* reward_view = [[UIView alloc] initWithFrame:CGRectMake(SCREEN_WIDTH/2-reward_width/2, SCREEN_HEIGHT/2-reward_width/2, reward_width, reward_width)];
@@ -1064,21 +1127,31 @@
     tips.textColor = [UIColor colorWithRed:255/255.0 green:255/255.0 blue:255/255.0 alpha:1/1.0];
     tips.textAlignment = NSTextAlignmentCenter;
     tips.font = kFONT(14);
-    if(type == 2){
+    if(type == Task_reading){
 //        tips.text = @"认真阅读，金币自来~";
-        NSArray* model_array = [[TaskCountHelper share] get_taskcountModel_array];
-        TaskMaxCout_model* model = model_array[0];
-        NSString* str = [NSString stringWithFormat:@"阅读奖励 (%ld/%ld)",model.count+1,model.maxCout];
+        NSArray* model_array = [[TaskCountHelper share] get_task_dayDay_name_array];
+        TaskMaxCout_model* model = nil;
+        for (TaskMaxCout_model* item in model_array) {
+            if(item.type == Task_reading){
+                model = item;
+            }
+        }
+        NSString* str = [NSString stringWithFormat:@"阅读奖励 (%ld/%ld)",model.count,model.maxCout];
         NSMutableAttributedString* str_att = [[NSMutableAttributedString alloc] initWithString:str];
         NSRange index_start = [str rangeOfString:@"("];
         NSRange index_end = [str rangeOfString:@"/"];
         str_att = [LabelHelper GetMutableAttributedSting_color:str_att AndIndex:index_start.location+1 AndCount:index_end.location-index_start.location AndColor:RGBA(248, 205, 4, 1)];
         tips.attributedText = str_att;
     }
-    if(type == 3){
-        NSArray* model_array = [[TaskCountHelper share] get_taskcountModel_array];
-        TaskMaxCout_model* model = model_array[1];
-        NSString* str = [NSString stringWithFormat:@"分享文章 (%ld/%ld)",model.count+1,model.maxCout];
+    if(type == Task_shareNews){
+        NSArray* model_array = [[TaskCountHelper share] get_task_dayDay_name_array];
+        TaskMaxCout_model* model = nil;
+        for (TaskMaxCout_model* item in model_array) {
+            if(item.type == Task_shareNews){
+                model = item;
+            }
+        }
+        NSString* str = [NSString stringWithFormat:@"分享文章 (%ld/%ld)",model.count,model.maxCout];
         NSMutableAttributedString* str_att = [[NSMutableAttributedString alloc] initWithString:str];
         NSRange index_start = [str rangeOfString:@"("];
         NSRange index_end = [str rangeOfString:@"/"];
@@ -1088,7 +1161,6 @@
 //        NSString* taskId = [Md5Helper Share_taskId:[Login_info share].userInfo_model.user_id AndNewsId:self.CJZ_model.ID];
 //        [InternetHelp SendTaskId:taskId AndType:3];
     }
-    [[TaskCountHelper share] addCountByType:type];//增加完成任务次数
     
     [reward_view addSubview:tips];
     
@@ -1096,7 +1168,7 @@
                                                               CGRectGetMaxY(tips.frame)+10,
                                                               reward_width,
                                                               24)];
-    money.text = @"+10";
+    money.text = [NSString stringWithFormat:@"+%@",GetGold];
     money.textColor = [UIColor colorWithRed:255/255.0 green:255/255.0 blue:255/255.0 alpha:1/1.0];
     money.textAlignment = NSTextAlignmentCenter;
     money.font = [UIFont boldSystemFontOfSize:24];
@@ -1195,12 +1267,15 @@
             if(type == 0){//头次加载
                 _reply_array = dataarray;
                 [self.tableView reloadData];
-                if(_reply_array.count != 0){
+                if(_reply_array.count >= 10){
                     m_page += 1;
+                    [self.tableView.footer endRefreshing];
+                }
+                else{
+                    [self.tableView.footer removeFromSuperview];
                 }
                 
-                [self.tableView.footer endRefreshing];
-                [self.tableView.footer setHidden:YES];
+                
             }else{
                 [statusArray addObjectsFromArray:_reply_array];
                 [statusArray addObjectsFromArray:dataarray];
@@ -1230,7 +1305,7 @@
     NSMutableURLRequest *request =[NSMutableURLRequest requestWithURL:url];
     request.HTTPMethod = @"POST";
     NSString *args = @"json=";
-    NSString* argument = @"{";
+    NSString* argument = @"";
 //    argument = [argument stringByAppendingString:[NSString stringWithFormat:@"\"%@\":\"%@\"",@"user_id",[[Login_info share] GetUserInfo].user_id]];
 //    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"news_id",self.CJZ_model.ID]];
 //    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"comment",str_comment]];

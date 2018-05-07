@@ -35,6 +35,7 @@
         model.count = dic[@"count"];
         NSNumber* time = dic[@"ctime"];
         model.time = [NSString stringWithFormat:@"%ld",[time integerValue]];
+        model.last_login_time = [JsonHelper JsonToObject_ToStringByInterger:dic[@"last_login_time"]];
         
         [array_model addObject:model];
     }

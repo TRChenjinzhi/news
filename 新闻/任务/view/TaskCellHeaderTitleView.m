@@ -86,15 +86,18 @@
                 model.HaveRightLine = NO;
                 model.HaveLeftLine = YES;
                 model.IsRedPackage = NO;//最后一个是否是红包： 本来是红包，现在不要红包
-                model.numberOfGold = 90;
+                model.numberOfGold = 40;
             }
-        }else{
+        }else{//没有登陆的状态
             model.HaveRightLine = YES;
             model.HaveLeftLine = YES;
             model.IsRedPackage = NO;
             model.IsToday = NO;
             model.numberOfGold = 10+i*5;
             model.daysCount = i+1;
+            if(i==0){
+                model.HaveLeftLine = NO;
+            }
             if(i==6){
                 model.HaveRightLine = NO;
                 model.HaveLeftLine = YES;
@@ -103,8 +106,8 @@
             }
         }
 
-        
-        DayDayTask_signIn_gold* item = [[DayDayTask_signIn_gold alloc] initWithFrame:CGRectMake(9+i*50, 0, 32+9+9, 74)];
+        CGFloat lineWidth = (SCREEN_WIDTH-16-16-7*32)/12;//12:6*2
+        DayDayTask_signIn_gold* item = [[DayDayTask_signIn_gold alloc] initWithFrame:CGRectMake(16+i*(32+2*lineWidth)-lineWidth, 0, 32+2*lineWidth, 74)];
         item.model = model;
         [subHeaderView addSubview:item];
     }
@@ -112,7 +115,7 @@
     [self addSubview:subHeaderView];
     
     //line
-    UIView* line = [[UIView alloc] initWithFrame:CGRectMake(16, self.frame.size.height-1, SCREEN_WIDTH, 1)];
+    UIView* line = [[UIView alloc] initWithFrame:CGRectMake(kWidth(16), self.frame.size.height-1, SCREEN_WIDTH-kWidth(16)-kWidth(16), 1)];
     line.backgroundColor = [UIColor colorWithRed:242/255.0 green:242/255.0 blue:242/255.0 alpha:1/1.0];
     [self addSubview:line];
     

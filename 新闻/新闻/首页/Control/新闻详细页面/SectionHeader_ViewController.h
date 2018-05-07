@@ -16,7 +16,7 @@
 @protocol SectionHeader_DetailWeb_InterfaceDelegate <NSObject>
 // 让协议方法带参传值
 /**传递的值*/
-- (void)initSectionFrame;
+- (void)initSectionFrame:(CGFloat)height;
 - (void)showNews:(CJZdataModel*)model;
 @end
 
@@ -24,6 +24,7 @@
 
 @property (nonatomic,strong)id delegate;
 @property (nonatomic,strong)CJZdataModel* model;
+@property (nonatomic,strong)NSString* channel_id;
 @property (nonatomic,strong)UIView* m_ReadingWithOther_view;
 
 @end

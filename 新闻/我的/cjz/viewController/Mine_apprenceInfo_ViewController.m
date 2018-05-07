@@ -15,12 +15,13 @@
 @end
 
 @implementation Mine_apprenceInfo_ViewController{
+    UIView*         m_header_view;
     UIView*         m_navibar_view;
     UIView*         m_apprenceInfo_view;
     UIView*         m_oneGray_view;
     UIView*         m_apprenceCount_view;
     UIView*         m_twoGray_view;
-    UIView*         m_apprenceIncome_view;
+//    UIView*         m_apprenceIncome_view;
     UITableView*    m_tableview;
     UILabel*         m_apprenceIncome_NoData_view;
     NSMutableArray* m_array_model;
@@ -67,37 +68,44 @@
 }
 
 -(void)initView{
+    m_header_view = [UIView new];
+    m_header_view.frame = CGRectMake(0, 0, SCREEN_WIDTH, 10);
+    m_header_view.backgroundColor = [UIColor redColor];
+    
     [self apprenceInfo];
     
     UIView* one_view = [self GetGreyView:CGRectMake(0, CGRectGetMaxY(m_apprenceInfo_view.frame), SCREEN_WIDTH, kWidth(30)) AndTitle:@"邀请奖励"];
-    [self.view addSubview:one_view];
+    [m_header_view addSubview:one_view];
     m_oneGray_view = one_view;
     
     [self apprenceTaskCount_init];
     
     UIView* two_view = [self GetGreyView:CGRectMake(0, CGRectGetMaxY(m_apprenceCount_view.frame), SCREEN_WIDTH, kWidth(30)) AndTitle:@"贡献明细"];
-    [self.view addSubview:two_view];
+    [m_header_view addSubview:two_view];
     m_twoGray_view = two_view;
     
-    m_apprenceIncome_view = [[UIView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(two_view.frame), SCREEN_WIDTH, SCREEN_HEIGHT-CGRectGetMaxY(two_view.frame))];
-    [self.view addSubview:m_apprenceIncome_view];
+//    m_apprenceIncome_view = [[UIView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(two_view.frame), SCREEN_WIDTH, SCREEN_HEIGHT-CGRectGetMaxY(two_view.frame))];
+    
+    m_header_view.frame = CGRectMake(0, 0, SCREEN_WIDTH, CGRectGetMaxY(two_view.frame));
     
     m_waiting = [[UIActivityIndicatorView alloc] initWithFrame:CGRectMake(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT-CGRectGetMaxY(two_view.frame))];
     m_waiting.center = self.view.center;
     [m_waiting setActivityIndicatorViewStyle:UIActivityIndicatorViewStyleGray];
     m_waiting.backgroundColor = [UIColor whiteColor];
     [m_waiting startAnimating];
-    [m_apprenceIncome_view addSubview:m_waiting];
+//    [m_apprenceIncome_view addSubview:m_waiting];
     
-    m_tableview = [[UITableView alloc] init];
-    m_tableview.frame = CGRectMake(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT-CGRectGetMaxY(two_view.frame));
+    m_tableview = [[UITableView alloc] initWithFrame:CGRectZero style:UITableViewStyleGrouped];
+    m_tableview.frame = CGRectMake(0, CGRectGetMaxY(m_navibar_view.frame), SCREEN_WIDTH, SCREEN_HEIGHT-CGRectGetMaxY(m_navibar_view.frame));
     m_tableview.backgroundColor = [UIColor whiteColor];
     [m_tableview setSeparatorInset:UIEdgeInsetsZero];
     [m_tableview setLayoutMargins:UIEdgeInsetsZero];
     m_tableview.separatorStyle = UITableViewCellSeparatorStyleNone;
     m_tableview.delegate = self;
     m_tableview.dataSource = self;
+    m_tableview.tableHeaderView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 0, CGFLOAT_MIN)];
     [m_tableview registerClass:[Mine_apprenceIncome_TableViewCell class] forCellReuseIdentifier:@"Mine_apprenceIncome_cell"];
+    [self.view addSubview:m_tableview];
     
     m_apprenceIncome_NoData_view = [[UILabel alloc] initWithFrame:CGRectMake(0, kWidth(30), SCREEN_WIDTH, kWidth(15))];
     m_apprenceIncome_NoData_view.text = @"没有数据";
@@ -108,14 +116,15 @@
 
 -(void)apprenceInfo{
     CGFloat height = kWidth(64.0f);
-    UIView* view = [[UIView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(m_navibar_view.frame), SCREEN_WIDTH, height)];
+    UIView* view = [[UIView alloc] initWithFrame:CGRectMake(0, 0, SCREEN_WIDTH, height)];
     view.backgroundColor = [UIColor whiteColor];
     m_apprenceInfo_view = view;
-    [self.view addSubview:m_apprenceInfo_view];
+    [m_header_view addSubview:m_apprenceInfo_view];
     
     UIImageView* icon = [[UIImageView alloc] initWithFrame:CGRectMake(kWidth(16), kWidth(16), height-kWidth(16)-kWidth(16), height-kWidth(16)-kWidth(16))];
     [icon sd_setImageWithURL:[NSURL URLWithString:self.model.avatar] placeholderImage:[UIImage imageNamed:@"user_default"]];
     [icon.layer setCornerRadius:(height-kWidth(16)-kWidth(16))/2];
+    icon.layer.masksToBounds = YES;
     [view addSubview:icon];
     
     UILabel* name = [[UILabel alloc] init];
@@ -129,7 +138,9 @@
     
     UILabel* telephone = [[UILabel alloc] init];
     NSMutableString* str_telephone = [NSMutableString stringWithString:self.model.telephone];
-    [str_telephone replaceCharactersInRange:NSMakeRange(3, 4) withString:@"****"];
+    if(self.model.telephone.length >= 11){
+        [str_telephone replaceCharactersInRange:NSMakeRange(3, 4) withString:@"****"];
+    }
     
     str_telephone = [NSMutableString stringWithFormat:@"手机号: %@",str_telephone];
     CGFloat width_telephone = [LabelHelper GetLabelWidth:kFONT(11) AndText:str_telephone];
@@ -161,11 +172,11 @@
     
     for (int i=0; i<3; i++) {
         UIView* tmp_view = [self getCountView:i];
-        tmp_view.frame = CGRectMake(0, i*kWidth(60), view.frame.size.width, view.frame.size.height);
+        tmp_view.frame = CGRectMake(0, i*kWidth(60), view.frame.size.width, kWidth(60));
         [view addSubview:tmp_view];
     }
     
-    [self.view addSubview:view];
+    [m_header_view addSubview:view];
 }
 
 -(UIView*)getCountView:(int)index{
@@ -291,11 +302,11 @@
         UIView* footView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, SCREEN_WIDTH, kWidth(30))];
         footView.backgroundColor = RGBA(242, 242, 242, 1);
         
-        UILabel* tips = [[UILabel alloc] initWithFrame:CGRectMake(kWidth(16), kWidth(30)/2-kWidth(18)/2, SCREEN_WIDTH, kWidth(15))];
+        UILabel* tips = [[UILabel alloc] initWithFrame:CGRectMake(0, kWidth(30)/2-kWidth(15)/2, SCREEN_WIDTH, kWidth(15))];
         tips.text = @"- 只显示最近15天的贡献明细 -";
         tips.textColor = RGBA(167, 169, 169, 1);
-        tips.textAlignment = NSTextAlignmentLeft;
-        tips.font = kFONT(10);
+        tips.textAlignment = NSTextAlignmentCenter;
+        tips.font = kFONT(15);
         [footView addSubview:tips];
         
         return footView;
@@ -306,12 +317,27 @@
     }
 }
 
+-(CGFloat)tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section{
+    return kWidth(30);
+}
+
 -(BOOL)tableView:(UITableView *)tableView shouldHighlightRowAtIndexPath:(NSIndexPath *)indexPath{
     return NO;
 }
 
 -(CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath{
     return [Mine_apprenceIncome_TableViewCell HightForCell];
+}
+
+-(UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section{
+    return m_header_view;
+//    return nil;
+}
+
+-(CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section{
+    NSLog(@"header height:%f",m_header_view.frame.size.height);
+    return m_header_view.frame.size.height;
+//    return 0;
 }
 
 
@@ -354,11 +380,11 @@
             }
             m_array_model = [Mine_apprenceInfo_model dicToArray:dict];
             if(m_array_model.count > 0){
-                [m_apprenceIncome_view addSubview:m_tableview];
+//                [m_tableview addSubview:m_apprenceIncome_view];
                 [m_tableview reloadData];
             }else{
                 //没有数据
-                [m_apprenceIncome_view addSubview:m_apprenceIncome_NoData_view];
+//                [m_tableview addSubview:m_apprenceIncome_NoData_view];
             }
             [m_waiting stopAnimating];
         });

@@ -56,7 +56,7 @@
     // 顶部标签
     UIView* lable_view = [[UIView alloc] init];
     
-    UILabel* label = [[UILabel alloc] initWithFrame:CGRectMake(28, 25, 150, 18)];
+    UILabel* label = [[UILabel alloc] initWithFrame:CGRectMake(kWidth(28), 25, 150, 18)];
     label.font = [UIFont fontWithName:@"SourceHanSansCN-Regular" size:18];
     label.text = @"相关阅读";
     label.textColor = [UIColor colorWithRed:122/255.0 green:125/255.0 blue:125/255.0 alpha:1/1.0];
@@ -131,7 +131,8 @@
     NSLog(@"view frame:%.2f",self.view.frame.size.height);
 //    [self.view layoutIfNeeded];
     
-    [[NSNotificationCenter defaultCenter] postNotificationName:@"sectionHight" object:self];//通知变更headerView高度
+//    [[NSNotificationCenter defaultCenter] postNotificationName:@"sectionHight" object:self];//通知变更headerView高度
+    [self.delegate initSectionFrame:self.m_ReadingWithOther_view.frame.size.height];
 }
 
 #pragma mark - tableview代理
@@ -211,7 +212,7 @@
     data.isRreading = YES;//标题变灰
     //一个cell刷新
     [tableView reloadRowsAtIndexPaths:[NSArray arrayWithObjects:indexPath,nil] withRowAnimation:UITableViewRowAnimationNone];
-    [self.delegate initSectionFrame];
+//    [self.delegate initSectionFrame];
     [tableView reloadData];
 //    DetailWeb_ViewController* vc = [[DetailWeb_ViewController alloc] init];
 //    vc.CJZ_model = data;
@@ -234,8 +235,9 @@
     NSString *args = @"json=";
     NSString* argument = @"{";
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@"\"%@\":\"%@\"",@"user_id",[[Login_info share] GetUserInfo].user_id]];
+    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"origin_channel",self.channel_id]];
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"news_id",self.model.ID]];
-    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"channel",self.model.channel]];//1：点赞    2：取消点赞
+    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"channel",self.model.channel]];
     argument = [argument stringByAppendingString:@"}"];
     argument = [MyEntrypt MakeEntryption:argument];
     args = [args stringByAppendingString:[NSString stringWithFormat:@"%@",argument]];
