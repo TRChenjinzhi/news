@@ -119,8 +119,8 @@
 
 -(void)DownloadedDataFailed{
     //从本地获取数据
-    id data = [[AppConfig sharedInstance] getUrlNews];
-    NSArray* array = [ChannelName objectArrayWithKeyValuesArray:data];
+    NSDictionary* data = [[AppConfig sharedInstance] getUrlNews];
+    NSArray* array = [ChannelName JsonToChannel:data[@"list"]];
     
     if(array.count > 0){
         self.naviItems = [NSMutableArray arrayWithArray:array];
@@ -551,10 +551,11 @@
     IMP_BLOCK_SELF(SCNavTabBarController);
     NSURLSessionDataTask *sessionDataTask = [session dataTaskWithRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
         
-        if(error){
-            NSLog(@"网络获取失败");
+        if(error || data == nil){
+            NSLog(@"initNaviBarItem网络获取失败");
             
             [[NSNotificationCenter defaultCenter] postNotificationName:@"netFailed" object:nil];
+            return ;
         }
         
         NSLog(@"initNaviBarItem从服务器获取到数据");
@@ -564,11 +565,14 @@
         NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:data options:(NSJSONReadingMutableLeaves) error:nil];
         NSNumber* code = dict[@"code"];
         if([code integerValue] == 200){
-        }else{
+        }
+        else{
             [[NSNotificationCenter defaultCenter] postNotificationName:@"netFailed" object:nil];
             return ;
         }
         NSArray *dataarray = [ChannelName JsonToChannel:dict[@"list"]];
+        
+        
         [IndexOfNews share].channel_all = dataarray;//保存导航信息
         //首次 只保留前10条信息
         dataarray = [self channel_check:dataarray];
@@ -579,6 +583,7 @@
             [ChannelArray addObject:data];
         }
         
+        [[AppConfig sharedInstance] saveUrlNews:dict];//保存频道信息
         [UrlModel Share].url_array = ChannelArray;
         
         [[NSNotificationCenter defaultCenter] postNotificationName:@"dataLoaded" object:ChannelArray];
