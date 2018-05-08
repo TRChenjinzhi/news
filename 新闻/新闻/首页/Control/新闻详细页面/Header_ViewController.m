@@ -79,23 +79,28 @@
     isSetFont = YES;
 }
 
+-(void)setFont:(NSInteger)font{
+    FontSize = font;
+    isSetFont = YES;
+    [self setWebView_Font:self.webview AndType:FontSize];
+
+    m_size = [self getWebviewSize];
+
+    [self.delegate setHeaderFrame];
+}
+
 #pragma mark - contentSize代理
 -(void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSKeyValueChangeKey,id> *)change context:(void *)context{
     if([keyPath isEqualToString:@"contentSize"]){
         
         CGSize size = [self.webview sizeThatFits:CGSizeZero];
-//        NSLog(@"contentSize webview size contentsize-->%f",size.height);
         self.webview.frame = CGRectMake(0, 0, size.width, size.height);
-        //    self.view.frame = CGRectMake(0, 0, size.width, size.height+10+_ViewHight+10);
         self.footView.frame = CGRectMake(0, self.webview.frame.size.height, SCREEN_WIDTH, self.footView.frame.size.height);
-//        self.lable_view.frame = CGRectMake(0, 0, SCREEN_WIDTH, 52);
-//        self.reply_view.frame = CGRectMake(0, CGRectGetMaxY(m_ReadingWithOther_view.frame)+10, SCREEN_WIDTH, 52);
-        
+
         self.view.frame = CGRectMake(0, 0, size.width, size.height+self.footView.frame.size.height);
-//        NSLog(@"view hight-->%f",size.height);
-            m_size = self.view.frame.size;
-            [self.delegate setHeaderFrame];
-//        }
+
+        m_size = self.view.frame.size;
+        [self.delegate setHeaderFrame];
     }
 }
 
@@ -164,43 +169,34 @@
      }"];
     [webView stringByEvaluatingJavaScriptFromString:@"registerImageClickAction();"];
 
-    
-
     if(!isSetFont){
-        [self setWebView_Font:webView AndType:[[AppConfig sharedInstance]GetFontSize]];
+        [self setWebView_Font:webView AndType:[[AppConfig sharedInstance] GetFontSize]];
     }else{
         [self setWebView_Font:webView AndType:FontSize];
     }
     
-    CGSize size = CGSizeZero;
-//    CGSize size = [webView sizeThatFits:CGSizeZero];
-//    NSLog(@"webview size-->%f",size.height);//这个高度 有时不太准确
-//    CGFloat documentHeight = [[webView stringByEvaluatingJavaScriptFromString:@"document.getElementById(\"content\").offsetHeight;"] floatValue];
-//    NSLog(@"documentSize = {%f}", documentHeight);
-    CGFloat webViewHeight =[[webView stringByEvaluatingJavaScriptFromString:@"document.body.offsetHeight"] floatValue];
-    NSLog(@"CGFloatwebViewHeight:%f",webViewHeight); //这个高度准确
-    size = CGSizeMake(SCREEN_WIDTH, webViewHeight);
-    self.webview.frame = CGRectMake(0, 0, size.width, size.height);
-//    self.view.frame = CGRectMake(0, 0, size.width, size.height+10+_ViewHight+10);
-    self.footView.frame = CGRectMake(0, size.height, SCREEN_WIDTH, self.footView.frame.size.height);
-//    self.lable_view.frame = CGRectMake(0, 0, SCREEN_WIDTH, 52);
-//    self.reply_view.frame = CGRectMake(0, size.height+10+_Reading_ViewHight+10, SCREEN_WIDTH, 52);
+    m_size = [self getWebviewSize];
     
-    self.view.frame = CGRectMake(0, 0, size.width, size.height+self.footView.frame.size.height);
-//    NSLog(@"webview hight-->%f",self.view.frame.size.height);
-    
-//    NSString* html =[webView stringByEvaluatingJavaScriptFromString:@"document.documentElement.innerHTML"];
-//    self.view.frame = CGRectMake(0, 0, SCREEN_WIDTH, 100);
-    m_size = self.view.frame.size;
     //通知
     [self.delegate webViewDidLoad:text_all];
     [self.delegate setHeaderFrame];
     m_isFirst = YES; //代表新闻加载完毕
-//    [[NSNotificationCenter defaultCenter] postNotificationName:@"webViewDidLoad" object:self];
 }
 
 -(CGSize)getSize{
     return m_size;
+}
+
+-(CGSize)getWebviewSize{
+    CGSize size = CGSizeZero;
+    CGFloat webViewHeight =[[self.webview stringByEvaluatingJavaScriptFromString:@"document.body.offsetHeight"] floatValue];
+    NSLog(@"CGFloatwebViewHeight:%f",webViewHeight); //这个高度准确
+    size = CGSizeMake(SCREEN_WIDTH, webViewHeight);
+    self.webview.frame = CGRectMake(0, 0, size.width, size.height);
+    self.footView.frame = CGRectMake(0, size.height, SCREEN_WIDTH, self.footView.frame.size.height);
+    self.view.frame = CGRectMake(0, 0, size.width, size.height+self.footView.frame.size.height);
+
+    return self.view.frame.size;
 }
 
 -(BOOL)webView:(UIWebView *)webView shouldStartLoadWithRequest:(NSURLRequest *)request navigationType:(UIWebViewNavigationType)navigationType{

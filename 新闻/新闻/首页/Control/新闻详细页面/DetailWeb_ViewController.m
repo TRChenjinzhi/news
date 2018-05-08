@@ -65,6 +65,7 @@
     BOOL                            m_First_collect;//是否第一次点击收藏按钮
     RuleOfReading*                  m_ruleOfReading;
     
+    //新闻高度
     CGSize                          m_headerSize;
     UIView*                       readingAll;
     BOOL                            Is_readingAll;
@@ -559,7 +560,7 @@
     //    [self.view layoutIfNeeded];
     [self.tableView beginUpdates];
     m_headerSize = [header getSize];
-//    NSLog(@"----hight:%.2f",m_headerSize.height);
+    NSLog(@"----hight:%.2f",m_headerSize.height);
     UIView* headerView = header.view;
 //    [headerView setFrame:CGRectMake(0, 0, SCREEN_WIDTH, 500)];
     CGFloat hight = self.tableView.frame.size.height;
@@ -768,6 +769,9 @@
 //        NSLog(@"新闻详细高度 height:%f",m_headerSize.height);
 //        NSLog(@"新闻详细高度 tableview hight:%f",self.tableView.frame.size.height);
         if(![[MyDataBase shareManager] IsGetIncomeNews:self.CJZ_model.ID]){//防止重复 阅读奖励
+            if(readingAll == nil){ //当没有出现阅读全文时
+                Is_readingAll = YES;
+            }
             BOOL isOk = [m_ruleOfReading AddReadingCountType:Task_reading
                                                    AndTaskId:[Md5Helper Read_taskId:userId AndNewsId:self.CJZ_model.ID]
                                                    AndNewsId:self.CJZ_model.ID
@@ -1022,32 +1026,24 @@
     
     //存储用户需要的字体
     [[AppConfig sharedInstance] saveFontSize:type];
-    
-//    [self ShowWaiting];
-//    [self.headerView.view removeFromSuperview];
-//    Header_ViewController* header = [[Header_ViewController alloc] init];
-//    header.url = _CJZ_model.url;
-//    header.fontState = type;
-//    header.delegate = self;
-//    header.view.clipsToBounds = YES;
-//    self.headerView = header;
-//    [self.tableView setTableHeaderView:header.view];
-//    self.tableView.tableHeaderView.clipsToBounds = YES;
-//    [self GetNews];
+
+    [self.headerView setFont:type];
     switch (type) {
         case 0: //小
-            [self.headerView.webview stringByEvaluatingJavaScriptFromString:@"document.getElementsByTagName('body')[0].style.webkitTextSizeAdjust= '80%'"];
+//            [self.headerView.webview stringByEvaluatingJavaScriptFromString:@"document.getElementsByTagName('body')[0].style.webkitTextSizeAdjust= '80%'"];
+//            self.headerView setFontState:(NSInteger)
             break;
         case 1://中
-            [self.headerView.webview stringByEvaluatingJavaScriptFromString:@"document.getElementsByTagName('body')[0].style.webkitTextSizeAdjust= '100%'"];
+//            [self.headerView.webview stringByEvaluatingJavaScriptFromString:@"document.getElementsByTagName('body')[0].style.webkitTextSizeAdjust= '100%'"];
             break;
         case 2://大
-            [self.headerView.webview stringByEvaluatingJavaScriptFromString:@"document.getElementsByTagName('body')[0].style.webkitTextSizeAdjust= '120%'"];
+//            [self.headerView.webview stringByEvaluatingJavaScriptFromString:@"document.getElementsByTagName('body')[0].style.webkitTextSizeAdjust= '120%'"];
             break;
             
         default:
             break;
     }
+    
     
 }
 

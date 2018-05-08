@@ -68,21 +68,22 @@
         labelHight = 8;
         labelWidth = 8;
     }else{
-        labelHight = 15;
-        labelWidth = [_badgeLabel sizeThatFits:CGSizeMake(MAXFLOAT, labelHight)].width + 5;
-        if (labelWidth > 40) {
-            labelWidth = 40;
-        }
-        if (labelWidth < labelHight){
-            labelWidth = labelHight;
-        }
+        //只要小红点 所以宽度就固定了
+//        labelHight = 10;
+//        labelWidth = [_badgeLabel sizeThatFits:CGSizeMake(MAXFLOAT, labelHight)].width + 5;
+//        if (labelWidth > 40) {
+//            labelWidth = 40;
+//        }
+//        if (labelWidth < labelHight){
+//            labelWidth = labelHight;
+//        }
     }
 
     _badgeLabel.frame = CGRectMake(0, 0, labelWidth, labelHight);
     _badgeLabel.layer.cornerRadius = labelHight/2;
     
     if(self.imageView.image){
-        CGPoint center = CGPointMake(CGRectGetMaxX(self.imageView.frame), self.imageView.frame.origin.y);
+        CGPoint center = CGPointMake(CGRectGetMaxX(self.imageView.frame)-labelWidth/2, self.imageView.frame.origin.y+labelHight/2);
         _badgeLabel.center = center;
     }else{
         CGPoint center = CGPointMake(self.bounds.size.width, self.bounds.origin.y);

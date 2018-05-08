@@ -10,6 +10,8 @@
 
 @interface RuleOfReading : NSObject
 
+@property (nonatomic,strong)NSTimer* timer;
+
 -(BOOL)AddReadingCountType:(NSInteger)type AndTaskId:(NSString*)taskId AndNewsId:(NSString*)newsId AndScrollview:(UIScrollView*)scrollview AndTableview:(UITableView*)tableview AndHeaderSize:(CGSize)headerSize AndIsReadAll:(BOOL)isReadAll  AndScrollCount:(NSInteger)count;
 
 @end

@@ -35,4 +35,6 @@
 -(CGSize)getSize;
 
 @property (nonatomic)NSInteger fontState;
+@property (nonatomic)NSInteger font;
+
 @end
