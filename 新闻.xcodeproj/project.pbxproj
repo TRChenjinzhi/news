@@ -2844,6 +2844,13 @@
 			path = view;
 			sourceTree = "<group>";
 		};
+		798D69B720A15508009F0570 /* 等待弹窗 */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = "等待弹窗";
+			sourceTree = "<group>";
+		};
 		799A3AA22092CB9500E3B5C2 /* YYKit */ = {
 			isa = PBXGroup;
 			children = (
@@ -3355,6 +3362,7 @@
 		9922B9561D8029D300E3E236 /* CustomTools */ = {
 			isa = PBXGroup;
 			children = (
+				798D69B720A15508009F0570 /* 等待弹窗 */,
 				79238764208F0B2F0088C9FC /* 个人信息弹窗 */,
 				79F5F83B206A4DDA007E2506 /* Keychain */,
 				7918F2EE205109DD000D2D5F /* 奖励提示 */,
