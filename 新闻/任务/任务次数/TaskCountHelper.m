@@ -47,6 +47,17 @@ static TaskCountHelper* _instance;
     m_task_dayDay_name_array = task_dayDay_name_array;
 }
 
+-(BOOL)TaskIsOverByType:(NSInteger)type{
+    for (TaskMaxCout_model* model in m_task_dayDay_name_array) {
+        if(model.type == type){
+            if(model.count >= model.maxCout){
+                return YES;
+            }
+        }
+    }
+    return NO;
+}
+
 -(void)DayDayTask_addCountByType:(NSInteger)type{
     for (TaskMaxCout_model* model in m_task_dayDay_name_array) {
         if(model.type == type){

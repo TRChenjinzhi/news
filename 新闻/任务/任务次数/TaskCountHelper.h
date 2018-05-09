@@ -20,6 +20,8 @@
 -(NSArray*)get_task_dayDay_name_array;
 -(NSArray*)get_taskcountModel_array;
 
+-(BOOL)TaskIsOverByType:(NSInteger)type;
+
 -(void)DayDayTask_addCountByType:(NSInteger)type;
 -(void)initData;
 
