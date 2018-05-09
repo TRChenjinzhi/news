@@ -229,11 +229,14 @@
         
         dispatch_async(dispatch_get_main_queue(), ^{
             
-            
-            if(error){
+            if(error || data == nil){
                 NSLog(@"GetApprenticeData网络获取失败");
                 //发送失败消息
-                [[AlertHelper Share] ShowMe:self And:2.0 And:@"网络失败"];
+//                [[AlertHelper Share] ShowMe:self And:2.0 And:@"网络失败"];
+                [MyMBProgressHUD ShowMessage:@"网络失败" ToView:self.view AndTime:1.0f];
+                [m_tableview.header endRefreshing];
+                [m_tableview.footer endRefreshing];
+                return ;
             }
             
             NSLog(@"GetApprenticeData从服务器获取到数据");

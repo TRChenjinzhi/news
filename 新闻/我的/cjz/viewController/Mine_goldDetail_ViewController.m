@@ -548,10 +548,13 @@
         dispatch_async(dispatch_get_main_queue(), ^{
             
             
-            if(error){
+            if(error || data == nil){
                 NSLog(@"网络获取失败");
                 //发送失败消息
-                [[AlertHelper Share] ShowMe:self And:2.0 And:@"网络失败"];
+//                [[AlertHelper Share] ShowMe:self And:1.0 And:@"网络失败"];
+                [MyMBProgressHUD ShowMessage:@"网络失败" ToView:self.view AndTime:1.0f];
+                [gold_tvc.tableView.header endRefreshing];
+                [gold_tvc.tableView.footer endRefreshing];
                 return ;
             }
             
@@ -646,10 +649,13 @@
         dispatch_async(dispatch_get_main_queue(), ^{
             
             
-            if(error){
+            if(error || data == nil){
                 NSLog(@"网络获取失败");
                 //发送失败消息
-                [[AlertHelper Share] ShowMe:self And:2.0 And:@"网络失败"];
+//                [[AlertHelper Share] ShowMe:self And:2.0 And:@"网络失败"];
+                [MyMBProgressHUD ShowMessage:@"网络失败" ToView:self.view AndTime:1.0f];
+                [package_tvc.tableView.header endRefreshing];
+                [package_tvc.tableView.footer endRefreshing];
                 return ;
             }
             

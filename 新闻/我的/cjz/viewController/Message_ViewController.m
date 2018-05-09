@@ -195,7 +195,8 @@
             if(error){
                 NSLog(@"网络获取失败");
                 //发送失败消息
-                [[AlertHelper Share] ShowMe:self And:1.0 And:@"网络失败"];
+//                [[AlertHelper Share] ShowMe:self And:1.0 And:@"网络失败"];
+                [MyMBProgressHUD ShowMessage:@"网络失败" ToView:self.view AndTime:1.0f];
                 return ;
             }
             

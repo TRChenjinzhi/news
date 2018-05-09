@@ -11,7 +11,7 @@
 #import "Mine_question_model.h"
 
 #define TimeCount 30
-@interface Mine_question_ViewController ()
+@interface Mine_question_ViewController ()<UIWebViewDelegate>
 
 @end
 
@@ -88,6 +88,7 @@
 
     
     webview.scrollView.bounces = NO;
+    webview.delegate = self;
     NSURLRequest* request = [NSURLRequest requestWithURL:[NSURL URLWithString:@"http://toutiao.3gshow.cn/help.html"]];
     [webview loadRequest:request];
     
@@ -181,6 +182,11 @@
 #pragma mark - 按钮方法
 -(void)back{
     [self.navigationController popViewControllerAnimated:YES];
+}
+
+#pragma mark - webview协议
+-(void)webView:(UIWebView *)webView didFailLoadWithError:(NSError *)error{
+    [MyMBProgressHUD ShowMessage:@"网络错误" ToView:self.view AndTime:1.0f];
 }
 /*
 #pragma mark - Navigation

@@ -108,6 +108,10 @@
     return YES;
 }
 
+-(void)webView:(UIWebView *)webView didFailLoadWithError:(NSError *)error{
+    [MyMBProgressHUD ShowMessage:@"网络错误" ToView:self.view AndTime:1.0f];
+}
+
 -(void)share:(NSString*)str{
     NSLog(@"%@",str);
 }

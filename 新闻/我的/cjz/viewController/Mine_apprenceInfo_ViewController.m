@@ -34,7 +34,6 @@
     self.view.backgroundColor = [UIColor whiteColor];
     [self initNavi];
     [self initView];
-    [self getApprenceIncomeOf15days];
 }
 
 - (void)didReceiveMemoryWarning {
@@ -112,6 +111,21 @@
     m_apprenceIncome_NoData_view.textColor = RGBA(34, 39, 39, 1);
     m_apprenceIncome_NoData_view.textAlignment = NSTextAlignmentCenter;
     m_apprenceIncome_NoData_view.font = kFONT(14);
+    
+    //当没有完成新手任务时
+    if([self.model.is_finished_newbie integerValue] == NotYet){
+        [m_waiting removeFromSuperview];
+        
+            CGFloat ori_Y = m_header_view.frame.size.height + (m_tableview.frame.size.height - m_header_view.frame.size.height)/2 - kWidth(15)/2;
+            m_apprenceIncome_NoData_view.frame = CGRectMake(0, ori_Y, SCREEN_WIDTH, kWidth(15));
+            m_apprenceIncome_NoData_view.text = @"新手任务未完成";
+            [m_tableview addSubview:m_apprenceIncome_NoData_view];
+            [m_tableview bringSubviewToFront:m_apprenceIncome_NoData_view];
+
+    }
+    else{
+        [self getApprenceIncomeOf15days];
+    }
 }
 
 -(void)apprenceInfo{
@@ -141,6 +155,9 @@
     if(self.model.telephone.length >= 11){
         [str_telephone replaceCharactersInRange:NSMakeRange(3, 4) withString:@"****"];
     }
+    else{
+        [str_telephone replaceCharactersInRange:NSMakeRange(str_telephone.length-4, 4) withString:@"****"];
+    }
     
     str_telephone = [NSMutableString stringWithFormat:@"手机号: %@",str_telephone];
     CGFloat width_telephone = [LabelHelper GetLabelWidth:kFONT(11) AndText:str_telephone];
@@ -167,10 +184,11 @@
 }
 
 -(void)apprenceTaskCount_init{
-    UIView* view = [[UIView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(m_oneGray_view.frame), SCREEN_WIDTH, kWidth(180))];
+    UIView* view = [[UIView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(m_oneGray_view.frame), SCREEN_WIDTH, kWidth(60)*[self.model.max integerValue])];
     m_apprenceCount_view = view;
-    
-    for (int i=0; i<3; i++) {
+//    [UIColor redColor];
+    NSInteger count = [self.model.max integerValue];
+    for (int i=0; i < count; i++) {
         UIView* tmp_view = [self getCountView:i];
         tmp_view.frame = CGRectMake(0, i*kWidth(60), view.frame.size.width, kWidth(60));
         [view addSubview:tmp_view];
@@ -198,13 +216,19 @@
     NSString* text = @"";
     switch (index) {
         case 0:
-            text = @"徒弟首次完成100金币任务";
+            text = @"徒弟首次完成10篇文章阅读任务";
             break;
         case 1:
-            text = @"徒弟第二次完成100金币任务";
+            text = @"徒弟第二次完成10篇文章阅读任务";
             break;
         case 2:
-            text = @"徒弟第三次完成100金币任务";
+            text = @"徒弟第三次完成10篇文章阅读任务";
+            break;
+        case 3:
+            text = @"徒弟第四次完成10篇文章阅读任务";
+            break;
+        case 4:
+            text = @"徒弟第五次完成10篇文章阅读任务";
             break;
             
         default:
@@ -220,13 +244,19 @@
     NSString* text_money = @"";
     switch (index) {
         case 0:
-            text_money = @"+0.30元";
+            text_money = @"+0.5元";
             break;
         case 1:
-            text_money = @"+0.30元";
+            text_money = @"+0.2元";
             break;
         case 2:
-            text_money = @"+0.40元";
+            text_money = @"+0.3元";
+            break;
+        case 3:
+            text_money = @"+0.3元";
+            break;
+        case 4:
+            text_money = @"+0.7元";
             break;
             
         default:
@@ -263,8 +293,25 @@
     }
     
     if(index == 2){
-        [line_down removeFromSuperview];
+        if([self.model.max integerValue] == 3){
+            [line_down removeFromSuperview];
+        }
         if(count >= 3){
+            ball.backgroundColor = RGBA(251, 84, 38, 1);
+            money.textColor = RGBA(251, 84, 38, 1);
+        }
+    }
+    
+    if(index == 3){
+        if(count >= 4){
+            ball.backgroundColor = RGBA(251, 84, 38, 1);
+            money.textColor = RGBA(251, 84, 38, 1);
+        }
+    }
+    
+    if(index == 4){
+        [line_down removeFromSuperview];
+        if(count >= 5){
             ball.backgroundColor = RGBA(251, 84, 38, 1);
             money.textColor = RGBA(251, 84, 38, 1);
         }
@@ -364,10 +411,11 @@
         
         dispatch_async(dispatch_get_main_queue(), ^{
             
-            if(error){
+            if(error || data == nil){
                 NSLog(@"网络获取失败");
                 //发送失败消息
-                [[AlertHelper Share] ShowMe:self And:1.0 And:@"网络失败"];
+//                [[AlertHelper Share] ShowMe:self And:1.0 And:@"网络失败"];
+                [MyMBProgressHUD ShowMessage:@"网络失败" ToView:self.view AndTime:1.0f];
                 return ;
             }
             

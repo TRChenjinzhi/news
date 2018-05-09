@@ -352,12 +352,13 @@
         dispatch_async(dispatch_get_main_queue(), ^{
             
             
-            if(error){
+            if(error || data == nil){
                 NSLog(@"网络获取失败");
                 [MBProgressHUD showError:@"网络失败"];
                 //发送失败消息
                 [block_self.tableview.header endRefreshing];
                 [block_self.tableview.footer endRefreshing];
+                return ;
 //                [[NSNotificationCenter defaultCenter] postNotificationName:@"获取新闻失败" object:nil];
             }
             
