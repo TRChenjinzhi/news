@@ -20,15 +20,36 @@
      5. 朋友圈收徒
      */
     NSMutableArray* array = [NSMutableArray array];
-    NSArray* title = @[NewUserTask_blindWechat,NewUserTask_readQuestion,NewUserTask_readNews,NewUserTask_readVideo,NewUserTask_shareByPengyouquan];
-    NSArray* money = @[@50                    ,@20                     ,@10                 ,@10                  ,@0];
-    NSArray* isYuan = @[@0                    ,@0                      ,@0                  ,@0                   ,@0];
-    NSArray* isDone = @[@0                    ,@0                      ,@0                  ,@0                   ,@0];
+    NSArray* title = @[NewUserTask_blindWechat,
+//                       NewUserTask_readQuestion,
+                       NewUserTask_readNews
+//                       NewUserTask_readVideo,
+//                       NewUserTask_shareByPengyouquan
+                       ];
+    NSArray* money = @[@50,
+//                       @20,
+                       @10
+//                       @10,
+//                       @0
+                       ];
+    NSArray* isYuan = @[@0,
+//                        @0,
+                        @0
+//                        @0,
+//                        @0
+                        ];
+    NSArray* isDone = @[@0,
+//                        @0,
+                        @0
+//                        @0,
+//                        @0
+                        ];
     NSArray* subTitle = @[@"绑定后可直接提现至微信",
-                          @"认真阅读平台规则",
-                          @"阅读5篇新闻，完成新手任务",
-                          @"观看5个视频，完成新手任务",
-                          @"分享邀请信息到朋友圈"];
+//                          @"认真阅读平台规则",
+                          @"阅读5篇新闻，完成新手任务"
+//                          @"观看5个视频，完成新手任务",
+//                          @"分享邀请信息到朋友圈即可"
+                          ];
     for(int i=0;i<title.count;i++){
         TaskCell_model* model = [[TaskCell_model alloc] init];
         model.title = title[i];
@@ -73,18 +94,39 @@
                        DayDayTask_readNews,
                        DayDayTask_shareNews,
                        DayDayTask_readVideo,
-                       DayDayTask_GoodReply,
+//                       DayDayTask_GoodReply,
                        DayDayTask_showIncome,
                        DayDayTask_choujiang];
-    NSArray* money = @[@3        ,@2    ,@10       ,@10       ,@10      ,@10       ,@20    ,@20];
-    NSArray* isYuan = @[@1        ,@1    ,@0        ,@0        ,@0       ,@0        ,@0     ,@0];
-    NSArray* isDone = @[@0        ,@0    ,@0        ,@0        ,@0       ,@0        ,@0     ,@0];
+    NSArray* money = @[@3,
+                       @2,
+                       @10,
+                       @10,
+                       @5,
+//                       @10,
+                       @20,
+                       @20];
+    NSArray* isYuan = @[@1,
+                        @1,
+                        @0,
+                        @0,
+                        @0,
+//                        @0,
+                        @0,
+                        @0];
+    NSArray* isDone = @[@0,
+                        @0,
+                        @0,
+                        @0,
+                        @0,
+//                        @0,
+                        @0,
+                        @0];
     NSArray* subTitle = @[@"首次邀请好友，额外多奖励2元",
                           @"每成功邀请一名好友，奖励2元奖金",
                           @"认真阅读，每篇奖励10金币",
-                          @"分享文章给好友，每次奖励10金币",
+                          @"分享新闻给好友，每次奖励10金币",
                           @"观看视频超过30s，每次奖励10金币",
-                          @"有见解有趣味的评论会获得额外的奖励",
+//                          @"有见解有趣味的评论会获得额外的奖励",
                           @"晒出自己的收入，每次奖励20金币",
                           @"参与抽奖活动，每次奖励10金币"];
     for(int i=0;i<title.count;i++){
