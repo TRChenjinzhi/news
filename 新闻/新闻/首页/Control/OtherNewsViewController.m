@@ -58,6 +58,9 @@
 
 - (void)initTableView
 {
+    if(self.tableview != nil){
+        return;
+    }
     UITableView *tableview = [[UITableView alloc]initWithFrame:CGRectMake(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT - 49 - 64)];
     tableview.backgroundColor = [[ThemeManager sharedInstance] themeColor];
     tableview.delegate = self;

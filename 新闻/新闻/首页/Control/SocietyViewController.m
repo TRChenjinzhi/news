@@ -143,7 +143,7 @@
 - (void)initTableView
 {
     [m_Reloaded_view removeFromSuperview];
-    self.tableview = nil;
+    [self.tableview removeFromSuperview];
     
     UITableView *tableview = [[UITableView alloc]initWithFrame:CGRectMake(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT - 64-49)];
     tableview.delegate = self;
@@ -209,16 +209,16 @@
 -(void)addTableView_data{
     //是否有缓存数据 有：直接赋值 没有：刷新获得数据
     
-    if(self.totalArray.count < 50){ //保证保存最新的50信息
-        if(m_cash_array.count > 0){
-            for (CJZdataModel* model in m_cash_array) {
-                if(self.totalArray.count >= 50){
-                    break;
-                }
-                [self.totalArray addObject:model];
-            }
-        }
-    }
+//    if(self.totalArray.count < 50){ //保证保存最新的50信息
+//        if(m_cash_array.count > 0){
+//            for (CJZdataModel* model in m_cash_array) {
+//                if(self.totalArray.count >= 50){
+//                    break;
+//                }
+//                [self.totalArray addObject:model];
+//            }
+//        }
+//    }
     
     m_cash_array = [NSMutableArray arrayWithArray:[[AppConfig sharedInstance] getNewsByChannel_id:self.channel_id]];
     if(m_cash_array.count > 0){
@@ -603,17 +603,23 @@
         dispatch_async(dispatch_get_main_queue(), ^{
             
         
-        if(error){
-            NSLog(@"网络获取失败");
+        if(error || data == nil){
+            NSLog(@"requestNet网络获取失败");
             //发送失败消息
             [block_self.tableview.header endRefreshing];
             [block_self.tableview.footer endRefreshing];
 //            [[NSNotificationCenter defaultCenter] postNotificationName:@"获取新闻失败" object:nil];
-            [block_self GetNetFailed];
+            if(block_self.totalArray.count > 0){
+                [MyMBProgressHUD ShowMessage:@"网络失败!" ToView:self.view AndTime:1.0f];
+            }
+            else{
+                [block_self GetNetFailed];
+            }
+            
             return ;
         }
         
-        NSLog(@"从服务器获取到数据");
+        NSLog(@"requestNet从服务器获取到数据");
         /*
          对从服务器获取到的数据data进行相应的处理.
          */
