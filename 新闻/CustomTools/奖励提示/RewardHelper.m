@@ -53,7 +53,7 @@
     [reward_view addSubview:money];
     
     if(type == Task_Login){
-        tips.text = @"登陆奖励";
+        tips.text = @"登录奖励";
         money.text = [NSString stringWithFormat:@"+%ld",5+5*times];
         TabbarViewController* blok_self = (TabbarViewController*)vc;
         [blok_self.view addSubview:reward_view];
@@ -64,6 +64,9 @@
         for (TaskMaxCout_model* item in model_array) {
             if(item.type == Task_video){
                 model = item;
+                if(model.count >= model.maxCout){
+                    return;
+                }
             }
         }
         NSString* str = [NSString stringWithFormat:@"视频奖励 (%ld/%ld)",model.count,model.maxCout];
@@ -89,6 +92,9 @@
         for (TaskMaxCout_model* item in model_array) {
             if(item.type == Task_chouJiang){
                 model = item;
+                if(model.count >= model.maxCout){
+                    return;
+                }
             }
         }
         NSString* str = [NSString stringWithFormat:@"抽奖奖励 (%ld/%ld)",model.count,model.maxCout];
@@ -110,6 +116,9 @@
         for (TaskMaxCout_model* item in model_array) {
             if(item.type == Task_showIncome){
                 model = item;
+                if(model.count >= model.maxCout){
+                    return;
+                }
             }
         }
         NSString* str = [NSString stringWithFormat:@"晒收入奖励 (%ld/%ld)",model.count,model.maxCout];
@@ -127,7 +136,7 @@
     }
     
     
-    [UIView animateWithDuration:3.0 delay:0 options:UIViewAnimationOptionBeginFromCurrentState animations:^{
+    [UIView animateWithDuration:2.0 delay:0 options:UIViewAnimationOptionBeginFromCurrentState animations:^{
         reward_view.alpha = 0.0;
     } completion:^(BOOL finished) {
         [reward_view removeFromSuperview];
