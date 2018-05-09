@@ -218,7 +218,14 @@
                                          CGRectGetMinY(m_subtitle_view.frame),
                                          30,
                                          10);
-        NSString* str = [NSString stringWithFormat:@"%ld/%ld",taskModel.DayDay_model.count,taskModel.DayDay_model.maxCout];
+        NSString* str = @"";
+        if([[TaskCountHelper share] TaskIsOverByType:taskModel.type]){
+            str = [NSString stringWithFormat:@"%ld/%ld",taskModel.DayDay_model.maxCout,taskModel.DayDay_model.maxCout];
+        }
+        else{
+            str = [NSString stringWithFormat:@"%ld/%ld",taskModel.DayDay_model.count,taskModel.DayDay_model.maxCout];
+        }
+        
         NSMutableAttributedString* str_att = [[NSMutableAttributedString alloc] initWithString:str];
         NSRange index = [str rangeOfString:@"/"];
         str_att = [LabelHelper GetMutableAttributedSting_color:str_att AndIndex:0 AndCount:str.length-index.location-1 AndColor:RGBA(248, 205, 4, 1)];
