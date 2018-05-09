@@ -14,6 +14,7 @@
 #import "video_channel_model.h"
 #import "Task_reward_model.h"
 #import "Mine_zhifu_model.h"
+#import "NewUserTask_model.h"
 
 @implementation InternetHelp
 
@@ -43,13 +44,34 @@
         
         dispatch_async(dispatch_get_main_queue(), ^{
             
-            if(error){
-                NSLog(@"网络获取失败");
+            if(error || data == nil){
+                NSLog(@"AutoLogin网络获取失败");
                 //发送失败消息
 //                [MBProgressHUD showError:@"自动登录失败"];
+                //去除登陆信息
+                [[AppConfig sharedInstance] clearUserInfo];
+                Login_info* loginInfo = [Login_info share];
+                loginInfo.isLogined = NO;//变更登陆状态
+                loginInfo.userInfo_model = nil;
+                loginInfo.userMoney_model = nil;
+                loginInfo.shareInfo_model = nil;
+                
+                //新手任务信息
+                [[TaskCountHelper share] initData];
+                [[AppConfig sharedInstance] clearNewUserTaskInfo];
+                [[AppConfig sharedInstance] saveShowWinForFirstDone_newUserTask:NO];
+                [[AppConfig sharedInstance] saveGuideOfNewUser:NO];
+                
+                //message信息
+                [[AppConfig sharedInstance] saveMessageDate:@""];
+                [[MyDataBase shareManager] clearTable_Message];
+                
+                //新手红包
+                [[AppConfig sharedInstance] saveRedPackage:@""];
+                return ;
             }
             
-            NSLog(@"从服务器获取到数据");
+            NSLog(@"AutoLogin从服务器获取到数据");
             
             NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:data options:(NSJSONReadingMutableLeaves) error:nil];
             [Login_info dicToModel:dict];
@@ -57,6 +79,13 @@
             [[NSNotificationCenter defaultCenter] postNotificationName:@"用户信息更新" object:nil];
             
             [[NSNotificationCenter defaultCenter] postNotificationName:@"autoLogin-tabbarVC" object:nil];
+            
+            [InternetHelp GetMaxTaskCount];
+            [InternetHelp GetNewUserTaskCount_Sucess:^(NSDictionary *dic) {
+                [TaskCountHelper share].task_newUser_name_array = [NewUserTask_model dicToArray:dic[@"list"]];
+            } Fail:^(NSDictionary *dic) {
+                
+            }];
         });
         
     }];
@@ -79,7 +108,7 @@
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%d\"",@"sex",[[Login_info share].userInfo_model.name intValue]]];
 //    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"city",@"朝阳"]];
 //    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"province",@"北京"]];
-    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%d\"",@"client_type",2]];//设备类型 1:android 2；ios
+    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%ld\"",@"client_type",IOS]];//设备类型 1:android 2；ios
 //    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"channel",@"default"]];
 //    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"v1_sign",@"318cb2d3d132cf362e305805ed3ed0ed"]];
 //    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%d\"",@"v1_ver",1001]];
@@ -174,7 +203,7 @@
             NSNumber* number = dict[@"code"];
             if([number integerValue] != 200){
                 if([number integerValue] == Login_wechat_NotBlind){
-                    [[NSNotificationCenter defaultCenter] postNotificationName:@"LoginVCL微信未绑定" object:nil];
+                    [[NSNotificationCenter defaultCenter] postNotificationName:@"LoginVCL微信未绑定" object:OpenId];
                     return ;
                 }
                 NSLog(@"微信绑定获取失败");
@@ -356,7 +385,7 @@
     //        IMP_BLOCK_SELF(TaskViewController);
     NSURLSessionDataTask *sessionDataTask = [session dataTaskWithRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
         
-        if(error){
+        if(error || data == nil){
             NSLog(@"GetMaxTaskCount网络获取失败");
             //发送失败消息
 //            [MBProgressHUD showError:@"网络错误"];
@@ -404,7 +433,7 @@
     NSURLSessionDataTask *sessionDataTask = [session dataTaskWithRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
         
         dispatch_async(dispatch_get_main_queue(), ^{
-            if(error){
+            if(error || data == nil){
                 NSLog(@"GetNewUserTaskCount_Sucess网络获取失败");
                 //发送失败消息
                 fail(nil);

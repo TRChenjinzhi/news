@@ -25,6 +25,9 @@
 -(void)saveUrlNews:(id)array;
 -(id)getUrlNews;
 
+-(void)saveUrlVideo:(NSDictionary*)str;
+-(NSDictionary*)getUrlVideo;
+
 -(void)saveSearchWord:(NSArray*)array AndType:(NSString*)type;
 -(NSArray*)GetSearchWordAndType:(NSString*)type;
 -(void)addSearchWord:(NSString*)searchWord AndType:(NSString*)type;

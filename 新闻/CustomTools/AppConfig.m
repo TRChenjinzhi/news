@@ -76,6 +76,17 @@ static id _instance;
     return data;
 }
 
+//保存视频频道信息
+-(void)saveUrlVideo:(NSDictionary*)str{
+    [[NSUserDefaults standardUserDefaults] setObject:str forKey:@"video-chanels"];
+    [[NSUserDefaults standardUserDefaults] synchronize];
+}
+
+-(NSDictionary*)getUrlVideo{
+    NSDictionary* data = [[NSUserDefaults standardUserDefaults] objectForKey:@"video-chanels"];
+    return data;
+}
+
 //保存搜索关键字
 -(void)saveSearchWord:(NSArray*)array AndType:(NSString*)type{
     [[NSUserDefaults standardUserDefaults] setObject:array forKey:[NSString stringWithFormat:@"SearchWord-%@",type]];
@@ -351,11 +362,11 @@ static id _instance;
 
 //记录视频信息
 -(void)saveVideo:(NSString *)channelId AndArray:(NSArray *)array{
-    [[NSUserDefaults standardUserDefaults] setObject:array forKey:[NSString stringWithFormat:@"video-%@-%@",channelId,[Login_info share].userInfo_model.user_id]];
+    [[NSUserDefaults standardUserDefaults] setObject:array forKey:[NSString stringWithFormat:@"video-%@",channelId]];
     [[NSUserDefaults standardUserDefaults] synchronize];
 }
 -(NSArray *)getVideo:(NSString *)channelId{
-    NSArray* array = [[NSUserDefaults standardUserDefaults] objectForKey:[NSString stringWithFormat:@"video-%@-%@",channelId,[Login_info share].userInfo_model.user_id]];
+    NSArray* array = [[NSUserDefaults standardUserDefaults] objectForKey:[NSString stringWithFormat:@"video-%@",channelId]];
     array = [video_info_model collectData_ToArray:array];
     return array;
 }

@@ -166,6 +166,9 @@ static id _instance;
                 NSString* taskId = [Md5Helper Share_taskId:[Login_info share].userInfo_model.user_id AndNewsId:model.ID];
                 
                 if([Task_DetailWeb_model share].isOver){//只有完成了阅读奖励的条件才能分享文章
+                    if([[TaskCountHelper share] TaskIsOverByType:Task_shareNews]){ //当任务次数已经完成后 不再提交任务
+                        return ;
+                    }
                     [InternetHelp SendTaskId:taskId AndType:Task_shareNews Sucess:^(NSInteger type, NSDictionary *dic) {
                         Task_reward_model* model = [Task_reward_model new];
                         model.type = type;
@@ -305,6 +308,15 @@ static id _instance;
             }
             else{
                 //微信登陆
+                Login_userInfo* model = [[Login_userInfo alloc] init];
+                model.avatar = resp.iconurl;
+                model.name = resp.name;
+                if([resp.unionGender isEqualToString:@"男"]){
+                    model.sex = @"1";
+                }else{
+                    model.sex = @"2";
+                }
+                [Login_info share].userInfo_model = model;
                 [InternetHelp wechat_loginWithOpenId:resp.openid];
             }
             

@@ -29,6 +29,10 @@
     [self.button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
     [self.button.titleLabel setFont:[UIFont fontWithName:@"SourceHanSansCN-Regular" size:16]];
     [self addSubview:self.button];
+    [self.button mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.left.and.right.equalTo(self);
+        make.centerY.equalTo(self.mas_centerY);
+    }];
 }
 
 -(void)setTitle:(NSString *)title{
