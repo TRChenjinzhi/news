@@ -8,13 +8,16 @@
 
 /*
  {
- "user_id":"xxxxxxx",
- "avatar":"http://q.qlogo.cn/qqapp/1105182645/814B08C64ADD12284CA82BA39384B177/100",
- "name":"f4e2_6140732",
- "telephone":"13403773438",
- "slaver_income":0,
- "count":1,
- "ctime":1518314734,
+ "user_id":"379860b6a0338a82250f341959b0b9a4",
+ "avatar":"",
+ "name":"6868_9152722",
+ "telephone":"13241690070",
+ "slaver_income":1.2,
+ "count":3,
+ "max":3,
+ "ctime":1523948493,
+ "last_login_time":1524034771,
+ "is_finished_newbie":1
  }
  */
 
@@ -32,10 +35,12 @@
         model.telephone = dic[@"telephone"];
         NSNumber* income = dic[@"slaver_income"];
         model.slaver_income = [NSString stringWithFormat:@"%ld",[income integerValue]];
-        model.count = dic[@"count"];
+        model.count = [JsonHelper JsonToObject_ToStringByInterger:dic[@"count"]];
+        model.max   = [JsonHelper JsonToObject_ToStringByInterger:dic[@"max"]];
         NSNumber* time = dic[@"ctime"];
         model.time = [NSString stringWithFormat:@"%ld",[time integerValue]];
         model.last_login_time = [JsonHelper JsonToObject_ToStringByInterger:dic[@"last_login_time"]];
+        model.is_finished_newbie = [JsonHelper JsonToObject_ToStringByInterger:dic[@"is_finished_newbie"]];
         
         [array_model addObject:model];
     }
