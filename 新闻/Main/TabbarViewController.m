@@ -40,6 +40,8 @@
     
     UIImageView*    m_redPackage_newUser_NoShifu_centerView;
     CGFloat         m_redPackage_newUser_NoShifu_centerView_maxY;
+    
+    UIView*                 m_deviceInfo_view;
 }
 
 - (void)viewDidLoad {
@@ -73,6 +75,7 @@
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillHide:) name:UIKeyboardWillHideNotification object:nil];
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(BaiShi:) name:@"拜师_TabBarVCL" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(showDeviceInfo) name:WaringOfNotTheAccount_tips object:nil];
 }
 
 -(void)viewWillDisappear:(BOOL)animated{
@@ -122,9 +125,78 @@
 -(void)autoLogin{
     if([[Login_info share] GetIsLogined]){
         [InternetHelp AutoLogin];
-        [InternetHelp GetMaxTaskCount];
-        [[AppConfig sharedInstance] getNewUserTaskInfo];//获取新手任务信息
     }
+}
+
+-(void)showDeviceInfo{
+    if(m_deviceInfo_view != nil){
+        [[UIApplication sharedApplication].keyWindow addSubview:m_deviceInfo_view];
+        return;
+    }
+    m_deviceInfo_view = [[UIView alloc] initWithFrame:[UIScreen mainScreen].bounds];
+    m_deviceInfo_view.backgroundColor = RGBA(0, 0, 0, 0.6);
+    [[UIApplication sharedApplication].keyWindow addSubview:m_deviceInfo_view];
+    
+    UIView* center_view = [UIView new];
+    center_view.backgroundColor = RGBA(255, 255, 255, 1);
+    [center_view.layer setCornerRadius:3.0f];
+    [m_deviceInfo_view addSubview:center_view];
+    [center_view mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.left.equalTo(m_deviceInfo_view.mas_left).with.offset(kWidth(45));
+        make.right.equalTo(m_deviceInfo_view.mas_right).with.offset(-kWidth(45));
+        make.height.mas_offset(kWidth(166));
+        make.centerY.equalTo(m_deviceInfo_view.mas_centerY);
+    }];
+    
+    UILabel* title = [UILabel new];
+    title.text          = @"提示";
+    title.textColor     = RGBA(122, 125, 125, 1);
+    title.font          = kFONT(14);
+    title.textAlignment = NSTextAlignmentCenter;
+    [center_view addSubview:title];
+    [title mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.left.equalTo(center_view.mas_left);
+        make.right.equalTo(center_view.mas_right);
+        make.top.equalTo(center_view.mas_top);
+        make.height.mas_offset(kWidth(56));
+    }];
+    
+    UILabel* tips = [UILabel new];
+    NSString* phoneNumber = [Login_info share].userInfo_model.device_first_tel;
+    phoneNumber = [NSString stringWithFormat:@"此设备已和%@****%@账号绑定，继续登录将不会获得金币",[phoneNumber substringToIndex:3],[phoneNumber substringFromIndex:phoneNumber.length-4]];
+    tips.text          = phoneNumber;
+    tips.textColor     = RGBA(34, 39, 39, 1);
+    tips.font          = kFONT(14);
+    tips.textAlignment = NSTextAlignmentLeft;
+    tips.numberOfLines = 0;
+    
+    NSMutableAttributedString* str_att = [[NSMutableAttributedString alloc] initWithString:phoneNumber];
+    str_att = [LabelHelper GetMutableAttributedSting_lineSpaceing:str_att AndSpaceing:5.0f];
+    tips.attributedText = str_att;
+    [center_view addSubview:tips];
+    [tips mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.left.equalTo(center_view.mas_left).with.offset(kWidth(14));
+        make.right.equalTo(center_view.mas_right).with.offset(-kWidth(14));
+        make.top.equalTo(title.mas_bottom);
+    }];
+    
+    UIButton* know = [UIButton new];
+    [know setTitle:@"知道了" forState:UIControlStateNormal];
+    [know setTitleColor:RGBA(34, 39, 39, 1) forState:UIControlStateNormal];
+    [know setBackgroundColor:RGBA(248, 205, 4, 1)];
+    [know.layer setCornerRadius:3.0f];
+    [know addTarget:self action:@selector(deviceInfo_action) forControlEvents:UIControlEventTouchUpInside];
+    [center_view addSubview:know];
+    [know mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(tips.mas_bottom).with.offset(kWidth(20));
+        make.left.equalTo(center_view.mas_left).with.offset(kWidth(75));
+        make.right.equalTo(center_view.mas_right).with.offset(-kWidth(75));
+        make.height.mas_offset(kWidth(36));
+    }];
+}
+
+-(void)deviceInfo_action{
+    [m_deviceInfo_view removeFromSuperview];
 }
 
 -(void)IsShowRedPackage{
