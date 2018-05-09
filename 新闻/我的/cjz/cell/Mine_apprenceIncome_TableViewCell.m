@@ -23,7 +23,7 @@
 }
 
 +(CGFloat)HightForCell{
-    return kWidth(80);
+    return kWidth(48);
 }
 
 -(instancetype)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier{
@@ -35,19 +35,29 @@
 }
 
 -(void)initView{
-    CGFloat cellHeight = kWidth(60);
+    CGFloat cellHeight = kWidth(48);
     
     m_date = [[UILabel alloc] initWithFrame:CGRectMake(kWidth(16), cellHeight/2-kWidth(12)/2, kWidth(120), kWidth(12))];
     m_date.textColor = RGBA(135, 138, 138, 1);
     m_date.textAlignment = NSTextAlignmentLeft;
     m_date.font = kFONT(12);
     [self addSubview:m_date];
+    [m_date mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.left.equalTo(self.mas_left).with.offset(kWidth(16));
+        make.top.equalTo(self.mas_top).with.offset(kWidth(18));
+        make.height.mas_offset(kWidth(12));
+    }];
     
     m_money = [[UILabel alloc] initWithFrame:CGRectMake(SCREEN_WIDTH-kWidth(16)-kWidth(100), cellHeight/2-kWidth(12)/2, kWidth(100), kWidth(12))];
     m_money.textColor = RGBA(135, 138, 138, 1);
     m_money.textAlignment = NSTextAlignmentRight;
     m_money.font = kFONT(12);
     [self addSubview:m_money];
+    [m_money mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.right.equalTo(self.mas_right).with.offset(-kWidth(16));
+        make.top.equalTo(self.mas_top).with.offset(kWidth(18));
+        make.height.mas_offset(kWidth(12));
+    }];
     
     UIView* line = [[UIView alloc] initWithFrame:CGRectMake(0, cellHeight-1, SCREEN_WIDTH, 1)];
     line.backgroundColor = RGBA(242, 242, 242, 1);
