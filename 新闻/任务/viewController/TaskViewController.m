@@ -807,10 +807,11 @@
             [self.navigationController pushViewController:vc animated:YES];
             break;
         }
-        case Task_reading:
+        case Task_reading:{
             NSLog(@"阅读新闻");
             [[NSNotificationCenter defaultCenter] postNotificationName:@"频道切换" object: [NSNumber numberWithInt:0]];
             break;
+        }
         case Task_shareNews:{
             NSLog(@"分享文章");
             [[NSNotificationCenter defaultCenter] postNotificationName:@"频道切换" object: [NSNumber numberWithInt:0]];
@@ -821,14 +822,16 @@
             [[NSNotificationCenter defaultCenter] postNotificationName:@"频道切换" object: [NSNumber numberWithInt:1]];
             break;
         }
-        case Task_reply:
+        case Task_reply:{
             NSLog(@"优质评论");
             [[NSNotificationCenter defaultCenter] postNotificationName:@"频道切换" object: [NSNumber numberWithInt:0]];
             break;
-        case Task_showIncome:
+        }
+        case Task_showIncome:{
             NSLog(@"晒收入");
             [self SaiIncome];
             break;
+        }
         case Task_chouJiang:{
             NSLog(@"参与抽奖");
             Mine_choujiang_ViewController* vc = [[Mine_choujiang_ViewController alloc] init];
@@ -860,7 +863,7 @@
 -(void)choujiang_result:(BOOL)isDone AndTaskId:(NSString*)taskId{
     if(isDone){
         [InternetHelp SendTaskId:taskId AndType:Task_chouJiang Sucess:^(NSInteger type, NSDictionary *dic) {
-            NSString* coin = dic[@"list"][@"coin"];
+            NSString* coin = dic[@"list"][@"reward_coin"];
             [RewardHelper ShowReward:Task_chouJiang AndSelf:self AndCoin:coin];
             DayDayTaskTabelViewConrol.array_model = DayDayTaskTitleArray_model;
         } Fail:^(NSDictionary *dic) {
@@ -944,7 +947,7 @@
     NSURLSessionDataTask *sessionDataTask = [session dataTaskWithRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
         
         dispatch_async(dispatch_get_main_queue(), ^{
-            if(error){
+            if(error || data == nil){
                 NSLog(@"SendTaskType_157网络获取失败");
                 //发送失败消息
                 [MBProgressHUD showError:@"网络出错"];
@@ -980,7 +983,7 @@
                 }
                 case Task_showIncome:{
 //                    [MBProgressHUD showSuccess:@"晒收入 任务完成"];
-                    [RewardHelper ShowReward:Task_showIncome AndSelf:self.view AndCoin:myRewardCoin];
+                    [RewardHelper ShowReward:Task_showIncome AndSelf:self AndCoin:myRewardCoin];
                     break;
                 }
                 case Task_readQuestion:{
@@ -1024,10 +1027,11 @@
 //        IMP_BLOCK_SELF(TaskViewController);
     NSURLSessionDataTask *sessionDataTask = [session dataTaskWithRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
 
-            if(error){
+            if(error || data == nil){
                 NSLog(@"GetMaxTaskCount网络获取失败");
                 //发送失败消息
-                [MBProgressHUD showError:@"网络错误"];
+//                [MBProgressHUD showError:@"网络错误"];
+                [MyMBProgressHUD ShowMessage:@"网络错误" ToView:self.view AndTime:1.0f];
                 return ;
             }
             NSLog(@"GetMaxTaskCount从服务器获取到数据");
