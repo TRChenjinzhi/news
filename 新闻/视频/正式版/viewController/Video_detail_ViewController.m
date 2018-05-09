@@ -673,6 +673,9 @@
     if(![Login_info share].isLogined){
         return;
     }
+    if([[TaskCountHelper share] TaskIsOverByType:Task_video]){ //当任务次数已经完成后 不再提交任务
+        return ;
+    }
     if(![[MyDataBase shareManager] IsGetIncomeNews:model.ID]){//防止重复 阅读奖励
         NSString* task_id = [Md5Helper Video_taskId:[Login_info share].userInfo_model.user_id AndVideoId:model.ID];
         [InternetHelp SendTaskId:task_id AndType:Task_video Sucess:^(NSInteger type, NSDictionary *dic) {

@@ -11,6 +11,7 @@
 #import "Video_channel_ViewController.h"
 #import "Video_detail_ViewController.h"
 #import "Search_ViewController.h"
+#import "DateReload_view.h"
 
 @interface Video_ViewController ()<SCNavTabBarDelegate,UIScrollViewDelegate,video_channel_VCL_To_video_VCL>
 
@@ -25,6 +26,8 @@
     NSArray*                m_channel_model_array;
     NSInteger               m_currentIndex;
     BOOL                    isLoaded;
+    
+    DateReload_view*        m_Reloaded_view;
 }
 
 - (void)viewDidLoad {
@@ -59,13 +62,26 @@
         IMP_BLOCK_SELF(Video_ViewController)
         [InternetHelp Video_channel_API_Sucess:^(NSDictionary *dic) {
             dispatch_async(dispatch_get_main_queue(), ^{
-            m_channel_model_array = [video_channel_model dicToArray:dic];
-            [block_self initSubview];
-            [block_self initTabBar];
-            [block_self initScrollview];
+                m_channel_model_array = [video_channel_model dicToArray:dic];
+                //保存视频频道信息
+                [[AppConfig sharedInstance] saveUrlVideo:dic];
+                [block_self initSubview];
+                [block_self initTabBar];
+                [block_self initScrollview];
+                
+                [m_Reloaded_view removeFromSuperview];
             });
         } Fail:^(NSDictionary *dic) {
-
+            NSDictionary* dic_tmp = [[AppConfig sharedInstance] getUrlVideo];
+            m_channel_model_array = [video_channel_model dicToArray:dic_tmp];
+            if(m_channel_model_array.count > 0){
+                [block_self initSubview];
+                [block_self initTabBar];
+                [block_self initScrollview];
+            }
+            else{
+                [self GetNetFailed];
+            }
         }];
         isLoaded = YES;
     }
@@ -133,6 +149,19 @@
     m_currentIndex = 1;
     
     [self.view layoutIfNeeded];
+}
+
+-(void)GetNetFailed{
+    [m_Reloaded_view removeFromSuperview];
+    DateReload_view* view = [[DateReload_view alloc] initWithFrame:CGRectMake(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT)];
+    m_Reloaded_view = view;
+    [m_Reloaded_view.button addTarget:self action:@selector(reloadNet) forControlEvents:UIControlEventTouchUpInside];
+    [self.view addSubview:m_Reloaded_view];
+}
+
+-(void)reloadNet{
+    isLoaded = NO;
+    [self setUI];
 }
 
 #pragma mark - 协议

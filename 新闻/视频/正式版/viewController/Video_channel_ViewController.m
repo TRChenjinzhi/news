@@ -12,6 +12,7 @@
 #import "ShareSettingView.h"
 #import "ShareSetting_view.h"
 #import "Tips_ViewController.h"
+#import "DateReload_view.h"
 
 @interface Video_channel_ViewController ()<UITableViewDelegate,UITableViewDataSource,video_info_model_To_video_info_VCL_protocol,MyPlayerView_ptotocl,shareSetting_protocol>
 {
@@ -27,6 +28,8 @@
     
     MyPlayerView*       m_cell_playView;
     Tips_ViewController*tip_vc;
+    
+    DateReload_view*        m_Reloaded_view;
     
 }
 @property (nonatomic,strong)MyPlayerView* m_fullScreen_imgView;
@@ -119,6 +122,7 @@
 
 -(void)SaveVideos{
     //保存50条信息
+    
     if(m_tableview_array.count < 50){ //保证保存最新的50信息
         if(m_cash_array.count > 0){
             for (video_info_model* model in m_cash_array) {
@@ -169,6 +173,19 @@
     else{
         return NO;
     }
+}
+
+-(void)GetNetFailed{
+    [m_Reloaded_view removeFromSuperview];
+    DateReload_view* view = [[DateReload_view alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height)];
+    m_Reloaded_view = view;
+    [m_Reloaded_view.button addTarget:self action:@selector(reloadNet) forControlEvents:UIControlEventTouchUpInside];
+    [self.view addSubview:m_Reloaded_view];
+}
+
+-(void)reloadNet{
+    [m_Reloaded_view removeFromSuperview];
+    [m_tableview.header beginRefreshing];
 }
 
 #pragma mark - tableview
@@ -535,6 +552,10 @@
         }
         [m_tableview.header endRefreshing];
         [m_tableview.footer endRefreshing];
+        
+        if(m_tableview_array.count == 0){
+            [self GetNetFailed];
+        }
     }];
 }
 
