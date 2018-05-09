@@ -8,13 +8,15 @@
 
 #import "Second_ViewController.h"
 
-@interface Second_ViewController ()<UIScrollViewDelegate,UIWebViewDelegate>
+@interface Second_ViewController ()<UIScrollViewDelegate,WKUIDelegate,WKNavigationDelegate>
+
+@property (nonatomic,strong)UIProgressView* progressView;
 
 @end
 
 @implementation Second_ViewController{
     UIView*             m_navibar_view;
-    UIWebView*          m_web;
+    WKWebView*          m_web;
     UIActivityIndicatorView* m_waiting;
 }
 - (void)viewDidLoad {
@@ -23,7 +25,7 @@
     self.view.backgroundColor = [UIColor whiteColor];
     [self initNavi];
     [self initView];
-    [self initWaiting];
+//    [self initWaiting];
 }
 
 - (void)didReceiveMemoryWarning {
@@ -74,11 +76,24 @@
     
     [self.view addSubview:navibar_view];
     m_navibar_view = navibar_view;
+    
 }
 
 -(void)initView{
-    m_web = [[UIWebView alloc] initWithFrame:CGRectMake(0, StaTusHight+56, SCREEN_WIDTH, SCREEN_HEIGHT)];
-    m_web.delegate = self;
+    
+    //进度条初始化
+    self.progressView = [[UIProgressView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(m_navibar_view.frame), [[UIScreen mainScreen] bounds].size.width, kWidth(2))];
+    self.progressView.progressTintColor = RGBA(248, 205, 4, 1);
+    self.progressView.trackTintColor = [UIColor whiteColor];
+    //设置进度条的高度，下面这句代码表示进度条的宽度变为原来的1倍，高度变为原来的1.5倍.
+    self.progressView.transform = CGAffineTransformMakeScale(1.0f, 1.5f);
+    [self.view addSubview:self.progressView];
+    
+    m_web = [[WKWebView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(self.progressView.frame), SCREEN_WIDTH, SCREEN_HEIGHT-CGRectGetMaxY(self.progressView.frame))];
+    m_web.UIDelegate = self;
+    m_web.navigationDelegate = self;
+    
+    [m_web addObserver:self forKeyPath:@"estimatedProgress" options:NSKeyValueObservingOptionNew context:nil];
     
     self.edgesForExtendedLayout = UIRectEdgeNone;
     //    [m_web setLayoutMargins:UIEdgeInsetsZero];
@@ -102,30 +117,62 @@
     [self.view addSubview:m_waiting];
 }
 
-#pragma mark - webView代理
--(void)webViewDidFinishLoad:(UIWebView *)webView{
-    [m_waiting stopAnimating];
+- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSString *,id> *)change context:(void *)context {
+    if ([keyPath isEqualToString:@"estimatedProgress"]) {
+        self.progressView.progress = m_web.estimatedProgress;
+        if (self.progressView.progress == 1) {
+            /*
+             *添加一个简单的动画，将progressView的Height变为1.4倍，在开始加载网页的代理中会恢复为1.5倍
+             *动画时长0.25s，延时0.3s后开始动画
+             *动画结束后将progressView隐藏
+             */
+            __weak typeof (self)weakSelf = self;
+            [UIView animateWithDuration:0.25f delay:0.3f options:UIViewAnimationOptionCurveEaseOut animations:^{
+                weakSelf.progressView.transform = CGAffineTransformMakeScale(1.0f, 1.4f);
+            } completion:^(BOOL finished) {
+                weakSelf.progressView.hidden = YES;
+                
+            }];
+        }
+    }
 }
--(void)webView:(UIWebView *)webView didFailLoadWithError:(NSError *)error{
-    [m_waiting stopAnimating];
+
+#pragma mark - webView代理
+-(void)webView:(WKWebView *)webView didStartProvisionalNavigation:(WKNavigation *)navigation{
+    //开始加载网页时展示出progressView
+    self.progressView.hidden = NO;
+    //开始加载网页的时候将progressView的Height恢复为1.5倍
+    self.progressView.transform = CGAffineTransformMakeScale(1.0f, 1.5f);
+    //防止progressView被网页挡住
+    [self.view bringSubviewToFront:self.progressView];
+}
+-(void)webView:(WKWebView *)webView didFinishNavigation:(WKNavigation *)navigation{
+//    [webView removeObserver:self forKeyPath:@"estimatedProgress"];
+}
+
+-(void)webView:(WKWebView *)webView didFailNavigation:(WKNavigation *)navigation withError:(NSError *)error{
     UIButton* button = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, SCREEN_WIDTH, 40)];
     [button setTitle:@"点我重新加载" forState:UIControlStateNormal];
     [button addTarget:self action:@selector(reloadView) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:button];
 }
 
--(BOOL)webView:(UIWebView *)webView shouldStartLoadWithRequest:(NSURLRequest *)request navigationType:(UIWebViewNavigationType)navigationType{
-    if(navigationType == UIWebViewNavigationTypeLinkClicked){
+-(void)webView:(WKWebView *)webView decidePolicyForNavigationAction:(WKNavigationAction *)navigationAction decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler{
+    if(navigationAction.navigationType == UIWebViewNavigationTypeLinkClicked){
         Second_ViewController* vc = [[Second_ViewController alloc] init];
-        vc.request = request;
+        vc.request = navigationAction.request;
         [self.navigationController pushViewController:vc animated:YES];
         
         // 如果返回NO，代表不允许加载这个请求
-        return NO;
+//        return NO;
+        decisionHandler(WKNavigationActionPolicyCancel);
+        return;
     }
     
-    return YES;
+//    return YES;
+    decisionHandler(WKNavigationActionPolicyAllow);
 }
+
 
 #pragma mark - 按钮方法
 -(void)reloadView{
