@@ -202,7 +202,13 @@
         
         top_tmp = line_item;
     }
-    [self setIndex:0];
+    if([[Login_info share].userInfo_model.sex integerValue] == 1){
+        [self setIndex:0];
+    }
+    else{
+        [self setIndex:1];
+    }
+    
     
     UIButton* cancel_btn = [UIButton new];
     [cancel_btn setBackgroundColor:RGBA(242, 242, 242, 1)];
