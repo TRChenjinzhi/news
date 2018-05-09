@@ -249,10 +249,11 @@
     NSURLSessionDataTask *sessionDataTask = [session dataTaskWithRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
         
         dispatch_async(dispatch_get_main_queue(), ^{
-            if(error){
-                NSLog(@"网络获取失败");
+            if(error || data == nil){
+                NSLog(@"GetDataWithReadingOther网络获取失败");
                 //发送失败消息
                 //                [block_self.tableView.footer endRefreshing];
+                return ;
             }
             NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:data options:(NSJSONReadingMutableLeaves) error:nil];
             NSArray* array_news = dict[@"list"];

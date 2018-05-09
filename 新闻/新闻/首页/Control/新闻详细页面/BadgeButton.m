@@ -57,8 +57,8 @@
 }
 
 -(void)setsubFrame{
-    NSInteger labelHight = 10;
-    NSInteger labelWidth = 10;
+    NSInteger labelHight = 6;
+    NSInteger labelWidth = 6;
     
     //显示 内容
     [self showText];

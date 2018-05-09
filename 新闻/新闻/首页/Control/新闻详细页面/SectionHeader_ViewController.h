@@ -27,4 +27,6 @@
 @property (nonatomic,strong)NSString* channel_id;
 @property (nonatomic,strong)UIView* m_ReadingWithOther_view;
 
+-(void)GetDataWithReadingOther;
+
 @end

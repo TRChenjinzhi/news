@@ -24,6 +24,7 @@
 #import "Second_ViewController.h"
 #import "MyActivity.h"
 #import "Task_reward_model.h"
+#import "DateReload_view.h"
 
 #define HideAllDialog @"HideAllDialog"
 
@@ -42,6 +43,8 @@
 @property (nonatomic,strong)ShareSetting_view* share_View;
 
 @property (nonatomic,strong)UIButton* SenderButton;//发送按钮
+
+@property (nonatomic, strong) UIProgressView *progressView;//网页进度条
 
 @end
 
@@ -78,6 +81,9 @@
     //判断scrollview 滚动方向
     CGPoint                         m_start_point;
     CGPoint                         m_end_point;
+    
+    //
+    DateReload_view*                         m_Reloaded_view;
 }
 
 - (void)viewDidLoad {
@@ -88,7 +94,7 @@
     [self initView];
     [self initSectionHeader];
     [self GetReplyComment:0];
-    [self ShowWaiting];
+//    [self ShowWaiting];
     [self RememberNews];//记录新闻
     
     self.shareImg = [[UIImageView alloc]init];
@@ -193,18 +199,26 @@
     NSInteger barHeight = self.navigationController.navigationBar.frame.size.height;  //顶部NavigationBar高度
     NSInteger statusHeight = UIApplication.sharedApplication.statusBarFrame.size.height; //状态栏高度
     NSLog(@"barHeight=%ld statusHeight=%ld",(long)barHeight,statusHeight);
+    
+    //进度条初始化
+    self.progressView = [[UIProgressView alloc] initWithFrame:CGRectMake(0, statusHeight+barHeight, SCREEN_WIDTH, kWidth(2))];
+    self.progressView.progressTintColor = RGBA(248, 205, 4, 1);
+    self.progressView.trackTintColor = [UIColor whiteColor];
+    //设置进度条的高度，下面这句代码表示进度条的宽度变为原来的1倍，高度变为原来的1.5倍.
+    self.progressView.transform = CGAffineTransformMakeScale(1.0f, 1.5f);
+    [self.view addSubview:self.progressView];
 
     //添加新闻内容（tableView） 头：webview+view 评论：cell
-    CGRect frame = CGRectMake(0, barHeight+statusHeight, SCREEN_WIDTH, SCREEN_HEIGHT-barHeight-statusHeight-48);//48 :底部栏 高度
-    UITableView* tableView = [[UITableView alloc]initWithFrame:frame style:UITableViewStyleGrouped];
+    CGRect frame = CGRectMake(0, CGRectGetMaxY(self.progressView.frame), SCREEN_WIDTH, SCREEN_HEIGHT-CGRectGetMaxY(self.progressView.frame)-48);//48 :底部栏 高度
+    UITableView* tableView = [[UITableView alloc] initWithFrame:frame style:UITableViewStyleGrouped];
     tableView.delegate = self;
     tableView.dataSource = self;
     tableView.bounces = YES;
-    tableView.backgroundColor = [UIColor colorWithRed:242/255.0 green:242/255.0 blue:242/255.0 alpha:1/1.0];
+//    tableView.backgroundColor = [UIColor colorWithRed:242/255.0 green:242/255.0 blue:242/255.0 alpha:1/1.0];
     tableView.backgroundColor = [UIColor whiteColor];
-//    [tableView setSeparatorInset:UIEdgeInsetsZero];
+    [tableView setSeparatorInset:UIEdgeInsetsZero];
 //    [tableView setLayoutMargins:UIEdgeInsetsZero];
-//    tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
+    tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
     [tableView registerClass:[reply_Cell class] forCellReuseIdentifier:@"reply"];
     [tableView registerClass:[NoReply_TableViewCell class] forCellReuseIdentifier:@"NullReply"];
     _reply_array = [[NSArray alloc] init];
@@ -213,6 +227,7 @@
     header.url = _CJZ_model.url;
     header.model = _CJZ_model;
     header.delegate = self;
+    header.progressView = self.progressView;
     tableView.tableHeaderView = header.view;
     self.headerView = header;
     [self GetNews];
@@ -294,7 +309,7 @@
     m_sectionHeader_Hight = m_sectionHeader_VC.view.frame.size.height;
     
     m_sectionHeader_view = [[UIView alloc]initWithFrame:CGRectMake(0, 0, SCREEN_WIDTH, m_sectionHeader_Hight)];
-    m_sectionHeader_view.backgroundColor = [UIColor redColor];
+    m_sectionHeader_view.backgroundColor = [UIColor whiteColor];
     m_sectionHeader_view.clipsToBounds = YES;
     [m_sectionHeader_view addSubview:m_sectionHeader_VC.view];
 }
@@ -314,6 +329,15 @@
         [[MyDataBase shareManager] AddReadingNews:self.CJZ_model];
     }
 }
+
+-(void)GetNetFailed{
+    [m_Reloaded_view removeFromSuperview];
+    DateReload_view* view = [[DateReload_view alloc] initWithFrame:CGRectMake(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT)];
+    m_Reloaded_view = view;
+    [m_Reloaded_view.button addTarget:self action:@selector(reloadNet) forControlEvents:UIControlEventTouchUpInside];
+    [self.view addSubview:m_Reloaded_view];
+}
+
 
 #pragma mark - 弹出窗口
 -(void)PageSetting{
@@ -551,21 +575,26 @@
     [self.navigationController pushViewController:vc animated:YES];
 }
 -(void)setHeaderFrame{
+    
+    [self.headerView.webview evaluateJavaScript:@"document.body.offsetHeight" completionHandler:^(id Result, NSError * error) {
+        NSNumber* number = (NSNumber*)Result;
+        
+        self.headerView.webview.frame = CGRectMake(0, 0, SCREEN_WIDTH, [number floatValue]);
+        self.headerView.footView.frame = CGRectMake(0, self.headerView.webview.frame.size.height, SCREEN_WIDTH, self.headerView.footView.frame.size.height);
+        self.headerView.view.frame = CGRectMake(0, 0, SCREEN_WIDTH, self.headerView.webview.frame.size.height+self.headerView.footView.frame.size.height);
+        
+        self.headerView.footView.backgroundColor = RGBA(242, 242, 242, 1);
+    
     Header_ViewController* header = self.headerView;
-//        self.tableView.sectionHeaderHeight = header.view.frame.size.height;
-//        [self.tableView setSectionHeaderHeight:header.view.frame.size.height];
-    //    NSLog(@"hear noti hight-->%f",header.view.frame.size.height);
-    //    [self.headerView.view layoutIfNeeded];
-    //    [self.tableView.tableHeaderView layoutIfNeeded];
-    //    [self.view layoutIfNeeded];
     [self.tableView beginUpdates];
-    m_headerSize = [header getSize];
+    m_headerSize = CGSizeMake(SCREEN_WIDTH, self.headerView.view.frame.size.height);
     NSLog(@"----hight:%.2f",m_headerSize.height);
     UIView* headerView = header.view;
-//    [headerView setFrame:CGRectMake(0, 0, SCREEN_WIDTH, 500)];
     CGFloat hight = self.tableView.frame.size.height;
+//    CGFloat hight = SCREEN_HEIGHT;
     if(m_headerSize.height > hight*2.3){
-       [headerView setFrame:CGRectMake(0, 0, SCREEN_WIDTH, hight*1.8)];
+       headerView.frame = CGRectMake(0, 0, SCREEN_WIDTH, hight*1.8);
+        NSLog(@"----hight123:%.2f",headerView.frame.size.height);
     }
         if(m_headerSize.height > hight*2.3 && readingAll == nil){
             
@@ -595,7 +624,7 @@
             [headerView addSubview:readingAll];
         }
     if(Is_readingAll){
-        [headerView setFrame:CGRectMake(0, 0, SCREEN_WIDTH, m_headerSize.height)];
+        headerView.frame = CGRectMake(0, 0, SCREEN_WIDTH, m_headerSize.height);
     }
     
     self.tableView.tableHeaderView = headerView;
@@ -603,6 +632,7 @@
 
     [self.tableView endUpdates];
     [self.view layoutIfNeeded];
+    }];
 }
 
 -(void)showNews:(CJZdataModel *)model{
@@ -615,6 +645,11 @@
 -(void)webViewDidLoad:(NSString *)text{
     self.CJZ_model.decr = text;
     [self WebviewDidLoad];
+}
+
+-(void)webViewLoadFailed{
+    [self WebviewDidLoad];
+    [self GetNetFailed];
 }
 
 -(void)readingAll_action{
@@ -659,6 +694,13 @@
 
 -(void)tapClick:(UITapGestureRecognizer*)tap{
     [self DialogCancel];
+}
+
+-(void)reloadNet{
+    [self ShowWaiting];
+    [self GetNews];
+    [self GetReplyComment:0];
+    [m_sectionHeader_VC GetDataWithReadingOther];
 }
 
 -(void)shareMore{
@@ -760,7 +802,7 @@
     //任务类型  1:提供开宝箱  2：阅读文章 3：分享文章  4:优质评论 5：晒收入 6：参与抽奖任务 7,查看常见问题 8：微信绑定奖励
     if([Login_info share].isLogined){
             if([[Login_info share].userInfo_model.device_mult_user integerValue] == NotTheDevice){
-                [MyMBProgressHUD ShowMessage:@"非绑定设备，不能执行任务" ToView:self.view AndTime:1.0f];
+//                [MyMBProgressHUD ShowMessage:@"非绑定设备，不能执行任务" ToView:self.view AndTime:1.0f];
                 return;
             }
 
@@ -771,6 +813,9 @@
         if(![[MyDataBase shareManager] IsGetIncomeNews:self.CJZ_model.ID]){//防止重复 阅读奖励
             if(readingAll == nil){ //当没有出现阅读全文时
                 Is_readingAll = YES;
+            }
+            if([[TaskCountHelper share] TaskIsOverByType:Task_reading]){ //当任务次数已经完成后 不再提交任务
+                return ;
             }
             BOOL isOk = [m_ruleOfReading AddReadingCountType:Task_reading
                                                    AndTaskId:[Md5Helper Read_taskId:userId AndNewsId:self.CJZ_model.ID]
@@ -1130,6 +1175,9 @@
         for (TaskMaxCout_model* item in model_array) {
             if(item.type == Task_reading){
                 model = item;
+                if(model.count >= model.maxCout){
+                    return;
+                }
             }
         }
         NSString* str = [NSString stringWithFormat:@"阅读奖励 (%ld/%ld)",model.count,model.maxCout];
@@ -1145,6 +1193,9 @@
         for (TaskMaxCout_model* item in model_array) {
             if(item.type == Task_shareNews){
                 model = item;
+                if(model.count >= model.maxCout){
+                    return;
+                }
             }
         }
         NSString* str = [NSString stringWithFormat:@"分享文章 (%ld/%ld)",model.count,model.maxCout];
@@ -1240,8 +1291,8 @@
         dispatch_async(dispatch_get_main_queue(), ^{
             
             
-            if(error){
-                NSLog(@"网络获取失败");
+            if(error || data == nil){
+                NSLog(@"GetReplyComment网络获取失败");
                 //发送失败消息
                 [block_self.tableView.footer endRefreshing];
                 return ;
@@ -1324,8 +1375,8 @@
         dispatch_async(dispatch_get_main_queue(), ^{
             
             
-            if(error){
-                NSLog(@"网络获取失败");
+            if(error || data == nil){
+                NSLog(@"SendReply网络获取失败");
                 //发送失败消息
                 [block_self.tableView.footer endRefreshing];
                 return ;
@@ -1403,8 +1454,8 @@
     NSURLSessionDataTask *sessionDataTask = [session dataTaskWithRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
         
         dispatch_async(dispatch_get_main_queue(), ^{
-            if(error){
-                NSLog(@"网络获取失败");
+            if(error || data == nil){
+                NSLog(@"CollectedAction网络获取失败");
                 //发送失败消息
 //                [block_self.tableView.footer endRefreshing];
                 [MBProgressHUD showError:@"网络错误"];

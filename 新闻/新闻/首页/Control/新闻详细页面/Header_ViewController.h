@@ -19,6 +19,7 @@
 - (void)showWebImages:(NSArray*)array AndIndex:(NSInteger)index;
 - (void)setHeaderFrame;
 - (void)webViewDidLoad:(NSString*)text;
+- (void)webViewLoadFailed;
 - (void)showGuangGao:(NSURLRequest*)request;
 @end
 
@@ -27,10 +28,13 @@
 @property (nonatomic,weak)id delegate;
 
 @property (nonatomic,strong)NSString* url;
-@property (nonatomic,strong)UIWebView* webview;
+@property (nonatomic,strong)WKWebView* webview;
+@property (nonatomic,strong)UIView* footView;
 @property (nonatomic,strong)CJZdataModel* model;
 @property (nonatomic,strong)DetailWeb_ViewController* self_parent;//父界面的self
 @property (nonatomic,strong)NSMutableArray* mUrlArray;
+
+@property (nonatomic, strong) UIProgressView *progressView;//网页进度条
 
 -(CGSize)getSize;
 
