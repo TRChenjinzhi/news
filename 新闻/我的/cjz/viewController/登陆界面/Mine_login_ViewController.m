@@ -12,7 +12,7 @@
 #import "Mine_login_wechatBlindTel_ViewController.h"
 
 #define TimeCount 60
-@interface Mine_login_ViewController ()<IdentifyingCode_delegete>
+@interface Mine_login_ViewController ()<IdentifyingCode_delegete,Mine_login_wechatBlindTel_To_Mine_Login_VCL_protocol>
 
 @end
 
@@ -50,7 +50,7 @@
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillHide:) name:UIKeyboardWillHideNotification object:nil];
 
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(Login_wechat_sucess) name:@"LoginVCL微信登陆成功" object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(Login_wechat_notBlind) name:@"LoginVCL微信未绑定" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(Login_wechat_notBlind:) name:@"LoginVCL微信未绑定" object:nil];
 }
 
 -(void)viewWillDisappear:(BOOL)animated{
@@ -441,6 +441,12 @@
     NSLog(@"GetIdentifyingCode_failed");
 }
 
+-(void)Logined:(Mine_userInfo_model *)model{
+    if(self.delegate != nil){
+        [self.delegate makeTureLogin:model];
+    }
+}
+
 #pragma mark -键盘监听
 //移动UIView(随着键盘移动)
 -(void)transformDialog:(NSNotification *)aNSNotification
@@ -497,9 +503,12 @@
     [self.navigationController popViewControllerAnimated:YES];
 }
 
--(void)Login_wechat_notBlind{
+-(void)Login_wechat_notBlind:(NSNotification*)noti{
     NSLog(@"Login_wechat_failed");
+    NSString* openId = noti.object;
     Mine_login_wechatBlindTel_ViewController* vc = [[Mine_login_wechatBlindTel_ViewController alloc] init];
+    vc.openId = openId;
+    vc.delegate = self;
     [self.navigationController pushViewController:vc animated:YES];
 }
 
@@ -541,14 +550,8 @@
     request.HTTPMethod = @"POST";
     NSString *args = @"json=";
     NSString* argument = @"{";
-//    argument = [argument stringByAppendingString:[NSString stringWithFormat:@"\"%@\":\"%@\"",@"user_id",m_phoneNumber_textfeild.text]];
-//    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"avatar",@""]];
-//    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"name",@"爱我就请打"]];
-//    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%d\"",@"sex",1]];
-//    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"city",@"朝阳"]];
-//    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"province",@"北京"]];
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@"\"%@\":\"%@\"",@"telephone",m_phoneNumber_textfeild.text]];
-    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":%d",@"client_type",2]];//设备类型 1:android 2；ios
+    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":%ld",@"client_type",IOS]];//设备类型 1:android 2；ios
 //    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"channel",@"default"]];
 //    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"v1_sign",@"318cb2d3d132cf362e305805ed3ed0ed"]];
 //    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%d\"",@"v1_ver",1001]];
@@ -575,15 +578,14 @@
         dispatch_async(dispatch_get_main_queue(), ^{
             
             
-            if(error){
+            if(error || data == nil){
                 NSLog(@"网络获取失败");
                 //发送失败消息
-                [[AlertHelper Share] ShowMe:self And:1.0f And:@"注册失败"];
-            }
-            if(data == nil){
+//                [[AlertHelper Share] ShowMe:self And:1.0f And:@"注册失败"];
                 [MyMBProgressHUD ShowMessage:@"网络错误" ToView:self.view AndTime:1.0f];
                 return ;
             }
+
             NSLog(@"从服务器获取到数据");
 
             //保存账户
@@ -633,6 +635,15 @@
                     [[NSNotificationCenter defaultCenter] postNotificationName:RedPackage_oldUser object:nil];
                 }
             }
+            else{
+                NSLog(@"非绑定用户");
+                [[NSNotificationCenter defaultCenter] postNotificationName:WaringOfNotTheAccount_tips object:nil];
+            }
+            
+            
+            //获取任务信息
+            [InternetHelp GetMaxTaskCount];
+            [[AppConfig sharedInstance] getNewUserTaskInfo];//获取新手任务信息
             
         });
         

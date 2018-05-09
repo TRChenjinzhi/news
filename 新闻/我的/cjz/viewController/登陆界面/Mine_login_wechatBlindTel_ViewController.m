@@ -8,7 +8,7 @@
 
 #import "Mine_login_wechatBlindTel_ViewController.h"
 
-@interface Mine_login_wechatBlindTel_ViewController ()
+@interface Mine_login_wechatBlindTel_ViewController ()<IdentifyingCode_delegete>
 
 @end
 
@@ -24,6 +24,8 @@
     UIView*         m_line_two;
     
     UIView*         m_navibar_view;
+    UIView*         m_deviceInfo_view;
+    MBProgressHUD*  waiting;
 }
 
 - (void)viewDidLoad {
@@ -31,7 +33,7 @@
     // Do any additional setup after loading the view.
     self.view.backgroundColor = [UIColor whiteColor];
     [IdentifyingCode ShareInstance].delegate = self;//验证码代理
-    
+    [self initNavibar];
     [self initView];
 }
 
@@ -218,6 +220,83 @@
     }
 }
 
+-(void)NotTheTelePhone{
+    m_deviceInfo_view = [[UIView alloc] initWithFrame:[UIScreen mainScreen].bounds];
+    m_deviceInfo_view.backgroundColor = RGBA(0, 0, 0, 0.6);
+    [[UIApplication sharedApplication].keyWindow addSubview:m_deviceInfo_view];
+    
+    UIView* center_view = [UIView new];
+    center_view.backgroundColor = RGBA(255, 255, 255, 1);
+    [center_view.layer setCornerRadius:3.0f];
+    [m_deviceInfo_view addSubview:center_view];
+    [center_view mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.left.equalTo(m_deviceInfo_view.mas_left).with.offset(kWidth(45));
+        make.right.equalTo(m_deviceInfo_view.mas_right).with.offset(-kWidth(45));
+        make.height.mas_offset(kWidth(166));
+        make.centerY.equalTo(m_deviceInfo_view.mas_centerY);
+    }];
+    
+    UILabel* title = [UILabel new];
+    title.text          = @"提示";
+    title.textColor     = RGBA(122, 125, 125, 1);
+    title.font          = kFONT(14);
+    title.textAlignment = NSTextAlignmentCenter;
+    [center_view addSubview:title];
+    [title mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.left.equalTo(center_view.mas_left);
+        make.right.equalTo(center_view.mas_right);
+        make.top.equalTo(center_view.mas_top);
+        make.height.mas_offset(kWidth(56));
+    }];
+    
+    UILabel* tips = [UILabel new];
+    NSString* phoneNumber = [Login_info share].userInfo_model.device_first_tel;
+    phoneNumber = [NSString stringWithFormat:@"手机号已注册，是否使用该手机号登录？"];
+    tips.text          = phoneNumber;
+    tips.textColor     = RGBA(34, 39, 39, 1);
+    tips.font          = kFONT(14);
+    tips.textAlignment = NSTextAlignmentLeft;
+    tips.numberOfLines = 0;
+    
+    NSMutableAttributedString* str_att = [[NSMutableAttributedString alloc] initWithString:phoneNumber];
+    str_att = [LabelHelper GetMutableAttributedSting_lineSpaceing:str_att AndSpaceing:5.0f];
+    tips.attributedText = str_att;
+    [center_view addSubview:tips];
+    [tips mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.left.equalTo(center_view.mas_left).with.offset(kWidth(14));
+        make.right.equalTo(center_view.mas_right).with.offset(-kWidth(14));
+        make.top.equalTo(title.mas_bottom);
+    }];
+    
+    UIButton* telephone_login = [UIButton new];
+    [telephone_login setTitle:@"登陆" forState:UIControlStateNormal];
+    [telephone_login setTitleColor:RGBA(34, 39, 39, 1) forState:UIControlStateNormal];
+    [telephone_login setBackgroundColor:RGBA(248, 205, 4, 1)];
+    [telephone_login.layer setCornerRadius:3.0f];
+    [telephone_login addTarget:self action:@selector(telephone_login_action) forControlEvents:UIControlEventTouchUpInside];
+    [center_view addSubview:telephone_login];
+    [telephone_login mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.bottom.equalTo(center_view.mas_bottom).with.offset(-kWidth(20));
+        make.right.equalTo(center_view.mas_right).with.offset(-kWidth(25));
+        make.height.mas_offset(kWidth(36));
+        make.width.mas_offset(kWidth(100));
+    }];
+    
+    UIButton* telephone_cancel = [UIButton new];
+    [telephone_cancel setTitle:@"取消" forState:UIControlStateNormal];
+    [telephone_cancel setTitleColor:RGBA(167, 169, 169, 1) forState:UIControlStateNormal];
+    [telephone_cancel setBackgroundColor:RGBA(242, 242, 242, 1)];
+    [telephone_cancel.layer setCornerRadius:3.0f];
+    [telephone_cancel addTarget:self action:@selector(telephone_cancel_action) forControlEvents:UIControlEventTouchUpInside];
+    [center_view addSubview:telephone_cancel];
+    [telephone_cancel mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.left.equalTo(center_view.mas_left).with.offset(kWidth(25));
+        make.bottom.equalTo(center_view.mas_bottom).with.offset(-kWidth(20));
+        make.height.mas_offset(kWidth(36));
+        make.width.mas_offset(kWidth(100));
+    }];
+}
+
 #pragma mark - 按钮方法
 -(void)GetYanzhengma:(UIButton*)bt{
     NSLog(@"获取验证码");
@@ -327,6 +406,14 @@
     [UMShareHelper LoginWechat:Login_wechat];
 }
 
+-(void)telephone_login_action{
+    [self TelephoneLoginToServer];
+}
+
+-(void)telephone_cancel_action{
+    [m_deviceInfo_view removeFromSuperview];
+}
+
 #pragma mark - 验证码协议方法
 -(void)MakeTureIdentifyingCode_failed{
     NSLog(@"MakeTureIdentifyingCode_failed");
@@ -432,7 +519,13 @@
     NSString* argument = @"{";
 
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@"\"%@\":\"%@\"",@"telephone",m_phoneNumber_textfeild.text]];
-    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"openId",[Login_info share].userMoney_model.wechat_openid]];
+    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"openid",self.openId]];
+//    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"avatar",[Login_info share].userInfo_model.avatar]];
+//    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"name",[Login_info share].userInfo_model.name]];
+//    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%d\"",@"sex",[[Login_info share].userInfo_model.sex intValue]]];
+    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"avatar",@"avata"]];
+    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"name",@"name"]];
+    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%d\"",@"sex",1]];
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":%ld",@"client_type",IOS]];//设备类型 1:android 2；ios
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"imei",IDFA]];
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"unique_id",(NSString*)[MyKeychain queryDataWithService:MyKeychain_server]]];
@@ -472,14 +565,14 @@
             NSInteger code = [tmp integerValue];
             if(code != 200){
                 if(code == Login_wechat_notTheTelephone){
-                    [MyMBProgressHUD ShowMessage:@"手机号码已经被绑定" ToView:block_self.view AndTime:1.0f];
+//                    [MyMBProgressHUD ShowMessage:@"手机号码已经被绑定" ToView:block_self.view AndTime:1.0f];
+                    [self.view endEditing:YES];
+                    [self NotTheTelePhone];
                 }
                 return;
             }
             [Login_info dicToModel:dict];
             Login_userInfo* userInfo = [[Login_info share] GetUserInfo];
-            
-            [block_self.navigationController popViewControllerAnimated:YES];
             
             //弹出登陆奖励弹窗
             [[NSNotificationCenter defaultCenter] postNotificationName:@"autoLogin-tabbarVC" object:nil];
@@ -497,6 +590,128 @@
                     [[NSNotificationCenter defaultCenter] postNotificationName:RedPackage_oldUser object:nil];
                 }
             }
+            else{
+                NSLog(@"非绑定用户");
+                [[NSNotificationCenter defaultCenter] postNotificationName:WaringOfNotTheAccount_tips object:nil];
+            }
+            
+            [block_self.navigationController popToRootViewControllerAnimated:YES];
+            
+            //获取任务信息
+            [InternetHelp GetMaxTaskCount];
+            [[AppConfig sharedInstance] getNewUserTaskInfo];//获取新手任务信息
+            
+        });
+        
+    }];
+    //5.最后一步，执行任务，(resume也是继续执行)。
+    [sessionDataTask resume];
+}
+
+-(void)TelephoneLoginToServer{
+    
+    waiting = [[MBProgressHUD alloc] initWithView:self.view];
+    waiting.labelText = @"正在登陆..";
+    waiting.progress = 0.4;
+    waiting.mode = MBProgressHUDModeIndeterminate;
+    waiting.dimBackground = YES;
+    [waiting show:YES]; //显示进度框
+    [self.view addSubview:waiting];
+    [self.view bringSubviewToFront:waiting];
+    // 1.创建一个网络路径
+    NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://younews.3gshow.cn/member/login"]];
+    // 2.创建一个网络请求，分别设置请求方法、请求参数
+    NSMutableURLRequest *request =[NSMutableURLRequest requestWithURL:url];
+    request.HTTPMethod = @"POST";
+    NSString *args = @"json=";
+    NSString* argument = @"{";
+    argument = [argument stringByAppendingString:[NSString stringWithFormat:@"\"%@\":\"%@\"",@"telephone",m_phoneNumber_textfeild.text]];
+    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":%ld",@"client_type",IOS]];//设备类型 1:android 2；ios
+    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"imei",IDFA]];
+    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"unique_id",(NSString*)[MyKeychain queryDataWithService:MyKeychain_server]]];
+    argument = [argument stringByAppendingString:@"}"];
+    argument = [MyEntrypt MakeEntryption:argument];
+    args = [args stringByAppendingString:[NSString stringWithFormat:@"%@",argument]];
+    request.HTTPBody = [args dataUsingEncoding:NSUTF8StringEncoding];
+    // 3.获得会话对象
+    NSURLSession *session = [NSURLSession sharedSession];
+    // 4.根据会话对象，创建一个Task任务
+    IMP_BLOCK_SELF(Mine_login_wechatBlindTel_ViewController);
+    NSURLSessionDataTask *sessionDataTask = [session dataTaskWithRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            
+            
+            if(error){
+                NSLog(@"网络获取失败");
+                //发送失败消息
+                [[AlertHelper Share] ShowMe:self And:1.0f And:@"注册失败"];
+            }
+            if(data == nil){
+                [MyMBProgressHUD ShowMessage:@"网络错误" ToView:self.view AndTime:1.0f];
+                return ;
+            }
+            NSLog(@"从服务器获取到数据");
+            
+            //保存账户
+            [[AppConfig sharedInstance] saveUserAcount:m_phoneNumber_textfeild.text];
+            
+            NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:data options:(NSJSONReadingMutableLeaves) error:nil];
+            if(dict == nil){
+                [MyMBProgressHUD ShowMessage:@"登陆错误" ToView:self.view AndTime:1.0f];
+                return ;
+            }
+            [Login_info dicToModel:dict];
+            Login_userMoney* userMoney = [Login_info share].userMoney_model;
+            Login_userInfo* userInfo = [Login_info share].userInfo_model;
+            
+            Mine_userInfo_model* model = [[Mine_userInfo_model alloc] init];
+            model.name = userInfo.name;
+            model.icon = userInfo.avatar;
+            if([userInfo.sex integerValue] == 1){
+                model.sex = @"男";
+            }else{
+                model.sex = @"女";
+            }
+            
+            model.gold  = [userMoney.coin integerValue];
+            model.package = [userMoney.cash floatValue];
+            model.apprentice = [userMoney.binding_alipay integerValue];
+            model.IsLogin = YES;
+            
+            if(block_self.delegate != nil){
+                [block_self.delegate Logined:model];
+            }
+            
+            //弹出登陆奖励tan chuang
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"autoLogin-tabbarVC" object:nil];
+            
+            //"reg_reward_cash" = 0;//要显示的金额
+            //"reg_reward_status" = 1;0:新用户 1:老用户
+            
+            if([userInfo.device_mult_user integerValue] == TheDevice){
+                if([userInfo.reg_reward_status integerValue] == 0){
+                    NSLog(@"登陆_TabBarVCL_红包活动_新用户");
+                    [[NSNotificationCenter defaultCenter] postNotificationName:RedPackage_newUser object:nil];
+                }
+                else if([userInfo.reg_reward_status integerValue] == 1){
+                    NSLog(@"登陆_TabBarVCL_红包活动_老用户");
+                    [[NSNotificationCenter defaultCenter] postNotificationName:RedPackage_oldUser object:nil];
+                }
+            }
+            else{
+                NSLog(@"非绑定用户");
+                [[NSNotificationCenter defaultCenter] postNotificationName:WaringOfNotTheAccount_tips object:nil];
+            }
+            
+            [waiting removeFromSuperview];
+            [m_deviceInfo_view removeFromSuperview];
+            
+            [block_self.navigationController popToRootViewControllerAnimated:YES];
+            
+            //获取任务信息
+            [InternetHelp GetMaxTaskCount];
+            [[AppConfig sharedInstance] getNewUserTaskInfo];//获取新手任务信息
             
         });
         
