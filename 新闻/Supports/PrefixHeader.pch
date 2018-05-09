@@ -55,6 +55,7 @@
 #import "CXAHyperlinkLabel.h"
 #import "YYKit.h"
 #import "TaskData.h"
+#import <WebKit/WebKit.h>
 
 #import <UMCommon/UMCommon.h>           // 公共组件是所有友盟产品的基础组件，必选
 #import <UMAnalytics/MobClick.h>        // 统计组件
@@ -71,6 +72,7 @@
 #define IDFA                            [[[ASIdentifierManager sharedManager] advertisingIdentifier] UUIDString]
 #define RedPackage_newUser              @"登陆_TabBarVCL_红包活动_新用户"
 #define RedPackage_oldUser              @"登陆_TabBarVCL_红包活动_老用户"
+#define WaringOfNotTheAccount_tips      @"非绑定用户警告_login_To_TabBar"
 
 //登陆
 #define Login_wechat                    @"Login_wechat"
@@ -89,19 +91,26 @@
 #define NewUserTask_readQuestion             @"查看常见问题"
 #define NewUserTask_readNews                 @"阅读新闻"
 #define NewUserTask_readVideo                @"观看视频"
-#define NewUserTask_shareByPengyouquan       @"朋友圈收徒"
+#define NewUserTask_shareByPengyouquan       @"分享至朋友圈"
 
 //日常任务
 #define DayDayTask_signIn               @"签到"
 #define DayDayTask_FirstShouTu          @"首次收徒"
 #define DayDayTask_ShouTu               @"邀请好友"
-#define DayDayTask_readNews             @"阅读文章"
-#define DayDayTask_shareNews            @"分享文章"
+#define DayDayTask_readNews             @"阅读新闻"
+#define DayDayTask_shareNews            @"分享新闻"
 #define DayDayTask_readVideo            @"观看视频"
 #define DayDayTask_GoodReply            @"优质评论"
 #define DayDayTask_showIncome           @"晒收入"
 #define DayDayTask_choujiang            @"参与抽奖"
 #define DayDayTask_yaoYiYao             @"摇一摇"
+
+#define BoxTime                         60
+
+typedef enum : NSUInteger {
+    NotYet,
+    Over
+} newUserTask_isOver;
 
 typedef enum : NSUInteger {
     Wechat = 1,
