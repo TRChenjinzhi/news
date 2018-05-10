@@ -1175,7 +1175,7 @@
         for (TaskMaxCout_model* item in model_array) {
             if(item.type == Task_reading){
                 model = item;
-                if(model.count >= model.maxCout){
+                if(model.count > model.maxCout){
                     return;
                 }
             }
@@ -1193,12 +1193,12 @@
         for (TaskMaxCout_model* item in model_array) {
             if(item.type == Task_shareNews){
                 model = item;
-                if(model.count >= model.maxCout){
+                if(model.count > model.maxCout){
                     return;
                 }
             }
         }
-        NSString* str = [NSString stringWithFormat:@"分享文章 (%ld/%ld)",model.count,model.maxCout];
+        NSString* str = [NSString stringWithFormat:@"分享新闻 (%ld/%ld)",model.count,model.maxCout];
         NSMutableAttributedString* str_att = [[NSMutableAttributedString alloc] initWithString:str];
         NSRange index_start = [str rangeOfString:@"("];
         NSRange index_end = [str rangeOfString:@"/"];
