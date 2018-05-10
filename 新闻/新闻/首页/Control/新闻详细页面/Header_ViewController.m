@@ -168,6 +168,7 @@
     
     //获取到得网页内容
 //    NSString *text_all = [[NSString alloc]init];
+    text_all = @"";
     [self.webview evaluateJavaScript:allHtml completionHandler:^(id Result, NSError * error) {
         //        NSLog(@"js___Result==%@",Result);
         //        NSLog(@"js___Error -> %@", error);
@@ -301,8 +302,9 @@
 ////    return self.view.frame.size;
 //}
 
+// 在发送请求之前，决定是否跳转
 - (void)webView:(WKWebView *)webView decidePolicyForNavigationAction:(WKNavigationAction *)navigationAction decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler {
-    
+    NSLog(@"在发送请求之前，决定是否跳转");
     //预览图片
     for (int i=0;i<_mUrlArray.count;i++) {
         NSString* url = _mUrlArray[i];
@@ -337,36 +339,28 @@
     
 }
 
--(BOOL)webView:(UIWebView *)webView shouldStartLoadWithRequest:(NSURLRequest *)request navigationType:(UIWebViewNavigationType)navigationType{
-    
-    //预览图片
-    for (int i=0;i<_mUrlArray.count;i++) {
-        NSString* url = _mUrlArray[i];
-        NSString* str = @"image-preview:";
-        str = [NSString stringWithFormat:@"%@%@",str,url];
-//        NSLog(@"---图片点击方法:%@",request.URL.scheme);
-//        NSLog(@"---request.URL:%@",request.URL);
-        
-        NSString* url_now = request.URL.absoluteString;
-        if ([url_now isEqualToString:str]) {
-            [self.delegate showWebImages:_mUrlArray AndIndex:i];
-            return NO;
-        }
+// 接收到服务器跳转请求之后调用
+- (void)webView:(WKWebView *)webView didReceiveServerRedirectForProvisionalNavigation:(WKNavigation *)navigation{
+    NSLog(@"接收到服务器跳转请求之后调用");
+}
+// 在收到响应后，决定是否跳转
+- (void)webView:(WKWebView *)webView decidePolicyForNavigationResponse:(WKNavigationResponse *)navigationResponse decisionHandler:(void (^)(WKNavigationResponsePolicy))decisionHandler{
+    NSLog(@"在收到响应后，决定是否跳转");
+//    NSLog(@"%@",navigationResponse.response.URL.absoluteString);
+    //允许跳转
+    decisionHandler(WKNavigationResponsePolicyAllow);
+    //不允许跳转
+    //decisionHandler(WKNavigationResponsePolicyCancel);
+}
+
+-(WKWebView *)webView:(WKWebView *)webView createWebViewWithConfiguration:(WKWebViewConfiguration *)configuration forNavigationAction:(WKNavigationAction *)navigationAction windowFeatures:(WKWindowFeatures *)windowFeatures
+{
+    NSLog(@"createWebViewWithConfiguration");
+    if (!navigationAction.targetFrame.isMainFrame) {
+//        [webView loadRequest:navigationAction.request];
+        [self.delegate showGuangGao:navigationAction.request];
     }
-    
-    //点击广告时
-    if(navigationType == UIWebViewNavigationTypeLinkClicked){
-        NSLog(@"UIWebViewNavigationTypeLinkClicked-----------");
-        if(!m_isFirst){ //第一次进入为UIWebViewNavigationTypeOther 类型，之后广告点击 也是UIWebViewNavigationTypeOther类型
-            return YES;
-        }
-        [self.delegate showGuangGao:request];
-        // 如果返回NO，代表不允许加载这个请求
-        return NO;
-    }
-    
-    return YES;
-    
+    return nil;
 }
 
 -(void)setWebView_Font:(WKWebView*)webView AndType:(NSInteger)type{
