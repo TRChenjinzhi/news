@@ -160,9 +160,11 @@ static id _instance;
     [[UMSocialManager defaultManager] shareToPlatform:platformType messageObject:messageObject currentViewController:nil completion:^(id data, NSError *error) {
         if (error) {
             UMSocialLogInfo(@"************Share fail with error %@*********",error);
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"新闻分享失败" object:nil];
         }else{
             if ([data isKindOfClass:[UMSocialShareResponse class]]) {
                 
+                [[NSNotificationCenter defaultCenter] postNotificationName:@"新闻分享成功" object:nil];
                 NSString* taskId = [Md5Helper Share_taskId:[Login_info share].userInfo_model.user_id AndNewsId:model.ID];
                 
                 if([Task_DetailWeb_model share].isOver){//只有完成了阅读奖励的条件才能分享文章
@@ -200,7 +202,7 @@ static id _instance;
     UMSocialMessageObject *messageObject = [UMSocialMessageObject messageObject];
     
     Login_shareInfo* shareInfo = [Login_info share].shareInfo_model;
-    UIImage* img = [UIImage imageNamed:@"AppIcon"];
+    UIImage* img = [UIImage imageNamed:@"200icon"];
     
     //创建网页内容对象
     //    NSString* thumbURL =  @"https://mobile.umeng.com/images/pic/home/social/img-1.png";
@@ -293,30 +295,10 @@ static id _instance;
             UMSocialUserInfoResponse *resp = result;
             
             if([Login_info share].isLogined){
-                Login_userInfo* model = [Login_info share].userInfo_model;
-                model.avatar = resp.iconurl;
-                model.name = resp.name;
-                if([resp.unionGender isEqualToString:@"男"]){
-                    model.sex = @"1";
-                }else{
-                    model.sex = @"2";
-                }
-                model.wechat_binding = @"1";
-                [Login_info share].userInfo_model = model;
-                
-                [InternetHelp wechat_blindingWithOpenId:resp.openid];
+                [InternetHelp wechat_blindingWithOpenId:resp];
             }
             else{
                 //微信登陆
-                Login_userInfo* model = [[Login_userInfo alloc] init];
-                model.avatar = resp.iconurl;
-                model.name = resp.name;
-                if([resp.unionGender isEqualToString:@"男"]){
-                    model.sex = @"1";
-                }else{
-                    model.sex = @"2";
-                }
-                [Login_info share].userInfo_model = model;
                 [InternetHelp wechat_loginWithOpenId:resp.openid];
             }
             
@@ -406,9 +388,10 @@ static id _instance;
     [[UMSocialManager defaultManager] shareToPlatform:platformType messageObject:messageObject currentViewController:nil completion:^(id data, NSError *error) {
         if (error) {
             NSLog(@"************Share fail with error %@*********",error);
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"视频分享失败" object:nil];
         }else{
             NSLog(@"response data is %@",data);
-//            [[NSNotificationCenter defaultCenter] postNotificationName:@"视频分享成功" object:nil];
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"视频分享成功" object:nil];
         }
     }];
 }

@@ -11,7 +11,7 @@
 //默认文字得颜色， ios6 ios7
 #define tabbarButtonTitleColor [UIColor blackColor]
 //按钮选中文字得颜色
-#define tabbarButtonTitleSelectedColor [UIColor colorWithRed:219/255.0f green:86/255.0f blue:85/255.0f alpha:1]
+#define tabbarButtonTitleSelectedColor [UIColor colorWithRed:255/255.0f green:129/255.0f blue:3/255.0f alpha:1]
 
 #import "TabbarButton.h"
 

@@ -12,6 +12,7 @@
 
 +(NSString*)showTime:(NSString*)newsTime;
 +(NSString *)showTime_collect:(NSString *)newsTime;
++(NSString *)showTime_reply:(NSString *)newsTime;
 +(instancetype)share;
 
 -(NSArray*)sortAllData_day:(NSArray*)array;

@@ -81,11 +81,17 @@ static TaskCountHelper* _instance;
         return NO;
     }
     for (NewUserTask_model* model in m_task_newUser_name_array) {
-        if(model.status == 1 || model.count >= model.max){
+        if(model.status == 1){
             //不做处理
         }
         else{
-            return NO;
+            if(model.count >= model.max){
+                //不做处理
+            }
+            else{
+                return NO;
+            }
+            
         }
     }
     

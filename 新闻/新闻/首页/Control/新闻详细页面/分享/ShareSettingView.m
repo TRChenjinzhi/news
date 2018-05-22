@@ -121,7 +121,7 @@
         //当只有title没有图片时
         if([m_model.type isEqualToString:@"字体"]){
             [cell.m_title setText:m_model.name_array[indexPath.row]];
-            [cell.m_title setTextColor:[UIColor colorWithRed:34/255.0 green:39/255.0 blue:39/255.0 alpha:1/1.0] ];
+//            [cell.m_title setTextColor:[UIColor colorWithRed:34/255.0 green:39/255.0 blue:39/255.0 alpha:1/1.0] ];
             [cell.m_title setFont:[UIFont fontWithName:@"SourceHanSansCN-Regular" size:18]];
             NSNumber* number = m_model.array_Selected[indexPath.row];
             if([number integerValue] == 0){
@@ -132,7 +132,7 @@
         }
         if([m_model.type isEqualToString:@"举报"]){
             [cell.m_title setText:m_model.name_array[indexPath.row]];
-            [cell.m_title setTextColor: [UIColor colorWithRed:46/255.0 green:46/255.0 blue:46/255.0 alpha:1/1.0]];
+//            [cell.m_title setTextColor: [UIColor colorWithRed:46/255.0 green:46/255.0 blue:46/255.0 alpha:1/1.0]];
             [cell.m_title setFont:[UIFont fontWithName:@"SourceHanSansCN-Regular" size:14]];
             NSNumber* number = m_model.array_Selected[indexPath.row];
             if([number integerValue] == 0){

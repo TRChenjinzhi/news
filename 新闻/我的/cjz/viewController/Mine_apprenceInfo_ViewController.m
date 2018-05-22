@@ -108,7 +108,7 @@
     
     m_apprenceIncome_NoData_view = [[UILabel alloc] initWithFrame:CGRectMake(0, kWidth(30), SCREEN_WIDTH, kWidth(15))];
     m_apprenceIncome_NoData_view.text = @"没有数据";
-    m_apprenceIncome_NoData_view.textColor = RGBA(34, 39, 39, 1);
+    m_apprenceIncome_NoData_view.textColor = RGBA(135, 138, 138, 1);
     m_apprenceIncome_NoData_view.textAlignment = NSTextAlignmentCenter;
     m_apprenceIncome_NoData_view.font = kFONT(14);
     
@@ -136,7 +136,7 @@
     [m_header_view addSubview:m_apprenceInfo_view];
     
     UIImageView* icon = [[UIImageView alloc] initWithFrame:CGRectMake(kWidth(16), kWidth(16), height-kWidth(16)-kWidth(16), height-kWidth(16)-kWidth(16))];
-    [icon sd_setImageWithURL:[NSURL URLWithString:self.model.avatar] placeholderImage:[UIImage imageNamed:@"user_default"]];
+    [icon sd_setImageWithURL:[NSURL URLWithString:self.model.avatar] placeholderImage:[UIImage imageNamed:@"list_avatar"]];
     [icon.layer setCornerRadius:(height-kWidth(16)-kWidth(16))/2];
     icon.layer.masksToBounds = YES;
     [view addSubview:icon];

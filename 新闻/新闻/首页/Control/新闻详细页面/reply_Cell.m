@@ -20,6 +20,7 @@
     UILabel*        m_time_lable;
     UILabel*        m_content_label;
     UIView*         m_line;
+    UIView*         m_reply_contentView;
     
     BOOL            IsDianZan;//是否已经点赞
 }
@@ -44,40 +45,71 @@
 }
 
 -(void)initView{
-    UIImageView* icon = [[UIImageView alloc]initWithFrame:CGRectMake(16, 16, 24, 24)];
-    [icon.layer setCornerRadius:12];
+    UIImageView* icon = [UIImageView new];
+    [icon.layer setCornerRadius:kWidth(24)/2];
     icon.layer.masksToBounds = YES;
     m_icon = icon;
     [self addSubview:icon];
+    [icon mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.left.equalTo(self.mas_left).with.offset(kWidth(16));
+        make.top.equalTo(self.mas_top).with.offset(kWidth(16));
+        make.width.and.height.mas_offset(kWidth(24));
+    }];
     
-    UIButton* dianZan = [[UIButton alloc] initWithFrame:CGRectMake(SCREEN_WIDTH-17-14, 22, 14, 12)];
+    UIButton* dianZan = [UIButton new];
 //    [dianZan setImage:[UIImage imageNamed:@"ic_like"] forState:UIControlStateNormal];
     m_dianzan = dianZan;
     [dianZan addTarget:self action:@selector(dianzan_action:) forControlEvents:UIControlEventTouchUpInside];
     [self addSubview:dianZan];
+    [dianZan mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.right.equalTo(self.mas_right).with.offset(-kWidth(16));
+        make.top.equalTo(self.mas_top).with.offset(kWidth(22));
+        make.width.mas_offset(kWidth(14));
+        make.height.mas_offset(kWidth(12));
+    }];
     
-    UILabel* dianZan_number = [[UILabel alloc]initWithFrame:CGRectMake(CGRectGetMinX(dianZan.frame)-5-100, 22, 100, 12)];
+    UILabel* dianZan_number = [UILabel new];
 //    dianZan_number.backgroundColor = [UIColor redColor];
     dianZan_number.textColor = [UIColor colorWithRed:78/255.0 green:82/255.0 blue:82/255.0 alpha:1/1.0];
     dianZan_number.textAlignment = NSTextAlignmentRight;
-    dianZan_number.font = [UIFont fontWithName:@"SourceHanSansCN-Regular" size:12];
+    dianZan_number.font = kFONT(12);
     [self addSubview:dianZan_number];
     m_dianzan_number = dianZan_number;
+    [dianZan_number mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.right.equalTo(dianZan.mas_left).with.offset(-kWidth(5));
+        make.top.equalTo(self.mas_top).with.offset(kWidth(22));
+        make.height.mas_offset(kWidth(12));
+    }];
     
-    UILabel* name = [[UILabel alloc]initWithFrame:CGRectMake(CGRectGetMaxX(icon.frame)+8, 16, 150, 24)];
+    UILabel* name = [UILabel new];
     name.textColor =  [UIColor colorWithRed:122/255.0 green:125/255.0 blue:125/255.0 alpha:1/1.0];
     name.textAlignment = NSTextAlignmentLeft;
 //    name.backgroundColor = [UIColor redColor];
-    name.font = [UIFont fontWithName:@"SourceHanSansCN-Regular" size:13];
+    name.font = kFONT(13);
     [self addSubview:name];
     m_name = name;
-    
+    [name mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.left.equalTo(icon.mas_right).with.offset(kWidth(8));
+        make.centerY.equalTo(icon.mas_centerY);
+        make.height.mas_offset(kWidth(24));
+    }];
     
 }
 
 -(void)setModel:(reply_model *)model{
     _model = model;
-    [m_icon sd_setImageWithURL:[NSURL URLWithString:model.user_icon]];
+    if(model.user_icon.length <= 0){
+        if(model.wechat_icon.length <= 0){
+            [m_icon setImage:[UIImage imageNamed:@"list_avatar"]];
+        }
+        else{
+            [m_icon sd_setImageWithURL:[NSURL URLWithString:model.wechat_icon]];
+        }
+    }
+    else{
+        [m_icon sd_setImageWithURL:[NSURL URLWithString:model.user_icon]];
+    }
+    
     m_name.text = model.user_name;
     IsDianZan = [[MyDataBase shareManager] DianZan_IsDianZan:[model.ID integerValue]];//判断是否已经点赞
     [self dianzan_InitState:model];//设置点赞状态
@@ -85,52 +117,111 @@
 //    m_dianzan_number.text = @"99999";
     
     //内容
-    CGFloat textHight = [LabelHelper GetLabelHight:[UIFont fontWithName:@"SourceHanSansCN-Regular" size:14]
-                                           AndText:model.comment
-                                          AndWidth:SCREEN_WIDTH-CGRectGetMinX(m_name.frame)-32];
+//    CGFloat textHight = [LabelHelper GetLabelHight:[UIFont fontWithName:@"SourceHanSansCN-Regular" size:14]
+//                                           AndText:model.comment
+//                                          AndWidth:SCREEN_WIDTH-CGRectGetMinX(m_name.frame)-32];
+    
     if(m_content_label == nil){
     
-    NSLog(@"str:%@\nhight:%f",model.comment,textHight);
-    m_content_label = [[UILabel alloc] initWithFrame:CGRectMake(CGRectGetMinX(m_name.frame),
-                                                                          CGRectGetMaxY(m_name.frame)+15,
-                                                                          SCREEN_WIDTH-CGRectGetMinX(m_name.frame)-32,
-                                                                          textHight)];
+//    NSLog(@"str:%@\nhight:%f",model.comment,textHight);
+        m_content_label = [UILabel new];
+        m_content_label.numberOfLines = 0;
+        m_content_label.textColor = [UIColor colorWithRed:78/255.0 green:82/255.0 blue:82/255.0 alpha:1/1.0];
+        m_content_label.textAlignment = NSTextAlignmentLeft;
+        m_content_label.font = kFONT(14);
         [self addSubview:m_content_label];
+        [m_content_label mas_makeConstraints:^(MASConstraintMaker *make) {
+            make.left.equalTo(m_name.mas_left);
+            make.right.equalTo(self.mas_right).with.offset(-kWidth(16));
+            make.top.equalTo(m_name.mas_bottom).with.offset(kWidth(15));
+//            make.height.mas_offset(textHight);
+        }];
+    }
+    else{
+        [m_content_label removeFromSuperview];
+        m_content_label = [UILabel new];
+        m_content_label.numberOfLines = 0;
+        m_content_label.textColor = [UIColor colorWithRed:78/255.0 green:82/255.0 blue:82/255.0 alpha:1/1.0];
+        m_content_label.textAlignment = NSTextAlignmentLeft;
+        m_content_label.font = kFONT(14);
+        [self addSubview:m_content_label];
+        [m_content_label mas_makeConstraints:^(MASConstraintMaker *make) {
+            make.left.equalTo(m_name.mas_left);
+            make.right.equalTo(self.mas_right).with.offset(-kWidth(16));
+            make.top.equalTo(m_name.mas_bottom).with.offset(kWidth(15));
+//            make.height.mas_offset(textHight);
+        }];
     }
     
-    m_content_label.frame = CGRectMake(CGRectGetMinX(m_name.frame),
-                                       CGRectGetMaxY(m_name.frame)+15,
-                                       SCREEN_WIDTH-CGRectGetMinX(m_name.frame)-32,
-                                       textHight);
-    m_content_label.numberOfLines = 0;
-    m_content_label.textColor = [UIColor colorWithRed:78/255.0 green:82/255.0 blue:82/255.0 alpha:1/1.0];
-    m_content_label.textAlignment = NSTextAlignmentLeft;
+//    m_content_label.frame = CGRectMake(CGRectGetMinX(m_name.frame),
+//                                       CGRectGetMaxY(m_name.frame)+15,
+//                                       SCREEN_WIDTH-CGRectGetMinX(m_name.frame)-32,
+//                                       textHight);
     m_content_label.text = model.comment;
-    m_content_label.numberOfLines = 0;
-    m_content_label.font = [UIFont fontWithName:@"SourceHanSansCN-Regular" size:14];
 
 //    [m_content_label sizeToFit];
     
     
     //时间
     if(m_time_lable == nil){
-        UILabel* time_lable = [[UILabel alloc] initWithFrame:CGRectMake(CGRectGetMinX(m_content_label.frame),
-                                                                        CGRectGetMaxY(m_content_label.frame)+10,
-                                                                        90,
-                                                                        11)];
+        UILabel* time_lable = [UILabel new];
         m_time_lable = time_lable;
+        m_time_lable.textColor = [UIColor colorWithRed:122/255.0 green:125/255.0 blue:125/255.0 alpha:1/1.0];
+        m_time_lable.textAlignment = NSTextAlignmentLeft;
+        m_time_lable.font = kFONT(11);
         [self addSubview:m_time_lable];
+
+        [m_time_lable mas_makeConstraints:^(MASConstraintMaker *make) {
+            make.left.equalTo(m_content_label.mas_left);
+            make.top.equalTo(m_content_label.mas_bottom).with.offset(kWidth(10));
+            make.height.mas_offset(kWidth(11));
+        }];
     }
-    m_time_lable.frame = CGRectMake(CGRectGetMinX(m_content_label.frame),
-                                    CGRectGetMaxY(m_content_label.frame)+10,
-                                    90,
-                                    11);
-    m_time_lable.textColor = [UIColor colorWithRed:122/255.0 green:125/255.0 blue:125/255.0 alpha:1/1.0];
-    m_time_lable.textAlignment = NSTextAlignmentLeft;
-    m_time_lable.font = [UIFont fontWithName:@"SourceHanSansCN-Regular" size:10];
+    else{
+        [m_time_lable removeFromSuperview];
+        UILabel* time_lable = [UILabel new];
+        m_time_lable = time_lable;
+        m_time_lable.textColor = [UIColor colorWithRed:122/255.0 green:125/255.0 blue:125/255.0 alpha:1/1.0];
+        m_time_lable.textAlignment = NSTextAlignmentLeft;
+        m_time_lable.font = kFONT(11);
+        [self addSubview:m_time_lable];
+        
+        [m_time_lable mas_makeConstraints:^(MASConstraintMaker *make) {
+            make.left.equalTo(m_content_label.mas_left);
+            make.top.equalTo(m_content_label.mas_bottom).with.offset(kWidth(10));
+            make.height.mas_offset(kWidth(11));
+        }];
+    }
+//    m_time_lable.frame = CGRectMake(CGRectGetMinX(m_content_label.frame),
+//                                    CGRectGetMaxY(m_content_label.frame)+10,
+//                                    90,
+//                                    11);
+    
     NSString* str_time = [[TimeHelper share] GetDateFromString_yyMMDD_HHMMSS:model.ctime];
     m_time_lable.text = [TimeHelper showTime:str_time];
     
+    //评论回复区域
+    if(model.array_reply.count > 0){
+        if(m_reply_contentView != nil){
+            [m_reply_contentView removeFromSuperview];
+        }
+        UIView* contentView = [UIView new];
+        contentView.backgroundColor = RGBA(242, 242, 242, 1);
+        [self addSubview:contentView];
+        [contentView mas_makeConstraints:^(MASConstraintMaker *make) {
+            make.left.equalTo(m_time_lable.mas_left);
+            make.right.equalTo(self.mas_right).with.offset(-kWidth(16));
+            make.top.equalTo(m_time_lable.mas_bottom).with.offset(kWidth(16));
+        }];
+        
+        
+    }
+    else{
+        if(m_reply_contentView != nil){
+            [m_reply_contentView removeFromSuperview];
+            m_reply_contentView = nil;
+        }
+    }
     
     //回复TA
     if(m_reply_button == nil){
@@ -148,11 +239,29 @@
     
     
     if(m_line == nil){
-        m_line = [[UIView alloc] initWithFrame:CGRectMake(16, CGRectGetMaxY(m_time_lable.frame)+16, SCREEN_WIDTH-16-16, 1)];
+        m_line = [UIView new];
         m_line.backgroundColor = RGBA(242, 242, 242, 1);
         [self addSubview:m_line];
+        [m_line mas_makeConstraints:^(MASConstraintMaker *make) {
+            make.left.equalTo(m_time_lable.mas_left);
+            make.right.equalTo(self.mas_right).with.offset(-kWidth(16));
+            make.top.equalTo(m_time_lable.mas_bottom).with.offset(kWidth(16));
+            make.height.mas_offset(kWidth(1));
+        }];
     }
-    m_line.frame = CGRectMake(16, CGRectGetMaxY(m_time_lable.frame)+16, SCREEN_WIDTH-16-16, 1);
+    else{
+        [m_line removeFromSuperview];
+        m_line = [UIView new];
+        m_line.backgroundColor = RGBA(242, 242, 242, 1);
+        [self addSubview:m_line];
+        [m_line mas_makeConstraints:^(MASConstraintMaker *make) {
+            make.left.equalTo(m_time_lable.mas_left);
+            make.right.equalTo(self.mas_right).with.offset(-kWidth(16));
+            make.top.equalTo(m_time_lable.mas_bottom).with.offset(kWidth(16));
+            make.height.mas_offset(kWidth(1));
+        }];
+    }
+//    m_line.frame = CGRectMake(16, CGRectGetMaxY(m_time_lable.frame)+16, SCREEN_WIDTH-16-16, 1);
     [self layoutIfNeeded];
 }
 

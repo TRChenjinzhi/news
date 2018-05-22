@@ -78,8 +78,9 @@
     UIButton* submint_ok = [UIButton new];
     [submint_ok setTitle:@"完成" forState:UIControlStateNormal];
     [submint_ok setTitleColor:RGBA(34, 39, 39, 1) forState:UIControlStateNormal];
-    [submint_ok setBackgroundColor:RGBA(248, 205, 4, 1)];
-    [submint_ok.layer setCornerRadius:3.0f];
+    [submint_ok setBackgroundImage:[UIImage imageNamed:@"btn"] forState:UIControlStateNormal];
+    [submint_ok.layer setCornerRadius:kWidth(40)/2];
+    submint_ok.clipsToBounds = YES;
     [submint_ok addTarget:self action:@selector(back) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:submint_ok];
     [submint_ok mas_makeConstraints:^(MASConstraintMaker *make) {

@@ -64,7 +64,7 @@
         for (TaskMaxCout_model* item in model_array) {
             if(item.type == Task_video){
                 model = item;
-                if(model.count >= model.maxCout){
+                if(model.count > model.maxCout){
                     return;
                 }
             }
@@ -92,7 +92,7 @@
         for (TaskMaxCout_model* item in model_array) {
             if(item.type == Task_chouJiang){
                 model = item;
-                if(model.count >= model.maxCout){
+                if(model.count > model.maxCout){
                     return;
                 }
             }
@@ -116,7 +116,7 @@
         for (TaskMaxCout_model* item in model_array) {
             if(item.type == Task_showIncome){
                 model = item;
-                if(model.count >= model.maxCout){
+                if(model.count > model.maxCout){
                     return;
                 }
             }

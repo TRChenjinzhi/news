@@ -129,13 +129,13 @@
     //    [get_yanzhengma_button setBackgroundColor:[UIColor blackColor]];
     [get_yanzhengma_button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
     [get_yanzhengma_button.titleLabel setFont:[UIFont fontWithName:@"SourceHanSansCN-Regular" size:12]];
-    get_yanzhengma_button.layer.cornerRadius = 4;
+    get_yanzhengma_button.layer.cornerRadius = kWidth(30)/2;
     get_yanzhengma_button.layer.borderWidth = 1;
     get_yanzhengma_button.layer.borderColor = [UIColor colorWithRed:46.0/255 green:46.0/255 blue:46.0/255 alpha:1.1/1].CGColor;
     [get_yanzhengma_button addTarget:self action:@selector(GetYanzhengma:) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:get_yanzhengma_button];
     [get_yanzhengma_button mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.top.equalTo(line_one.mas_bottom).with.offset(kWidth(30));
+        make.bottom.equalTo(line_one.mas_bottom).with.offset(-kWidth(8));
         make.right.equalTo(self.view.mas_right).with.offset(-kWidth(20));
         make.height.mas_offset(kWidth(30));
         make.width.mas_offset(kWidth(76));
@@ -156,12 +156,13 @@
     
     //登陆
     UIButton* login_button = [[UIButton alloc] initWithFrame:CGRectMake(20, CGRectGetMaxY(password_textfield.frame)+48, SCREEN_WIDTH-20-20, 52)];
-    [login_button setTitle:@"登录" forState:UIControlStateNormal];
+    [login_button setTitle:@"下一步" forState:UIControlStateNormal];
     [login_button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
-    [login_button setBackgroundColor:[UIColor colorWithRed:247/255.0 green:195/255.0 blue:72/255.0 alpha:1/1.0]];
+    [login_button setBackgroundImage:[UIImage imageNamed:@"btn"] forState:UIControlStateNormal];
     [login_button.titleLabel setFont:kFONT(16)];
     [login_button addTarget:self action:@selector(PhoneNumberLoginAction) forControlEvents:UIControlEventTouchUpInside];
-    [login_button.layer setCornerRadius:kWidth(4)];
+    [login_button.layer setCornerRadius:kWidth(52)/2];
+    login_button.clipsToBounds = YES;
     [self.view addSubview:login_button];
     m_login_btn = login_button;
     [login_button mas_makeConstraints:^(MASConstraintMaker *make) {
@@ -185,6 +186,9 @@
 }
 
 -(void)IsShowBtnTime:(UIButton*)bt{
+    if(m_btn_IsClicked){
+        return;
+    }
     NSNumber* tmp = [[AppConfig sharedInstance] getIdefyCode];
     double time_get = [tmp doubleValue];
     
@@ -210,8 +214,6 @@
                 dispatch_async(dispatch_get_main_queue(), ^{
                     [bt.titleLabel setFont:[UIFont fontWithName:@"SourceHanSansCN-Regular" size:12]];
                     [bt setTitle:[NSString stringWithFormat:@"%ld s",m_timer_count] forState:UIControlStateNormal];
-                    m_btn_IsClicked = YES;
-                    
                 });
             }
         }];
@@ -271,8 +273,9 @@
     UIButton* telephone_login = [UIButton new];
     [telephone_login setTitle:@"登陆" forState:UIControlStateNormal];
     [telephone_login setTitleColor:RGBA(34, 39, 39, 1) forState:UIControlStateNormal];
-    [telephone_login setBackgroundColor:RGBA(248, 205, 4, 1)];
-    [telephone_login.layer setCornerRadius:3.0f];
+    [telephone_login setBackgroundImage:[UIImage imageNamed:@"btn"] forState:UIControlStateNormal];
+    [telephone_login.layer setCornerRadius:kWidth(36)/2];
+    telephone_login.clipsToBounds = YES;
     [telephone_login addTarget:self action:@selector(telephone_login_action) forControlEvents:UIControlEventTouchUpInside];
     [center_view addSubview:telephone_login];
     [telephone_login mas_makeConstraints:^(MASConstraintMaker *make) {
@@ -311,21 +314,19 @@
     
     m_timer = [NSTimer scheduledTimerWithTimeInterval:1 repeats:YES block:^(NSTimer * _Nonnull timer) {
         if(m_timer_count <= 0){
-            m_btn_IsClicked = YES;
+            m_btn_IsClicked = NO;
             dispatch_async(dispatch_get_main_queue(), ^{
                 [bt setTitle:@"重新发送" forState:UIControlStateNormal];
-                m_btn_IsClicked = YES;
                 m_timer_count = TimeCount;
                 [m_timer invalidate];
                 [[AppConfig sharedInstance] saveIdifyCode:[NSNumber numberWithInteger:0]];
             });
         }else{
             m_timer_count--;
-            m_btn_IsClicked = NO;
+            m_btn_IsClicked = YES;
             dispatch_async(dispatch_get_main_queue(), ^{
                 [bt.titleLabel setFont:[UIFont fontWithName:@"SourceHanSansCN-Regular" size:12]];
                 [bt setTitle:[NSString stringWithFormat:@"%ld s",m_timer_count] forState:UIControlStateNormal];
-                m_btn_IsClicked = NO;
                 
             });
         }
@@ -338,14 +339,19 @@
 
 -(void)PhoneNumberLoginAction{
     NSLog(@"手机登陆");
-    //    //检查手机号码格式是否正确
-    //    if([self CheckPhoneNumber:m_phoneNumber_textfeild.text]){
-    //        [[IdentifyingCode ShareInstance] MakeTureIdentifyingCode:m_password_textfeild.text AndPhoneNumber:m_phoneNumber_textfeild.text];
-    //    }else{
-    //        [[AlertHelper Share] ShowMe:self And:2.0 And:@"手机号码格式不对"];
-    //    }
-    //
-    [self SendLoginToServer];
+    //苹果审核测试账号
+    if([m_phoneNumber_textfeild.text isEqualToString:@"13000000000"] && [m_password_textfeild.text isEqualToString:@"112233"]){
+        [self SendLoginToServer];
+        return;
+    }
+        //检查手机号码格式是否正确
+        if([self CheckPhoneNumber:m_phoneNumber_textfeild.text]){
+            [[IdentifyingCode ShareInstance] MakeTureIdentifyingCode:m_password_textfeild.text AndPhoneNumber:m_phoneNumber_textfeild.text];
+        }else{
+            [[AlertHelper Share] ShowMe:self And:2.0 And:@"手机号码格式不对"];
+        }
+    
+//    [self SendLoginToServer];
 }
 
 -(BOOL)CheckPhoneNumber:(NSString*)mobileNum{
@@ -417,6 +423,7 @@
 #pragma mark - 验证码协议方法
 -(void)MakeTureIdentifyingCode_failed{
     NSLog(@"MakeTureIdentifyingCode_failed");
+    [MyMBProgressHUD ShowMessage:@"验证码错误!" ToView:self.view AndTime:1.0f];
 }
 -(void)MakeTureIdentifyingCode_sucess{
     NSLog(@"MakeTureIdentifyingCode_sucess");
@@ -529,6 +536,9 @@
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":%ld",@"client_type",IOS]];//设备类型 1:android 2；ios
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"imei",IDFA]];
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"unique_id",(NSString*)[MyKeychain queryDataWithService:MyKeychain_server]]];
+    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"model",[[DeviveHelper share] getDeviceName]]];
+    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"os_version",[UIDevice currentDevice].systemVersion]];
+    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"mac",[[DeviveHelper share] getMacAddress]]];
     argument = [argument stringByAppendingString:@"}"];
     argument = [MyEntrypt MakeEntryption:argument];
     args = [args stringByAppendingString:[NSString stringWithFormat:@"%@",argument]];
@@ -573,6 +583,12 @@
             }
             [Login_info dicToModel:dict];
             Login_userInfo* userInfo = [[Login_info share] GetUserInfo];
+            if ([[DefauteNameHelper getDefuateName] isEqualToString:userInfo.name]) {
+                if([userInfo.wechat_binding integerValue] == 1){ //当微信绑定了，账号昵称为默认时，使用微信昵称
+                    userInfo.name = userInfo.wechat_nickname;
+                    [InternetHelp updateUserInfo];
+                }
+            }
             
             //弹出登陆奖励弹窗
             [[NSNotificationCenter defaultCenter] postNotificationName:@"autoLogin-tabbarVC" object:nil];
@@ -629,6 +645,9 @@
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":%ld",@"client_type",IOS]];//设备类型 1:android 2；ios
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"imei",IDFA]];
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"unique_id",(NSString*)[MyKeychain queryDataWithService:MyKeychain_server]]];
+    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"model",[[DeviveHelper share] getDeviceName]]];
+    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"os_version",[UIDevice currentDevice].systemVersion]];
+    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"mac",[[DeviveHelper share] getMacAddress]]];
     argument = [argument stringByAppendingString:@"}"];
     argument = [MyEntrypt MakeEntryption:argument];
     args = [args stringByAppendingString:[NSString stringWithFormat:@"%@",argument]];
@@ -664,6 +683,12 @@
             [Login_info dicToModel:dict];
             Login_userMoney* userMoney = [Login_info share].userMoney_model;
             Login_userInfo* userInfo = [Login_info share].userInfo_model;
+            if ([[DefauteNameHelper getDefuateName] isEqualToString:userInfo.name]) {
+                if([userInfo.wechat_binding integerValue] == 1){ //当微信绑定了，账号昵称为默认时，使用微信昵称
+                    userInfo.name = userInfo.wechat_nickname;
+                    [InternetHelp updateUserInfo];
+                }
+            }
             
             Mine_userInfo_model* model = [[Mine_userInfo_model alloc] init];
             model.name = userInfo.name;

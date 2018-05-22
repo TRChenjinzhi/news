@@ -25,12 +25,13 @@
 #import "MyActivity.h"
 #import "Task_reward_model.h"
 #import "DateReload_view.h"
+#import "ReplyAll_ViewController.h"
 
 #define HideAllDialog @"HideAllDialog"
 
-@interface DetailWeb_ViewController ()<UITableViewDelegate,UITableViewDataSource,UITextViewDelegate,ClickWebImageInterfaceDelegate,SectionHeader_DetailWeb_InterfaceDelegate,shareSetting_protocol>
+@interface DetailWeb_ViewController ()<UITableViewDelegate,UITableViewDataSource,UITextViewDelegate,ClickWebImageInterfaceDelegate,SectionHeader_DetailWeb_InterfaceDelegate,shareSetting_protocol,reply_cell_protocol>
 
-@property (nonatomic,strong)UIWebView* webView;
+//@property (nonatomic,strong)UIWebView* webView;
 
 @property (nonatomic,strong)UITableView* tableView;
 
@@ -44,7 +45,7 @@
 
 @property (nonatomic,strong)UIButton* SenderButton;//发送按钮
 
-@property (nonatomic, strong) UIProgressView *progressView;//网页进度条
+@property (nonatomic, strong)UIProgressView *progressView;//网页进度条
 
 @end
 
@@ -75,8 +76,8 @@
     NSInteger                       m_scroll_count;
     
     //键盘弹出
-    CGFloat _currentKeyboardH;
-    CGFloat _transformY;
+    CGFloat                         _currentKeyboardH;
+    CGFloat                         _transformY;
     
     //判断scrollview 滚动方向
     CGPoint                         m_start_point;
@@ -84,6 +85,10 @@
     
     //
     DateReload_view*                         m_Reloaded_view;
+    
+    //评论
+    reply_model*                    m_otherReply_model;
+    NSString*                       m_pre_reply;//回复头  例子： 回复 cjz：
 }
 
 - (void)viewDidLoad {
@@ -137,6 +142,8 @@
     //监听任务情况
 //    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(ShowRewardWin:) name:@"阅读文章任务完成" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(Task_shareNews_Over:) name:@"分享文章任务完成" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(share_failed) name:@"新闻分享失败" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(share_sucess) name:@"新闻分享成功" object:nil];
     
     //热点
 //    [[ NSNotificationCenter defaultCenter ] addObserver:self selector:@selector(statusBarFrameWillChange:) name:UIApplicationWillChangeStatusBarFrameNotification object:nil ];
@@ -202,7 +209,7 @@
     
     //进度条初始化
     self.progressView = [[UIProgressView alloc] initWithFrame:CGRectMake(0, statusHeight+barHeight, SCREEN_WIDTH, kWidth(2))];
-    self.progressView.progressTintColor = RGBA(248, 205, 4, 1);
+    self.progressView.progressTintColor = RGBA(255, 129, 3, 1);
     self.progressView.trackTintColor = [UIColor whiteColor];
     //设置进度条的高度，下面这句代码表示进度条的宽度变为原来的1倍，高度变为原来的1.5倍.
     self.progressView.transform = CGAffineTransformMakeScale(1.0f, 1.5f);
@@ -215,13 +222,12 @@
     tableView.dataSource = self;
     tableView.bounces = YES;
 //    tableView.backgroundColor = [UIColor colorWithRed:242/255.0 green:242/255.0 blue:242/255.0 alpha:1/1.0];
-    tableView.backgroundColor = [UIColor whiteColor];
+    tableView.backgroundColor       = [UIColor whiteColor];
     [tableView setSeparatorInset:UIEdgeInsetsZero];
-//    [tableView setLayoutMargins:UIEdgeInsetsZero];
-    tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
+    tableView.separatorStyle        = UITableViewCellSeparatorStyleNone;
     [tableView registerClass:[reply_Cell class] forCellReuseIdentifier:@"reply"];
     [tableView registerClass:[NoReply_TableViewCell class] forCellReuseIdentifier:@"NullReply"];
-    _reply_array = [[NSArray alloc] init];
+    _reply_array                    = [[NSArray alloc] init];
     
     Header_ViewController* header = [[Header_ViewController alloc] init];
     header.url = _CJZ_model.url;
@@ -270,7 +276,12 @@
     
     BadgeButton* messge_button = [[BadgeButton alloc] init];
     messge_button.frame = CGRectMake(CGRectGetMinX(shoucang_button.frame)-22-30, 9, 30, 30);
-    [messge_button setImage:[UIImage imageNamed:@"ic_comment"] forState:UIControlStateNormal];
+    UIImage* img = [UIImage imageNamed:@"ic_comment"];
+//    UIEdgeInsets insets = UIEdgeInsetsMake(-10, 0, -10, 0);
+//    img = [img resizableImageWithCapInsets:insets resizingMode:UIImageResizingModeStretch];
+//    [messge_button setImage:[UIImage imageNamed:@"ic_comment"] forState:UIControlStateNormal];
+    [messge_button setImage:img forState:UIControlStateNormal];
+//    [messge_button setImageEdgeInsets:insets];
     [messge_button addTarget:self action:@selector(Message) forControlEvents:UIControlEventTouchUpInside];
     [messge_button setCount:[self.CJZ_model.comment_num integerValue]];
     [view addSubview:messge_button];
@@ -312,6 +323,7 @@
     m_sectionHeader_view.backgroundColor = [UIColor whiteColor];
     m_sectionHeader_view.clipsToBounds = YES;
     [m_sectionHeader_view addSubview:m_sectionHeader_VC.view];
+    
 }
 
 -(void)ShowWaiting{
@@ -424,7 +436,8 @@
     [inputText_cancel.titleLabel setFont:[UIFont fontWithName:@"SourceHanSansCN-Regular" size:14]];
     [inputText_cancel addTarget:self action:@selector(DialogCancel) forControlEvents:UIControlEventTouchUpInside];
     inputText_cancel.backgroundColor = [[ThemeManager sharedInstance] GetDialogViewColor];
-    [inputText_cancel.layer setCornerRadius:4.0f];
+    [inputText_cancel.layer setCornerRadius:15.0f];
+    inputText_cancel.layer.masksToBounds = YES;
     [inputText addSubview:inputText_cancel];
     
     //发送
@@ -433,8 +446,9 @@
     [inputText_true setTitleColor:[[ThemeManager sharedInstance] GetDialogTextColor] forState:UIControlStateNormal];
     [inputText_true.titleLabel setFont:[UIFont fontWithName:@"SourceHanSansCN-Regular" size:14]];
     [inputText_true addTarget:self action:@selector(DialogTure) forControlEvents:UIControlEventTouchUpInside];
-    inputText_true.backgroundColor = [UIColor colorWithRed:231/255.0 green:231/255.0 blue:231/255.0 alpha:1/1.0];
-    [inputText_true.layer setCornerRadius:4.0f];
+    [inputText_true setBackgroundImage:[UIImage imageNamed:@"btn"] forState:UIControlStateNormal];
+    [inputText_true.layer setCornerRadius:15.0f];
+    inputText_true.layer.masksToBounds = YES;
     inputText_true.enabled = NO;
     self.SenderButton = inputText_true;
     [inputText addSubview:inputText_true];
@@ -448,13 +462,26 @@
 
 -(void)Message{
     NSLog(@"点击 message");
-    NSIndexPath* path = [NSIndexPath indexPathForRow:0 inSection:0];
-    [self.tableView scrollToRowAtIndexPath:path atScrollPosition:UITableViewScrollPositionNone animated:YES];
+//    NSIndexPath* path = [NSIndexPath indexPathForRow:0 inSection:0];
+//    [self.tableView scrollToRowAtIndexPath:path atScrollPosition:UITableViewScrollPositionBottom animated:YES];
+    
+//    CGFloat height = self.tableView.contentSize.height;
+//    NSLog(@"tableview contentSize:%f",height);
+//    [self.tableView setContentOffset:CGPointMake(0, height-self.tableView.frame.size.height) animated:NO];
+
+
+//    [self.tableView scrollToBottom];
+    
+    NSIndexPath *ip = [NSIndexPath indexPathForRow:0 inSection:0];  //取最后一行数据
+    [self.tableView scrollToRowAtIndexPath:ip atScrollPosition:UITableViewScrollPositionBottom animated:NO]; //滚动到最后一行
+    
+    [self.tableView setContentOffset:CGPointMake(0, self.tableView.tableHeaderView.frame.size.height+m_sectionHeader_Hight-62) animated:YES];
+    
 }
 
 -(void)IsShoucang:(UIButton*)button{
     if(![Login_info share].isLogined){
-        [[AlertHelper Share]ShowMe:self And:0.5f And:@"没有登陆"];
+        [MyMBProgressHUD ShowMessage:@"未登录!" ToView:[UIApplication sharedApplication].keyWindow AndTime:1.0f];
     }else{
     
     if(isShoucang){
@@ -578,6 +605,7 @@
     
     [self.headerView.webview evaluateJavaScript:@"document.body.offsetHeight" completionHandler:^(id Result, NSError * error) {
         NSNumber* number = (NSNumber*)Result;
+        NSLog(@"height----->%f",[number floatValue]);
         
         self.headerView.webview.frame = CGRectMake(0, 0, SCREEN_WIDTH, [number floatValue]);
         self.headerView.footView.frame = CGRectMake(0, self.headerView.webview.frame.size.height, SCREEN_WIDTH, self.headerView.footView.frame.size.height);
@@ -596,6 +624,7 @@
        headerView.frame = CGRectMake(0, 0, SCREEN_WIDTH, hight*1.8);
         NSLog(@"----hight123:%.2f",headerView.frame.size.height);
     }
+ 
         if(m_headerSize.height > hight*2.3 && readingAll == nil){
             
             readingAll = [[UIView alloc] initWithFrame:CGRectMake(0, hight*1.8-80, SCREEN_WIDTH, 80)];
@@ -623,6 +652,9 @@
             
             [headerView addSubview:readingAll];
         }
+        else{
+            
+        }
     if(Is_readingAll){
         headerView.frame = CGRectMake(0, 0, SCREEN_WIDTH, m_headerSize.height);
     }
@@ -632,6 +664,13 @@
 
     [self.tableView endUpdates];
     [self.view layoutIfNeeded];
+        
+        
+        //完成之后
+        if(readingAll == nil){ //当没有出现阅读全文时
+            Is_readingAll = YES;
+        }
+        [self WebviewDidLoad];
     }];
 }
 
@@ -644,7 +683,6 @@
 
 -(void)webViewDidLoad:(NSString *)text{
     self.CJZ_model.decr = text;
-    [self WebviewDidLoad];
 }
 
 -(void)webViewLoadFailed{
@@ -679,21 +717,44 @@
     [self ItemClick:name];
 }
 
+-(void)GoToReplyAll:(reply_model *)model{
+//    ReplyAll_ViewController* vc = [ReplyAll_ViewController new];
+//    vc.model = model;
+//    vc.newsId = self.CJZ_model.ID;
+//    [self.navigationController pushViewController:vc animated:YES];
+}
+-(void)replyFromMymodel:(reply_model *)myModel{
+    return;//用于第一个版本 不要回复
+//    [self InputTextAction];
+//    m_textView_placeHolder.text = @"";
+//    m_pre_reply = [NSString stringWithFormat:@"回复 %@:\n",myModel.user_name];
+//    m_textField.text = m_pre_reply;
+//    m_otherReply_model = myModel;
+}
+
 #pragma mark - 按钮方法
 -(void)DialogCancel{
     NSLog(@"DialogCancel");
     [self.inputReply removeFromSuperview];
+    m_pre_reply = nil;
 }
 
 -(void)DialogTure{
     NSLog(@"DialogTure");
     NSString* str_comment = m_textField.text;
+    if(m_pre_reply != nil){
+        str_comment = [str_comment stringByReplacingOccurrencesOfString:m_pre_reply withString:@""];
+    }
+    m_pre_reply = nil;
     [self SendReply:str_comment];
     [self.inputReply removeFromSuperview];
+    m_otherReply_model = nil;
 }
 
 -(void)tapClick:(UITapGestureRecognizer*)tap{
     [self DialogCancel];
+    m_otherReply_model = nil;
+    m_pre_reply = nil;
 }
 
 -(void)reloadNet{
@@ -709,7 +770,7 @@
         return;
     }
     //要分享的内容，加在一个数组里边，初始化UIActivityViewController
-    NSString *textToShare = [Login_info share].shareInfo_model.title;
+    NSString *textToShare = self.CJZ_model.title;
 //    UIImageView* img = [[UIImageView alloc] init];
 //    [img sd_setImageWithURL:[NSURL URLWithString:[Login_info share].shareInfo_model.img]];
     UIImage *imageToShare = nil;
@@ -763,7 +824,12 @@
         else{
             reply_Cell* cell = [reply_Cell cellWithTableView:tableView];
             cell.model = _reply_array[indexPath.row];
+            cell.delegate = self;
             cell.tag = indexPath.row;
+
+            //点击时 高亮的颜色
+            cell.selectedBackgroundView = [[UIImageView alloc] initWithImage:[Color_Image_Helper createImageWithColor:RGBA(255, 85, 0, 0.3)]];
+            
             return cell;
         }
 
@@ -775,9 +841,31 @@
             return 150.0;
         }else{
             reply_model* model = _reply_array[indexPath.row];
-            CGFloat hight = [LabelHelper GetLabelHight:[UIFont fontWithName:@"SourceHanSansCN-Regular" size:14] AndText:model.comment AndWidth:SCREEN_WIDTH-16-24-8];
+            CGFloat hight = [LabelHelper GetLabelHight:kFONT(14) AndText:model.comment AndWidth:SCREEN_WIDTH-kWidth(38)-kWidth(16)];//评论高度
             
-            return (102.0f+hight);
+            //回复高度
+            NSInteger count = 0;
+            for (reply_model* item in model.array_reply) {
+                //上边距+name+name和content的边距+content
+                if(count == 3) break;
+                hight += [LabelHelper GetLabelHight:kFONT(14) AndText:item.comment AndWidth:SCREEN_WIDTH-kWidth(46)-kWidth(16)]+kWidth(13)+kWidth(5)+kWidth(12);
+                count++;
+            }
+            if(model.array_reply.count > 0){
+                hight += kWidth(16); //这个 16 是灰色回复区域 离 时间 的距离
+            }
+            
+            if(model.array_reply.count > 3){
+                hight += kWidth(24);
+            }
+
+
+            return kWidth(100)+hight;
+            
+//            reply_Cell* cell = [reply_Cell cellWithTableView:tableView];
+//            cell.model = model;
+//            NSLog(@"cell height-->%f",cell.height);
+//            return cell.height;
         }
 }
 
@@ -793,7 +881,19 @@
 }
 
 -(BOOL)tableView:(UITableView *)tableView shouldHighlightRowAtIndexPath:(NSIndexPath *)indexPath{
+    if(_reply_array.count == 0){
+        return NO;
+    }
     return NO;
+}
+
+-(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath{
+    if(_reply_array.count != 0){
+        [tableView deselectRowAtIndexPath:indexPath animated:NO];
+    }
+//    reply_model* model = _reply_array[indexPath.row];
+//    [self replyFromMymodel:model];
+    
 }
 
 -(void)scrollViewDidScroll:(UIScrollView *)scrollView{
@@ -811,9 +911,6 @@
 //        NSLog(@"新闻详细高度 height:%f",m_headerSize.height);
 //        NSLog(@"新闻详细高度 tableview hight:%f",self.tableView.frame.size.height);
         if(![[MyDataBase shareManager] IsGetIncomeNews:self.CJZ_model.ID]){//防止重复 阅读奖励
-            if(readingAll == nil){ //当没有出现阅读全文时
-                Is_readingAll = YES;
-            }
             if([[TaskCountHelper share] TaskIsOverByType:Task_reading]){ //当任务次数已经完成后 不再提交任务
                 return ;
             }
@@ -822,7 +919,7 @@
                                                    AndNewsId:self.CJZ_model.ID
                                                AndScrollview:scrollView
                                                 AndTableview:self.tableView
-                                               AndHeaderSize:m_headerSize
+                                               AndHeaderSize:CGSizeMake(SCREEN_WIDTH, m_headerSize.height+m_sectionHeader_view.frame.size.height)
                                                 AndIsReadAll:Is_readingAll
                                               AndScrollCount:m_scroll_count];
             if(isOk){
@@ -1093,45 +1190,25 @@
 }
 
 -(void)DianZanAction:(NSNotification*)noti{
+    if(![Login_info share].isLogined){
+        [MyMBProgressHUD ShowMessage:@"未登录!" ToView:self.view AndTime:1.0f];
+        return;
+    }
     reply_model* model = noti.object;
     NSInteger action = model.DianZan_type;
     action = action == 1 ? 1 : 2;//1：点赞    2：取消点赞
 
-    NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://younews.3gshow.cn/api/thumbs"]];
-    NSMutableURLRequest *request =[NSMutableURLRequest requestWithURL:url];
-    request.HTTPMethod = @"POST";
-    NSString *args = @"json=";
-    NSString* argument = @"{";
-    argument = [argument stringByAppendingString:[NSString stringWithFormat:@"\"%@\":\"%@\"",@"user_id",[[Login_info share] GetUserInfo].user_id]];
-    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"comment_id",model.ID]];
-    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%ld\"",@"action",action]];//1：点赞    2：取消点赞
-    argument = [argument stringByAppendingString:@"}"];
-    argument = [MyEntrypt MakeEntryption:argument];
-    args = [args stringByAppendingString:[NSString stringWithFormat:@"%@",argument]];
-    request.HTTPBody = [args dataUsingEncoding:NSUTF8StringEncoding];
-    // 3.获得会话对象
-    NSURLSession *session = [NSURLSession sharedSession];
-    // 4.根据会话对象，创建一个Task任务
-//    IMP_BLOCK_SELF(DetailWeb_ViewController);
-    NSURLSessionDataTask *sessionDataTask = [session dataTaskWithRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
-        
-        dispatch_async(dispatch_get_main_queue(), ^{
-            if(error){
-                NSLog(@"网络获取失败");
-                //发送失败消息
-//                [block_self.tableView.footer endRefreshing];
-            }
-            
-//            NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:data options:(NSJSONReadingMutableLeaves) error:nil];
-//            NSNumber* code = dict[@"code"];
-        });
-        
-    }];
-    [sessionDataTask resume];
+    [InternetHelp DianzanById:model.ID andUser_id:[Login_info share].userInfo_model.user_id AndActionType:action];
 }
 
 -(void)SectionHight:(NSNotification*)noti{
     
+}
+-(void)share_sucess{
+    [MyMBProgressHUD ShowMessage:@"分享成功" ToView:self.view AndTime:1.0f];
+}
+-(void)share_failed{
+    [MyMBProgressHUD ShowMessage:@"分享失败" ToView:self.view AndTime:1.0f];
 }
 
 -(void)Task_shareNews_Over:(NSNotification*)noti{
@@ -1269,6 +1346,7 @@
 -(void)GetReplyComment:(NSInteger)type{
     // 1.创建一个网络路径
     NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://younews.3gshow.cn/api/getComment"]];
+//    NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://dev.3gshow.cn/api/getComment"]];
     // 2.创建一个网络请求，分别设置请求方法、请求参数
     NSMutableURLRequest *request =[NSMutableURLRequest requestWithURL:url];
     request.HTTPMethod = @"POST";
@@ -1299,6 +1377,7 @@
             }
 
             NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:data options:(NSJSONReadingMutableLeaves) error:nil];
+//            NSDictionary *dict = [self getDic];//测试数据
             NSNumber* code = dict[@"code"];
             if([code integerValue] == 200){
             }else{
@@ -1346,89 +1425,35 @@
 }
 //http://39.104.13.61：8090/api/comment?json={"user_id":"714B08C64ADD12284CA82BA39384B177","news_id":"10","comment":"hehe"}
 -(void)SendReply:(NSString*)str_comment{
-    // 1.创建一个网络路径
-    NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://younews.3gshow.cn/api/comment"]];
-    // 2.创建一个网络请求，分别设置请求方法、请求参数
-    NSMutableURLRequest *request =[NSMutableURLRequest requestWithURL:url];
-    request.HTTPMethod = @"POST";
-    NSString *args = @"json=";
-    NSString* argument = @"";
-//    argument = [argument stringByAppendingString:[NSString stringWithFormat:@"\"%@\":\"%@\"",@"user_id",[[Login_info share] GetUserInfo].user_id]];
-//    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"news_id",self.CJZ_model.ID]];
-//    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"comment",str_comment]];
-//    argument = [argument stringByAppendingString:@"}"];
-    NSMutableDictionary* dic = [[NSMutableDictionary alloc] init]; //用json传值 ：\n 加密就不会去掉换行符
-    [dic setValue:[[Login_info share] GetUserInfo].user_id forKey:@"user_id"];
-    [dic setValue:self.CJZ_model.ID forKey:@"news_id"];
-    [dic setValue:str_comment forKey:@"comment"];
-    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:dic options:0 error:NULL];
-    NSString* str_tmp = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-    argument = [MyEntrypt MakeEntryption:str_tmp];
-    args = [args stringByAppendingString:[NSString stringWithFormat:@"%@",argument]];
-    request.HTTPBody = [args dataUsingEncoding:NSUTF8StringEncoding];
-    // 3.获得会话对象
-    NSURLSession *session = [NSURLSession sharedSession];
-    // 4.根据会话对象，创建一个Task任务
-    IMP_BLOCK_SELF(DetailWeb_ViewController);
-    NSURLSessionDataTask *sessionDataTask = [session dataTaskWithRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
-        
-        dispatch_async(dispatch_get_main_queue(), ^{
-            
-            
-            if(error || data == nil){
-                NSLog(@"SendReply网络获取失败");
-                //发送失败消息
-                [block_self.tableView.footer endRefreshing];
-                return ;
-            }
-            //提示信息
-            Tips_ViewController* tip_vc = [[Tips_ViewController alloc] init];
-            tip_vc.view.frame = CGRectMake(0, SCREEN_HEIGHT/2-50/2, SCREEN_WIDTH, 50);
-//            tip_vc.view.backgroundColor = [UIColor grayColor];
-           
-            
-            NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:data options:(NSJSONReadingMutableLeaves) error:nil];
-            NSNumber* code = dict[@"code"];
-            if([code integerValue] == 200){
-//                [[AlertHelper Share] ShowMe:self And:0.8 And:@"评论成功"];
-                NSDictionary* dic_tmp = dict[@"list"];
-                reply_model* model = [[reply_model alloc] init];
-                model.ID = dic_tmp[@"id"];
-                model.user_name = [Login_info share].userInfo_model.name;
-                model.user_icon = [Login_info share].userInfo_model.avatar;
-                model.comment = dic_tmp[@"comment"];
-                model.thumbs_num = @"0";
-                NSNumber* number = dic_tmp[@"ctime"];
-                model.ctime = [NSString stringWithFormat:@"%ld",[number integerValue]];
-                
-                NSMutableArray* array_tmp = [NSMutableArray arrayWithArray:_reply_array];
-                [array_tmp insertObject:model atIndex:0];
-                _reply_array = array_tmp;
-                [self.tableView reloadData];
-
-//                [MBProgressHUD showSuccess:@"评论成功"];
-//                [self GetReplyComment:0];//重新加载评论
-                tip_vc.message = [NSString stringWithFormat:@"评论成功"];
-                
-            }else{
-//                [[AlertHelper Share] ShowMe:self And:0.8 And:@"评论失败"];
-//                [MBProgressHUD showError:@"评论失败"];
-                tip_vc.message = [NSString stringWithFormat:@"评论失败"];
-            }
-
-            
-            [block_self.view addSubview:tip_vc.view];
-            [UIView animateWithDuration:1.0f delay:0 options:UIViewAnimationOptionBeginFromCurrentState animations:^{
-                tip_vc.view.alpha = 0.0;
-            } completion:^(BOOL finished) {
-                [tip_vc.view removeFromSuperview];
-            }];
-            
-        });
-        
+//    NSString* To_userId = @"";
+//    if(m_otherReply_model != nil){ //当直接评论新闻时，没有userid
+//        To_userId = m_otherReply_model.myUserModel.user_id;
+//    }
+//    NSInteger pid = 0;
+//    if([m_otherReply_model.pid integerValue] == 0){
+//        pid = [m_otherReply_model.ID integerValue];
+//    }
+//    else{
+//        pid = [m_otherReply_model.pid integerValue];
+//    }
+//    [InternetHelp replyToOterReplyByUserId:[Login_info share].userInfo_model.user_id
+//                               andToUserId:To_userId
+//                                 andNewsId:self.CJZ_model.ID
+//                                    AndPid:pid
+//                                AndComment:str_comment Sucess:^(NSDictionary *dic) {
+//                                        [MyMBProgressHUD ShowMessage:@"评论成功" ToView:self.view AndTime:1.0f];
+//                                        [self GetReplyComment: 0];//刷新
+//    } Fail:^(NSDictionary *dic) {
+//        [MyMBProgressHUD ShowMessage:@"网络失败" ToView:self.view AndTime:1.0f];
+//    }];
+    
+    [InternetHelp replyToServer_test:[Login_info share].userInfo_model.user_id andNewsId:self.CJZ_model.ID AndComment:str_comment Sucess:^(NSDictionary *dic) {
+        [MyMBProgressHUD ShowMessage:@"评论成功" ToView:self.view AndTime:1.0f];
+        [self GetReplyComment:0];
+    } Fail:^(NSDictionary *dic) {
+        [MyMBProgressHUD ShowMessage:@"网络失败" ToView:self.view AndTime:1.0f];
     }];
-    //5.最后一步，执行任务，(resume也是继续执行)。
-    [sessionDataTask resume];
+    
 }
 
 -(void)CollectedAction:(NSInteger)action{
@@ -1497,7 +1522,156 @@
     [sessionDataTask resume];
 }
 
+/*
+ {
+ "id": "1",
+ "pid": "0",
+ "user_info": {
+ "user_name": "橙友2755263",
+ "user_icon": "",
+ "wechat_nickname": "雅雅",
+ "wechat_icon": "http://thirdwx.qlogo.cn/mmopen/vi_32/d7icwQNo1kjZV3vnvTbTJ1pTP9tMVpRhIt0BeicZKYuoSzpwBY0sknE5QQSrvBLmmmhEhiaIu01EqFy08gsl2fpRA/132"
+ },
+ "to_user_info": [
+ 
+ ],
+ "comment": "好文章1",
+ "thumbs_num": "124",
+ "ctime": "2018-05-15 10:26:09",
+ "list": [
+ */
+-(NSDictionary*)getDic{
+    NSMutableDictionary* dic = [NSMutableDictionary dictionary];
+    [dic setObject:[NSNumber numberWithInteger:200] forKey:@"code"];
+    
+    NSMutableDictionary* user_dic = [NSMutableDictionary dictionary];
+    [user_dic setObject:@"1" forKey:@"id"];
+    [user_dic setObject:@"0" forKey:@"pid"];
+    
+    NSMutableDictionary* myUser_dic = [NSMutableDictionary dictionary];
+    [myUser_dic setObject:@"橙友2755263" forKey:@"user_id"];
+    [myUser_dic setObject:@"橙友2755263" forKey:@"user_name"];
+    [myUser_dic setObject:@"" forKey:@"user_icon"];
+    [myUser_dic setObject:@"雅雅" forKey:@"wechat_nickname"];
+    [myUser_dic setObject:@"http://thirdwx.qlogo.cn/mmopen/vi_32/d7icwQNo1kjZV3vnvTbTJ1pTP9tMVpRhIt0BeicZKYuoSzpwBY0sknE5QQSrvBLmmmhEhiaIu01EqFy08gsl2fpRA/132" forKey:@"wechat_icon"];
+    
+    [user_dic setObject:myUser_dic forKey:@"user_info"];
+    [user_dic setObject:@[] forKey:@"to_user_info"];
+    [user_dic setObject:@"好文章1" forKey:@"comment"];
+    [user_dic setObject:@"124" forKey:@"thumbs_num"];
+    [user_dic setObject:@"2018-05-15 10:26:09" forKey:@"ctime"];
+    
+    NSDictionary* dic_one = [self getReplyById:@"2"
+                                           pid:@"1"
+                                   user_userId:@"xxxxx"
+                                 user_userName:@"橙友8717165"
+                                 user_userIcon:@""
+                               user_wechatName:@"守候"
+                               user_wechatIcon:@"http://thirdwx.qlogo.cn/mmopen/vi_32/EKagrrV6YQUwH2MKmiczK2ZjQDYlJdoGYD9ylz6hIvUNoxX9ukJ5PoV3cAXroKqEiaY6K6UU6zz76E2sLyQlTGkA/132"
+                                 toUser_userId:@"xxxxx"
+                               toUser_userName:@"橙友2755263123"
+                               toUser_userIcon:@""
+                             toUser_wechatName:@"雅雅"
+                             toUser_wechatIcon:@"http://thirdwx.qlogo.cn/mmopen/vi_32/d7icwQNo1kjZV3vnvTbTJ1pTP9tMVpRhIt0BeicZKYuoSzpwBY0sknE5QQSrvBLmmmhEhiaIu01EqFy08gsl2fpRA/132"
+                                       comment:@"你评论得对"
+                                         ctime:@"2018-05-16 10:27:38"];
+    
+    NSDictionary* dic_two = [self getReplyById:@"3"
+                                           pid:@"1"
+                                   user_userId:@"6298_8660072"
+                                 user_userName:@"橙友8717165432"
+                                 user_userIcon:@""
+                               user_wechatName:@"雲朵"
+                               user_wechatIcon:@"http://thirdwx.qlogo.cn/mmopen/vi_32/OM8l68sNXEEclibqrneR9LibTY2z2EibfgHwyv4hogCFMI4eMqibIsRibsy4hjicTE5uAiarV5gL0veHMibDz8q98Jib4Vg/132"
+                                 toUser_userId:@"xxxxx"
+                               toUser_userName:@"橙友8717165"
+                               toUser_userIcon:@""
+                             toUser_wechatName:@"守候"
+                             toUser_wechatIcon:@"http://thirdwx.qlogo.cn/mmopen/vi_32/EKagrrV6YQUwH2MKmiczK2ZjQDYlJdoGYD9ylz6hIvUNoxX9ukJ5PoV3cAXroKqEiaY6K6UU6zz76E2sLyQlTGkA/132"
+                                       comment:@"确实对"
+                                         ctime:@"2018-05-16 10:27:50"];
+    
+    NSDictionary* dic_three = [self getReplyById:@"3"
+                                           pid:@"1"
+                                   user_userId:@"6298_8660072"
+                                 user_userName:@"橙友871716333"
+                                 user_userIcon:@""
+                               user_wechatName:@"雲朵3"
+                               user_wechatIcon:@"http://thirdwx.qlogo.cn/mmopen/vi_32/OM8l68sNXEEclibqrneR9LibTY2z2EibfgHwyv4hogCFMI4eMqibIsRibsy4hjicTE5uAiarV5gL0veHMibDz8q98Jib4Vg/132"
+                                 toUser_userId:@"xxxxx"
+                               toUser_userName:@"橙友8717165"
+                               toUser_userIcon:@""
+                             toUser_wechatName:@"守候3"
+                             toUser_wechatIcon:@"http://thirdwx.qlogo.cn/mmopen/vi_32/EKagrrV6YQUwH2MKmiczK2ZjQDYlJdoGYD9ylz6hIvUNoxX9ukJ5PoV3cAXroKqEiaY6K6UU6zz76E2sLyQlTGkA/132"
+                                       comment:@"确实对"
+                                         ctime:@"2018-05-16 10:27:52"];
+    
+    NSArray* array_one = [NSArray arrayWithObjects:dic_one,dic_two,dic_three, nil];
+    [user_dic setObject:array_one forKey:@"list"];
+    
+    NSMutableDictionary* user_dic_two = [NSMutableDictionary dictionary];
+    [user_dic_two setObject:@"1" forKey:@"id"];
+    [user_dic_two setObject:@"0" forKey:@"pid"];
+    
+    NSMutableDictionary* myUser_dic_two = [NSMutableDictionary dictionary];
+    [myUser_dic_two setObject:@"橙友2755263" forKey:@"user_id"];
+    [myUser_dic_two setObject:@"橙友8717163" forKey:@"user_name"];
+    [myUser_dic_two setObject:@"" forKey:@"user_icon"];
+    [myUser_dic_two setObject:@"123" forKey:@"wechat_nickname"];
+    [myUser_dic_two setObject:@"http://thirdwx.qlogo.cn/mmopen/vi_32/d7icwQNo1kjZV3vnvTbTJ1pTP9tMVpRhIt0BeicZKYuoSzpwBY0sknE5QQSrvBLmmmhEhiaIu01EqFy08gsl2fpRA/132" forKey:@"wechat_icon"];
+    
+    [user_dic_two setObject:myUser_dic_two forKey:@"user_info"];
+    [user_dic_two setObject:@[] forKey:@"to_user_info"];
+    [user_dic_two setObject:@"好文章2" forKey:@"comment"];
+    [user_dic_two setObject:@"120" forKey:@"thumbs_num"];
+    [user_dic_two setObject:@"2018-05-16 15:32:00" forKey:@"ctime"];
+    
+    [user_dic_two setObject:@[] forKey:@"list"];
+    
+    NSArray* array_two = [NSArray arrayWithObjects:user_dic,user_dic_two, nil];
+    [dic setObject:array_two forKey:@"list"];
+    return dic;
+}
 
+-(NSDictionary*)getReplyById:(NSString*)Id pid:(NSString*)pid
+                            user_userId:(NSString*)user_userId
+                            user_userName:(NSString*)user_userName
+                            user_userIcon:(NSString*)user_userIcon
+                            user_wechatName:(NSString*)user_wechatName
+                            user_wechatIcon:(NSString*)user_wechatIcon
+                            toUser_userId:(NSString*)toUser_userId
+                            toUser_userName:(NSString*)toUser_userName
+                            toUser_userIcon:(NSString*)toUser_userIcon
+                            toUser_wechatName:(NSString*)toUser_wechatName
+                            toUser_wechatIcon:(NSString*)toUser_wechatIcon
+                            comment:(NSString*)comment
+                            ctime:(NSString*)ctime{
+                                NSMutableDictionary* dic = [NSMutableDictionary dictionary];
+                                
+                                [dic setObject:Id forKey:@"id"];
+                                [dic setObject:pid forKey:@"pid"];
+                                
+                                NSMutableDictionary* myUser_dic = [NSMutableDictionary dictionary];
+                                [myUser_dic setObject:user_userId forKey:@"user_id"];
+                                [myUser_dic setObject:user_userName forKey:@"user_name"];
+                                [myUser_dic setObject:user_userId forKey:@"user_icon"];
+                                [myUser_dic setObject:user_wechatName forKey:@"wechat_nickname"];
+                                [myUser_dic setObject:user_wechatIcon forKey:@"wechat_icon"];
+                                
+                                NSMutableDictionary* User_dic = [NSMutableDictionary dictionary];
+                                [User_dic setObject:toUser_userId forKey:@"user_info"];
+                                [User_dic setObject:toUser_userName forKey:@"user_name"];
+                                [User_dic setObject:toUser_userIcon forKey:@"user_icon"];
+                                [User_dic setObject:toUser_wechatName forKey:@"wechat_nickname"];
+                                [User_dic setObject:toUser_wechatIcon forKey:@"wechat_icon"];
+                                
+                                [dic setObject:myUser_dic forKey:@"user_info"];
+                                [dic setObject:User_dic forKey:@"to_user_info"];
+                                
+                                [dic setObject:comment forKey:@"comment"];
+                                [dic setObject:ctime forKey:@"ctime"];
+                                return dic;
+}
 
 /*
 #pragma mark - Navigation

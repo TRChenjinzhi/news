@@ -34,6 +34,7 @@
     UIView*             m_tabbar_view;
     UIView*             m_section_headerView;
     BOOL                isShoucang;
+    BadgeButton*        m_messageBtn;
     
     CGRect                m_playview_rect;
     
@@ -62,12 +63,20 @@
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillHide:) name:UIKeyboardWillHideNotification object:nil];
     //热点
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(layoutControllerSubViews:) name:UIApplicationDidChangeStatusBarFrameNotification object:nil];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(share_sucess) name:@"视频分享成功" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(share_failed) name:@"视频分享失败" object:nil];
     //热点变化
     CGRect tabbarview_frame = m_tabbar_view.frame;
     if(STATUS_BAR_BIGGER_THAN_20){
         tabbarview_frame = CGRectMake(tabbarview_frame.origin.x, tabbarview_frame.origin.y-20, tabbarview_frame.size.width, tabbarview_frame.size.height);
     }
     m_tabbar_view.frame = tabbarview_frame;
+    
+    
+    if(self.m_playerView.player == nil){
+        [self initPlayer];
+    }
 
 }
 -(void)viewDidDisappear:(BOOL)animated{
@@ -77,13 +86,13 @@
     [self.m_playerView initAll];
 }
 
+-(void)dealloc{
+    NSLog(@"视频详情页dealloc");
+}
+
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
-}
-
--(void)dealloc{
-    NSLog(@"Video_detail_ViewController  dealloc");
 }
 
 -(void)initUI{
@@ -103,7 +112,7 @@
     self.m_playerView.model = self.model;
     [self.m_playerView.fullScreenButton addTarget:self action:@selector(fullBtnAction) forControlEvents:UIControlEventTouchUpInside];
     [self.m_playerView.back addTarget:self action:@selector(back) forControlEvents:UIControlEventTouchUpInside];
-    [self.m_playerView.back setHidden:NO];
+    self.m_playerView.back.alpha = 0.0f;
     [self.m_playerView.m_topView setHidden:YES];//隐私视频上的title
     [self.view addSubview:self.m_playerView];
     [self.m_playerView playAction];
@@ -141,11 +150,11 @@
     
     BadgeButton* messge_button = [[BadgeButton alloc] init];
     messge_button.frame = CGRectMake(CGRectGetMinX(shoucang_button.frame)-22-30, 9, 30, 30);
-    [messge_button setImage:[UIImage imageNamed:@"ic_comment"] forState:UIControlStateNormal];
+    UIImage* img = [UIImage imageNamed:@"ic_comment"];
+    [messge_button setImage:img forState:UIControlStateNormal];
     [messge_button addTarget:self action:@selector(Message) forControlEvents:UIControlEventTouchUpInside];
     [messge_button setCount:0];
     [view addSubview:messge_button];
-//    m_badgeButton = messge_button;
     
     UIButton* text_button = [[UIButton alloc] initWithFrame:CGRectMake(16, 9, CGRectGetMinX(messge_button.frame)-20-16, 32)];
     [text_button.layer setCornerRadius:16];
@@ -161,7 +170,7 @@
 }
 
 -(void)initTableView{
-    self.m_talbeView = [[UITableView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(self.m_playerView.frame), SCREEN_WIDTH, SCREEN_HEIGHT-CGRectGetMaxY(self.m_playerView.frame)-_m_talbeView.frame.size.height) style:UITableViewStyleGrouped];
+    self.m_talbeView = [[UITableView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(self.m_playerView.frame), SCREEN_WIDTH, SCREEN_HEIGHT-CGRectGetMaxY(self.m_playerView.frame)-m_tabbar_view.frame.size.height) style:UITableViewStyleGrouped];
     self.m_talbeView.separatorStyle = UITableViewCellSeparatorStyleNone;
     self.m_talbeView.delegate = self;
     self.m_talbeView.dataSource = self;
@@ -244,43 +253,45 @@
     [self.m_headerView addSubview:playerInfo];
     self.m_headerView.frame = CGRectMake(0, 0, SCREEN_WIDTH, playerInfo.frame.size.height);
     
+    IMP_BLOCK_SELF(Video_detail_ViewController)
     [InternetHelp Video_detail_tuijian_channelID:self.model.channel Sucess:^(NSDictionary *dic) {
+//        NSLog(@"duc-->%@",dic);
         NSArray* array = [video_info_model dicToArray:dic];
-        self.m_tuijian_TVC = [Video_detail_tuijian_TableViewController new];
-        self.m_tuijian_TVC.array_model = array;
-        self.m_tuijian_TVC.delegate = self;
+        block_self.m_tuijian_TVC = [Video_detail_tuijian_TableViewController new];
+        block_self.m_tuijian_TVC.array_model = array;
+        block_self.m_tuijian_TVC.delegate = block_self;
         
-        UIView* view_tmp = [[UIView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(self.m_headerView.frame), SCREEN_WIDTH, 35+array.count*kWidth(104)+kWidth(46))];
-        [view_tmp addSubview:self.m_tuijian_TVC.tableView];
-        self.m_headerView.clipsToBounds = YES;
-        [self.m_headerView addSubview:view_tmp];
-        self.m_headerView.frame = CGRectMake(0, 0, SCREEN_WIDTH, self.m_headerView.frame.size.height+view_tmp.frame.size.height);
-        [self.m_talbeView reloadData];
+        UIView* view_tmp = [[UIView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(block_self.m_headerView.frame), SCREEN_WIDTH, 35+array.count*kWidth(104)+kWidth(62))];
+        [view_tmp addSubview:block_self.m_tuijian_TVC.tableView];
+        block_self.m_headerView.clipsToBounds = YES;
+        [block_self.m_headerView addSubview:view_tmp];
+        block_self.m_headerView.frame = CGRectMake(0, 0, SCREEN_WIDTH, block_self.m_headerView.frame.size.height+view_tmp.frame.size.height);
+        [block_self.m_talbeView reloadData];
     } Fail:^(NSDictionary *dic) {
         if(dic == nil){
-            [MyMBProgressHUD ShowMessage:@"网络错误" ToView:self.view AndTime:1];
+            [MyMBProgressHUD ShowMessage:@"网络错误" ToView:block_self.view AndTime:1];
         }else{
-            [MyMBProgressHUD ShowMessage:dic[@"msg"] ToView:self.view AndTime:1];
+            [MyMBProgressHUD ShowMessage:dic[@"msg"] ToView:block_self.view AndTime:1];
         }
     }];
     
 }
 
 -(void)setSectionHeaderView{
-    UIView* reply_view = [[UIView alloc] initWithFrame:CGRectMake(0, 0, SCREEN_WIDTH, 62)];
+    UIView* reply_view = [[UIView alloc] initWithFrame:CGRectMake(0, 0, SCREEN_WIDTH, kWidth(62))];
     reply_view.backgroundColor = [UIColor whiteColor];
     
-    UIView* line = [[UIView alloc] initWithFrame:CGRectMake(0, 0, SCREEN_WIDTH, 10)];
+    UIView* line = [[UIView alloc] initWithFrame:CGRectMake(0, 0, SCREEN_WIDTH, kWidth(10))];
     line.backgroundColor = [UIColor colorWithRed:242/255.0 green:242/255.0 blue:242/255.0 alpha:1/1.0];
     [reply_view addSubview:line];
     
-    UILabel* label = [[UILabel alloc] initWithFrame:CGRectMake(28, 25, 150, 18)];
-    label.font = [UIFont fontWithName:@"SourceHanSansCN-Regular" size:18];
+    UILabel* label = [[UILabel alloc] initWithFrame:CGRectMake(kWidth(28), kWidth(25), kWidth(150), kWidth(18))];
+    label.font = kFONT(18);
     label.text = @"热门评论";
     label.textColor = [UIColor colorWithRed:122/255.0 green:125/255.0 blue:125/255.0 alpha:1/1.0];
     [reply_view addSubview:label];
     
-    UIView* yellow = [[UIView alloc] initWithFrame:CGRectMake(16, 24, 4, 20)];
+    UIView* yellow = [[UIView alloc] initWithFrame:CGRectMake(kWidth(16), kWidth(24), kWidth(4), kWidth(20))];
     yellow.backgroundColor = [UIColor colorWithRed:248/255.0 green:205/255.0 blue:4/255.0 alpha:1/1.0];
     [reply_view addSubview:yellow];
     
@@ -489,6 +500,7 @@
         
     } completion:^(BOOL finished) {
         [self.statusBar setHidden:YES];
+        [self.m_playerView.m_topView setHidden:NO];
         [self.m_playerView.back removeTarget:self action:@selector(back) forControlEvents:UIControlEventTouchUpInside];
         [self.m_playerView.back addTarget:self action:@selector(ToCell) forControlEvents:UIControlEventTouchUpInside];
     }];
@@ -498,19 +510,21 @@
     /*
      * 执行动画
      */
+    IMP_BLOCK_SELF(Video_detail_ViewController)
     [UIView animateWithDuration:0.5 animations:^{
         
-        self.m_playerView.transform = CGAffineTransformIdentity;
-        self.m_playerView.frame = CGRectMake(0, StaTusHight, SCREEN_WIDTH, kWidth(202));
-        self.m_playerView.playerLayer.frame = self.m_playerView.bounds;
+        block_self.m_playerView.transform = CGAffineTransformIdentity;
+        block_self.m_playerView.frame = CGRectMake(0, StaTusHight, SCREEN_WIDTH, kWidth(202));
+        block_self.m_playerView.playerLayer.frame = block_self.m_playerView.bounds;
         //        NSLog(@"bounds.x=%f----bounds.y=%f",self.m_fullScreen_imgView.bounds.size.width,self.m_fullScreen_imgView.bounds.size.height);
-        [self.view addSubview:self.m_playerView];
+        [block_self.view addSubview:block_self.m_playerView];
         //        [self.m_fullScreen_imgView.m_imgView.layer insertSublayer:self.m_fullScreen_imgView.playerLayer atIndex:0];
         
     } completion:^(BOOL finished) {
-        [self.statusBar setHidden:NO];
-        [self.m_playerView.back removeTarget:self action:@selector(ToCell) forControlEvents:UIControlEventTouchUpInside];
-        [self.m_playerView.back addTarget:self action:@selector(back) forControlEvents:UIControlEventTouchUpInside];
+        [self.m_playerView.m_topView setHidden:YES];
+        [block_self.statusBar setHidden:NO];
+        [block_self.m_playerView.back removeTarget:block_self action:@selector(ToCell) forControlEvents:UIControlEventTouchUpInside];
+        [block_self.m_playerView.back addTarget:block_self action:@selector(back) forControlEvents:UIControlEventTouchUpInside];
     }];
 }
 
@@ -542,21 +556,23 @@
         _transformY = height-_currentKeyboardH;
         _currentKeyboardH = height;
         //移动
+        IMP_BLOCK_SELF(Video_detail_ViewController)
         [UIView animateWithDuration:0.25f animations:^{
-            CGRect frame = self.inputReply.frame;
+            CGRect frame = block_self.inputReply.frame;
             frame.origin.y -= _transformY;
-            self.inputReply.frame = frame;
+            block_self.inputReply.frame = frame;
         }];
     }
 }
 
 -(void)keyboardWillHide:(NSNotification *)aNSNotification{
     /* 输入框下移 */
+    IMP_BLOCK_SELF(Video_detail_ViewController)
     [UIView animateWithDuration:0.25f animations:^ {
         
-        CGRect frame = self.inputReply.frame;
+        CGRect frame = block_self.inputReply.frame;
         frame.origin.y = 0;
-        self.inputReply.frame = frame;
+        block_self.inputReply.frame = frame;
     }];
     //记得再收键盘后 初始化键盘参数
     _transformY = 0;
@@ -650,10 +666,11 @@
             
             UIAlertController* alert_VC = [UIAlertController alertControllerWithTitle:@"提示" message:[NSString stringWithFormat:@"不能超过%ld个字符",MaxLenth] preferredStyle:UIAlertControllerStyleAlert];
             //弹出视图,使用UIViewController的方法
+            IMP_BLOCK_SELF(Video_detail_ViewController)
             [self presentViewController:alert_VC animated:YES completion:^{
                 
                 //隔一会就消失
-                [self dismissViewControllerAnimated:YES completion:^{
+                [block_self dismissViewControllerAnimated:YES completion:^{
                     
                 }];
             }];
@@ -678,8 +695,9 @@
     }
     if(![[MyDataBase shareManager] IsGetIncomeNews:model.ID]){//防止重复 阅读奖励
         NSString* task_id = [Md5Helper Video_taskId:[Login_info share].userInfo_model.user_id AndVideoId:model.ID];
+        IMP_BLOCK_SELF(Video_detail_ViewController)
         [InternetHelp SendTaskId:task_id AndType:Task_video Sucess:^(NSInteger type, NSDictionary *dic) {
-            [RewardHelper ShowReward:type AndSelf:self AndCoin:dic[@"list"][@"reward_coin"]];
+            [RewardHelper ShowReward:type AndSelf:block_self AndCoin:dic[@"list"][@"reward_coin"]];
             [[MyDataBase shareManager] AddGetIncomeNews:model.ID]; //将视频id存储起来 防止重复
         } Fail:^(NSDictionary *dic) {
             NSLog(@"视频上传失败");
@@ -792,6 +810,17 @@
     [self.navigationController pushViewController:vc animated:YES];
 }
 
+#pragma mark -  通知
+-(void)share_sucess{
+    [MyMBProgressHUD ShowMessage:@"分享成功" ToView:self.view AndTime:1.0f];
+    [self initPlayer];
+}
+
+-(void)share_failed{
+    [MyMBProgressHUD ShowMessage:@"分享失败" ToView:self.view AndTime:1.0f];
+    [self initPlayer];
+}
+
 #pragma mark - API
 -(void)CollectedAction:(NSInteger)action{
     //http://39.104.13.61:8090/api/collect?json={"user_id":"YangYiTestNumber1713841009","news_id":"120","action":1}
@@ -884,7 +913,7 @@
         dispatch_async(dispatch_get_main_queue(), ^{
             
             
-            if(error){
+            if(error || data == nil){
                 NSLog(@"网络获取失败");
                 //发送失败消息
                 [block_self.m_talbeView.footer endRefreshing];
@@ -906,23 +935,23 @@
             
             if(type == 0){//头次加载
                 _reply_array = dataarray;
-                [self.m_talbeView reloadData];
+                [block_self.m_talbeView reloadData];
                 if(_reply_array.count != 0){
                     m_page += 1;
                 }
                 
-                [self.m_talbeView.footer endRefreshing];
-                [self.m_talbeView.footer setHidden:YES];
+                [block_self.m_talbeView.footer endRefreshing];
+                [block_self.m_talbeView.footer setHidden:YES];
             }else{
                 [statusArray addObjectsFromArray:_reply_array];
                 [statusArray addObjectsFromArray:dataarray];
                 if(dataarray.count == 0){
-                    [self.m_talbeView.footer noticeNoMoreData]; //之后不要添加 endRefreshing
+                    [block_self.m_talbeView.footer noticeNoMoreData]; //之后不要添加 endRefreshing
                 }else{
                     m_page += 1;
                     _reply_array = statusArray;
-                    [self.m_talbeView reloadData];
-                    [self.m_talbeView.footer endRefreshing];
+                    [block_self.m_talbeView reloadData];
+                    [block_self.m_talbeView.footer endRefreshing];
                 }
             }
             
@@ -934,89 +963,96 @@
 }
 
 -(void)SendReply:(NSString*)str_comment{
-    // 1.创建一个网络路径
-    NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://younews.3gshow.cn/api/comment"]];
-    // 2.创建一个网络请求，分别设置请求方法、请求参数
-    NSMutableURLRequest *request =[NSMutableURLRequest requestWithURL:url];
-    request.HTTPMethod = @"POST";
-    NSString *args = @"json=";
-    NSString* argument = @"";
-    //    argument = [argument stringByAppendingString:[NSString stringWithFormat:@"\"%@\":\"%@\"",@"user_id",[[Login_info share] GetUserInfo].user_id]];
-    //    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"news_id",self.CJZ_model.ID]];
-    //    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"comment",str_comment]];
-    //    argument = [argument stringByAppendingString:@"}"];
-    NSMutableDictionary* dic = [[NSMutableDictionary alloc] init]; //用json传值 ：\n 加密就不会去掉换行符
-    [dic setValue:[[Login_info share] GetUserInfo].user_id forKey:@"user_id"];
-    [dic setValue:self.model.ID forKey:@"news_id"];
-    [dic setValue:str_comment forKey:@"comment"];
-    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:dic options:0 error:NULL];
-    NSString* str_tmp = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-    argument = [MyEntrypt MakeEntryption:str_tmp];
-    args = [args stringByAppendingString:[NSString stringWithFormat:@"%@",argument]];
-    request.HTTPBody = [args dataUsingEncoding:NSUTF8StringEncoding];
-    // 3.获得会话对象
-    NSURLSession *session = [NSURLSession sharedSession];
-    // 4.根据会话对象，创建一个Task任务
-    IMP_BLOCK_SELF(Video_detail_ViewController);
-    NSURLSessionDataTask *sessionDataTask = [session dataTaskWithRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
-        
-        dispatch_async(dispatch_get_main_queue(), ^{
-            
-            
-            if(error){
-                NSLog(@"网络获取失败");
-                //发送失败消息
-                [block_self.m_talbeView.footer endRefreshing];
-                return ;
-            }
-            //提示信息
-            Tips_ViewController* tip_vc = [[Tips_ViewController alloc] init];
-            tip_vc.view.frame = CGRectMake(0, SCREEN_HEIGHT/2-50/2, SCREEN_WIDTH, 50);
-            //            tip_vc.view.backgroundColor = [UIColor grayColor];
-            
-            
-            NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:data options:(NSJSONReadingMutableLeaves) error:nil];
-            NSNumber* code = dict[@"code"];
-            if([code integerValue] == 200){
-                //                [[AlertHelper Share] ShowMe:self And:0.8 And:@"评论成功"];
-                NSDictionary* dic_tmp = dict[@"list"];
-                reply_model* model = [[reply_model alloc] init];
-                model.ID = dic_tmp[@"id"];
-                model.user_name = [Login_info share].userInfo_model.name;
-                model.user_icon = [Login_info share].userInfo_model.avatar;
-                model.comment = dic_tmp[@"comment"];
-                model.thumbs_num = @"0";
-                NSNumber* number = dic_tmp[@"ctime"];
-                model.ctime = [NSString stringWithFormat:@"%ld",[number integerValue]];
-                
-                NSMutableArray* array_tmp = [NSMutableArray arrayWithArray:_reply_array];
-                [array_tmp insertObject:model atIndex:0];
-                _reply_array = array_tmp;
-                [self.m_talbeView reloadData];
-                
-                //                [MBProgressHUD showSuccess:@"评论成功"];
-                //                [self GetReplyComment:0];//重新加载评论
-                tip_vc.message = [NSString stringWithFormat:@"评论成功"];
-                
-            }else{
-                //                [[AlertHelper Share] ShowMe:self And:0.8 And:@"评论失败"];
-                //                [MBProgressHUD showError:@"评论失败"];
-                tip_vc.message = [NSString stringWithFormat:@"评论失败"];
-            }
-            
-            
-            [block_self.view addSubview:tip_vc.view];
-            [UIView animateWithDuration:1.0f delay:0 options:UIViewAnimationOptionBeginFromCurrentState animations:^{
-                tip_vc.view.alpha = 0.0;
-            } completion:^(BOOL finished) {
-                [tip_vc.view removeFromSuperview];
-            }];
-            
-        });
-        
+//    // 1.创建一个网络路径
+//    NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://younews.3gshow.cn/api/comment"]];
+//    // 2.创建一个网络请求，分别设置请求方法、请求参数
+//    NSMutableURLRequest *request =[NSMutableURLRequest requestWithURL:url];
+//    request.HTTPMethod = @"POST";
+//    NSString *args = @"json=";
+//    NSString* argument = @"";
+//    //    argument = [argument stringByAppendingString:[NSString stringWithFormat:@"\"%@\":\"%@\"",@"user_id",[[Login_info share] GetUserInfo].user_id]];
+//    //    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"news_id",self.CJZ_model.ID]];
+//    //    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"comment",str_comment]];
+//    //    argument = [argument stringByAppendingString:@"}"];
+//    NSMutableDictionary* dic = [[NSMutableDictionary alloc] init]; //用json传值 ：\n 加密就不会去掉换行符
+//    [dic setValue:[[Login_info share] GetUserInfo].user_id forKey:@"user_id"];
+//    [dic setValue:self.model.ID forKey:@"news_id"];
+//    [dic setValue:str_comment forKey:@"comment"];
+//    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:dic options:0 error:NULL];
+//    NSString* str_tmp = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+//    argument = [MyEntrypt MakeEntryption:str_tmp];
+//    args = [args stringByAppendingString:[NSString stringWithFormat:@"%@",argument]];
+//    request.HTTPBody = [args dataUsingEncoding:NSUTF8StringEncoding];
+//    // 3.获得会话对象
+//    NSURLSession *session = [NSURLSession sharedSession];
+//    // 4.根据会话对象，创建一个Task任务
+//    IMP_BLOCK_SELF(Video_detail_ViewController);
+//    NSURLSessionDataTask *sessionDataTask = [session dataTaskWithRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
+//        
+//        dispatch_async(dispatch_get_main_queue(), ^{
+//            
+//            
+//            if(error){
+//                NSLog(@"网络获取失败");
+//                //发送失败消息
+//                [block_self.m_talbeView.footer endRefreshing];
+//                return ;
+//            }
+//            //提示信息
+//            Tips_ViewController* tip_vc = [[Tips_ViewController alloc] init];
+//            tip_vc.view.frame = CGRectMake(0, SCREEN_HEIGHT/2-50/2, SCREEN_WIDTH, 50);
+//            //            tip_vc.view.backgroundColor = [UIColor grayColor];
+//            
+//            
+//            NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:data options:(NSJSONReadingMutableLeaves) error:nil];
+//            NSNumber* code = dict[@"code"];
+//            if([code integerValue] == 200){
+//                //                [[AlertHelper Share] ShowMe:self And:0.8 And:@"评论成功"];
+//                NSDictionary* dic_tmp = dict[@"list"];
+//                reply_model* model = [[reply_model alloc] init];
+//                model.ID = dic_tmp[@"id"];
+//                model.myUserModel.user_name = [Login_info share].userInfo_model.name;
+//                model.myUserModel.user_icon = [Login_info share].userInfo_model.avatar;
+//                model.comment = dic_tmp[@"comment"];
+//                model.thumbs_num = @"0";
+//                NSNumber* number = dic_tmp[@"ctime"];
+//                model.ctime = [NSString stringWithFormat:@"%ld",[number integerValue]];
+//                
+//                NSMutableArray* array_tmp = [NSMutableArray arrayWithArray:_reply_array];
+//                [array_tmp insertObject:model atIndex:0];
+//                _reply_array = array_tmp;
+//                [block_self.m_talbeView reloadData];
+//                
+//                //                [MBProgressHUD showSuccess:@"评论成功"];
+//                //                [self GetReplyComment:0];//重新加载评论
+//                tip_vc.message = [NSString stringWithFormat:@"评论成功"];
+//                
+//            }else{
+//                //                [[AlertHelper Share] ShowMe:self And:0.8 And:@"评论失败"];
+//                //                [MBProgressHUD showError:@"评论失败"];
+//                tip_vc.message = [NSString stringWithFormat:@"评论失败"];
+//            }
+//            
+//            
+//            [block_self.view addSubview:tip_vc.view];
+//            [UIView animateWithDuration:1.0f delay:0 options:UIViewAnimationOptionBeginFromCurrentState animations:^{
+//                tip_vc.view.alpha = 0.0;
+//            } completion:^(BOOL finished) {
+//                [tip_vc.view removeFromSuperview];
+//            }];
+//            
+//        });
+//        
+//    }];
+//    //5.最后一步，执行任务，(resume也是继续执行)。
+//    [sessionDataTask resume];
+    
+    [InternetHelp replyToServer_test:[Login_info share].userInfo_model.user_id andNewsId:self.model.ID AndComment:str_comment Sucess:^(NSDictionary *dic) {
+        [MyMBProgressHUD ShowMessage:@"评论成功" ToView:self.view AndTime:1.0f];
+        [self GetReplyComment:0];
+    } Fail:^(NSDictionary *dic) {
+        [MyMBProgressHUD ShowMessage:@"网络失败" ToView:self.view AndTime:1.0f];
     }];
-    //5.最后一步，执行任务，(resume也是继续执行)。
-    [sessionDataTask resume];
 }
 
 @end

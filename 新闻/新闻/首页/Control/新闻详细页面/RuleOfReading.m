@@ -32,10 +32,10 @@
                 self.timer = [NSTimer scheduledTimerWithTimeInterval:1.0f target:self selector:@selector(repeatShowTime) userInfo:nil repeats:YES];
             }
             else{
-                NSLog(@"time_count-->%ld",time_count);
+//                NSLog(@"time_count-->%ld",time_count);
                 if(time_count >= 2 + (headerSize.height/SCREEN_HEIGHT)){
                     if(scrollview.contentOffset.y + tableview.frame.size.height + 10 > headerSize.height){
-                        if(count >= 5){ //滑动5次
+                        if(count >= 2+(headerSize.height/SCREEN_HEIGHT)){ //最低2次，动态滑动次数
                             if(isReadAll){ //点击全文阅读
                                 isOver = YES;
                                 [Task_DetailWeb_model share].isOver = YES;
@@ -49,7 +49,7 @@
             }
     
     
-    if(count<7 && count >= 0){
+    if(count<100 && count >= 0){
         count++;
     }
             

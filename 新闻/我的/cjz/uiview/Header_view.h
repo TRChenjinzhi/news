@@ -27,11 +27,15 @@
 @property (nonatomic,strong)UIView* package_click_view;//钱包点击层
 @property (nonatomic,strong)UIView* apprentice_click_view;//收徒点击层
 
+@property (nonatomic,strong)BannerView* bannerView;
+
 @property (nonatomic,strong)UIImageView*            m_guanggao_img;
 @property (nonatomic,strong)UIView*                 m_guanggao_clickView;
 @property (nonatomic,strong)UITapGestureRecognizer* m_tap_gold;
 @property (nonatomic,strong)UITapGestureRecognizer* m_tap_moneyPackage;
 @property (nonatomic,strong)UITapGestureRecognizer* m_tap_apprentice;
 @property (nonatomic,strong)UITapGestureRecognizer* m_tap_guanggao;
+
+-(void)bannerView_bengain;
 
 @end

@@ -191,6 +191,95 @@ static id _instance;
     return nil;
 }
 
++(NSString *)showTime_reply:(NSString *)newsTime{
+    if([NullNilHelper dx_isNullOrNilWithObject:newsTime]){
+        return @"";
+    }
+    // 时间字符串
+    TimeHelper* timeHelper = [[TimeHelper alloc] init];
+    NSString *str_news = newsTime;
+    NSString* str_now = [timeHelper getCurrentTime];
+    
+    // 1.创建一个时间格式化对象
+    NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
+    
+    // 2.格式化对象的样式/z大小写都行/格式必须严格和字符串时间一样
+    formatter.dateFormat = @"yyyy-MM-dd HH:mm:ss";
+    
+    // 3.字符串转换成时间/自动转换0时区/东加西减
+    NSDate *news_date = [formatter dateFromString:str_news];
+    NSDate *now_date = [formatter dateFromString:str_now];
+    
+    NSInteger year_news = [timeHelper GetYear:news_date];
+    NSInteger year_now = [timeHelper GetYear:now_date];
+    NSInteger month_news = [timeHelper GetMonth:news_date];
+    NSInteger month_now = [timeHelper GetMonth:now_date];
+    NSInteger day_news = [timeHelper GetDay:news_date];
+    NSInteger day_now = [timeHelper GetDay:now_date];
+    NSInteger hour_news = [timeHelper GetHour:news_date];
+    NSInteger hour_now = [timeHelper GetHour:now_date];
+    NSInteger min_news = [timeHelper GetMin:news_date];
+    NSInteger min_now = [timeHelper GetMin:now_date];
+    //    NSLog(@"year:%ld,month:%ld,day:%ld,hour:%ld,min:%ld",year_now,month_now,day_now,hour_now,min_now);
+    //年
+    if(year_now > year_news){
+        // 1.创建一个时间格式化对象
+        NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
+        
+        // 2.设置时间格式化对象的样式
+        formatter.dateFormat = @"yyyy-MM-dd HH:mm:ss";
+        
+        NSString* time = [formatter stringFromDate:news_date];
+        return time;
+    }
+    //月
+    if(month_now - month_news > 0){
+        NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
+        formatter.dateFormat = @"MM-dd HH:mm:ss";
+        NSString* time = @"";
+        time = [time stringByAppendingString:[formatter stringFromDate:news_date]];
+        return time;
+    }
+    //日
+    if(day_now-day_news == 0){//今天
+        //小时
+        if(hour_now - hour_news == 0){//一个小时内
+            //分
+            if(min_now - min_news >= 3){
+                NSInteger min_count = min_now - min_news;
+                return [NSString stringWithFormat:@"%ld分钟前",min_count];
+            }else{//3分钟内
+                return @"刚刚";
+            }
+        }else if(hour_now - hour_news > 0){//多个小时
+            NSInteger hour_count = hour_now - hour_news;
+            return [NSString stringWithFormat:@"%ld小时前",hour_count];
+        }
+        
+    }
+    else if(day_now - day_news == 1){//昨天
+        NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
+        formatter.dateFormat = @"HH:mm:ss";
+        NSString* time = @"昨天 ";
+        time = [time stringByAppendingString:[formatter stringFromDate:news_date]];
+        return time;
+    }
+    else{//今年
+        NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
+        formatter.dateFormat = @"MM-dd HH:mm:ss";
+        NSString* time = @"";
+        time = [time stringByAppendingString:[formatter stringFromDate:news_date]];
+        return time;
+    }
+    
+    //    // 4.获取了时间元素
+    //    NSDateComponents *cmps = [calendar components:type fromDate:date toDate:now options:0];
+    //
+    //    NSLog(@"%ld年%ld月%ld日%ld小时%ld分钟%ld秒钟", cmps.year, cmps.month, cmps.day, cmps.hour, cmps.minute, cmps.second);
+    
+    return nil;
+}
+
 //string转换时间
 -(NSString*)GetDateFromString_yyMMDD_HHMMSS:(NSString*)str_time{
     NSTimeInterval interval=[str_time doubleValue];

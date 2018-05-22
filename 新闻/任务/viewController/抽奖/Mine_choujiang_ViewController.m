@@ -12,7 +12,7 @@
 @interface Mine_choujiang_ViewController ()<WKUIDelegate,WKNavigationDelegate>
 
 @property (nonatomic,strong)UIProgressView* progressView;
-
+@property (nonatomic,strong)NSTimer*    timer;
 @end
 
 @implementation Mine_choujiang_ViewController{
@@ -22,6 +22,8 @@
     choujiang_model*    m_choujiang_model;
     BOOL                m_choujiang_isDone;
     UIView*             m_tipsWin_view;
+    NSInteger           m_time_count;
+    BOOL                m_isGuanggao_url; //是否是广告界面
 }
 
 static int UrlIndex = 0;//顺序使用url
@@ -30,6 +32,7 @@ static int UrlIndex = 0;//顺序使用url
     [super viewDidLoad];
     self.view.backgroundColor = [UIColor whiteColor];
     // Do any additional setup after loading the view.
+    m_time_count = 0;
     [self showTipsWin];
     [self initNavi];
     [self initWeb];
@@ -39,8 +42,10 @@ static int UrlIndex = 0;//顺序使用url
 -(void)viewWillDisappear:(BOOL)animated{
     [super viewWillDisappear:animated];
     if(m_choujiang_model != nil){
-        NSString* taskId = [Md5Helper Choujiang_taskId:[Login_info share].userInfo_model.user_id AndUrl:m_choujiang_model.url];
-        [self.delegate choujiang_result:m_choujiang_isDone AndTaskId:taskId];
+        if(m_choujiang_isDone){
+            NSString* taskId = [Md5Helper Choujiang_taskId:[Login_info share].userInfo_model.user_id AndUrl:m_choujiang_model.url];
+            [self.delegate choujiang_result:m_choujiang_isDone AndTaskId:taskId];
+        }
     }
 }
 
@@ -163,7 +168,8 @@ static int UrlIndex = 0;//顺序使用url
 -(void)initWeb{
     //进度条初始化
     self.progressView = [[UIProgressView alloc] initWithFrame:CGRectMake(0, 20, [[UIScreen mainScreen] bounds].size.width, 2)];
-    self.progressView.backgroundColor = [UIColor blueColor];
+    self.progressView.progressTintColor = RGBA(248, 205, 4, 1);
+    self.progressView.trackTintColor = [UIColor whiteColor];
     //设置进度条的高度，下面这句代码表示进度条的宽度变为原来的1倍，高度变为原来的1.5倍.
     self.progressView.transform = CGAffineTransformMakeScale(1.0f, 1.5f);
     [m_navibar_view addSubview:self.progressView];
@@ -233,7 +239,11 @@ static int UrlIndex = 0;//顺序使用url
     NSRange range = [url_now rangeOfString:m_choujiang_model.keyword];
     if (range.location != NSNotFound) {
         NSLog(@"抽奖完成");
-        m_choujiang_isDone = YES;
+        m_isGuanggao_url = YES;
+        
+    }
+    else{
+        NSLog(@"匹配失败");
     }
     
 //    return YES;
@@ -242,6 +252,19 @@ static int UrlIndex = 0;//顺序使用url
     decisionHandler(WKNavigationResponsePolicyAllow);
     //不允许跳转
     //decisionHandler(WKNavigationResponsePolicyCancel);
+}
+
+-(void)repeatShowTime{
+    
+    if(m_time_count == 3 ){
+        m_choujiang_isDone = YES;
+        [self.timer invalidate];
+        NSLog(@"抽奖奖励 完成");
+    }
+    else{
+        m_time_count++;
+    }
+    
 }
 
 //开始加载
@@ -260,6 +283,10 @@ static int UrlIndex = 0;//顺序使用url
     NSLog(@"加载完成");
     //加载完成后隐藏progressView
     self.progressView.hidden = YES;
+    
+    if(m_isGuanggao_url){
+        self.timer = [NSTimer scheduledTimerWithTimeInterval:1.0f target:self selector:@selector(repeatShowTime) userInfo:nil repeats:YES];
+    }
 }
 
 //加载失败
@@ -268,6 +295,10 @@ static int UrlIndex = 0;//顺序使用url
     //加载失败同样需要隐藏progressView
     self.progressView.hidden = YES;
     [MBProgressHUD showError:@"加载失败!"];
+    
+    if(m_isGuanggao_url){
+        m_choujiang_isDone = NO;
+    }
 }
 
 #pragma mark - 按钮方法

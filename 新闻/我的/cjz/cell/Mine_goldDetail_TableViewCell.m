@@ -48,7 +48,7 @@
     
     //count
     UILabel* count = [[UILabel alloc] initWithFrame:CGRectMake(SCREEN_WIDTH-16-50, 16, 50, 16)];
-    count.textColor = [UIColor colorWithRed:251/255.0 green:84/255.0 blue:38/255.0 alpha:1/1.0];
+    count.textColor = [UIColor colorWithRed:255/255.0 green:129/255.0 blue:3/255.0 alpha:1/1.0];
     count.textAlignment = NSTextAlignmentRight;
     count.font = [UIFont boldSystemFontOfSize:12];
     count.text = [NSString stringWithFormat:@"%.2f",m_cell_model.count];

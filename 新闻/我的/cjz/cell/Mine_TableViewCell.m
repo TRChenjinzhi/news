@@ -83,14 +83,14 @@
     if(!m_subTitle){
         m_subTitle = [UILabel new];
         m_subTitle.textAlignment = NSTextAlignmentRight;
-        m_subTitle.font = kFONT(14);
-        m_subTitle.textColor = RGBA(251, 84, 38, 1);
+        m_subTitle.font = kFONT(12);
+        m_subTitle.textColor = RGBA(253, 8, 31, 1);
         m_subTitle.text = @"测试";
         [self addSubview:m_subTitle];
         [m_subTitle mas_makeConstraints:^(MASConstraintMaker *make) {
             make.right.equalTo(jiantou.mas_left).with.offset(-kWidth(0));
             make.centerY.equalTo(self.mas_centerY);
-            make.height.mas_offset(kWidth(14));
+            make.height.mas_offset(kWidth(12));
         }];
     }
     

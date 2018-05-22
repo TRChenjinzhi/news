@@ -129,12 +129,12 @@
 
 -(void)initHeaderView{
     m_headerView = [[UIView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(m_navibar_view.frame), SCREEN_WIDTH, kWidth(148))];
-    m_headerView.backgroundColor = RGBA(248, 205, 4, 1);
+    m_headerView.backgroundColor = RGBA(236, 187, 123, 1);
     [self.view addSubview:m_headerView];
     
     UILabel* total_label = [UILabel new];
     total_label.text = @"累计收入";
-    total_label.textColor = RGBA(97, 88, 28, 1);
+    total_label.textColor = RGBA(255, 255, 255, 0.7);
     total_label.textAlignment = NSTextAlignmentCenter;
     total_label.font = kFONT(14);
     [m_headerView addSubview:total_label];
@@ -146,7 +146,7 @@
     
     UILabel* coin_label = [UILabel new];
     coin_label.text = @"当前金币";
-    coin_label.textColor = RGBA(97, 88, 28, 1);
+    coin_label.textColor = RGBA(255, 255, 255, 0.7);
     coin_label.textAlignment = NSTextAlignmentCenter;
     coin_label.font = kFONT(14);
     [m_headerView addSubview:coin_label];
@@ -158,7 +158,7 @@
     
     UILabel* money_label = [UILabel new];
     money_label.text = @"当前余额";
-    money_label.textColor = RGBA(97, 88, 28, 1);
+    money_label.textColor = RGBA(255, 255, 255, 0.7);
     money_label.textAlignment = NSTextAlignmentCenter;
     money_label.font = kFONT(14);
     [m_headerView addSubview:money_label];
@@ -169,8 +169,14 @@
     }];
     
     UILabel* total_number_label = [UILabel new];
-    total_number_label.text = [Login_info share].userMoney_model.total_income;
-    total_number_label.textColor = RGBA(34, 39, 39, 1);
+    if([Login_info share].isLogined){
+        total_number_label.text = [Login_info share].userMoney_model.total_income;
+    }
+    else{
+        total_number_label.text = @"0.0";
+    }
+    
+    total_number_label.textColor = RGBA(255, 255, 255, 1);
     total_number_label.textAlignment = NSTextAlignmentCenter;
     total_number_label.font = KBFONT(24);
     [m_headerView addSubview:total_number_label];
@@ -181,8 +187,13 @@
     }];
     
     UILabel* coin_number_label = [UILabel new];
-    coin_number_label.text = [Login_info share].userMoney_model.coin;
-    coin_number_label.textColor = RGBA(34, 39, 39, 1);
+    if([Login_info share].isLogined){
+        coin_number_label.text = [Login_info share].userMoney_model.coin;
+    }
+    else{
+        coin_number_label.text = @"0";
+    }
+    coin_number_label.textColor = RGBA(255, 255, 255, 1);
     coin_number_label.textAlignment = NSTextAlignmentCenter;
     coin_number_label.font = KBFONT(24);
     [m_headerView addSubview:coin_number_label];
@@ -193,8 +204,13 @@
     }];
     
     UILabel* money_number_label = [UILabel new];
-    money_number_label.text = [Login_info share].userMoney_model.cash;
-    money_number_label.textColor = RGBA(34, 39, 39, 1);
+    if([Login_info share].isLogined){
+        money_number_label.text = [Login_info share].userMoney_model.cash;
+    }
+    else{
+        money_number_label.text = @"0.0";
+    }
+    money_number_label.textColor = RGBA(255, 255, 255, 1);
     money_number_label.textAlignment = NSTextAlignmentCenter;
     money_number_label.font = KBFONT(24);
     [m_headerView addSubview:money_number_label];
@@ -214,10 +230,12 @@
     }];
     
     UIButton* changeToMoney_btn = [UIButton new];
-    changeToMoney_btn.backgroundColor = RGBA(251, 84, 31, 1);
+//    changeToMoney_btn.backgroundColor = RGBA(251, 84, 31, 1);
+    [changeToMoney_btn setBackgroundImage:[UIImage imageNamed:@"btn"] forState:UIControlStateNormal];
     [changeToMoney_btn setTitle:@"我要提现" forState:UIControlStateNormal];
     [changeToMoney_btn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     [changeToMoney_btn.layer setCornerRadius:kWidth(20)];
+    changeToMoney_btn.clipsToBounds = YES;
     [changeToMoney_btn addTarget:self action:@selector(replyToCash) forControlEvents:UIControlEventTouchUpInside];
     [m_headerView addSubview:changeToMoney_btn];
     [m_headerView bringSubviewToFront:changeToMoney_btn];
@@ -249,7 +267,7 @@
     
     //金币下划线
     UIView* gold_line = [[UIView alloc] initWithFrame:CGRectMake((SCREEN_WIDTH/2)/3, CGRectGetMaxY(gold_label.frame)+10, (SCREEN_WIDTH/2)/3, 2)];
-    gold_line.backgroundColor = [UIColor redColor];
+    gold_line.backgroundColor = RGBA(255, 129, 3, 1);
     m_gold_line = gold_line;
     [label_view addSubview:m_gold_line];
     
@@ -266,7 +284,7 @@
     
     //钱包下划线
     UIView* package_line = [[UIView alloc] initWithFrame:CGRectMake(SCREEN_WIDTH/2+(SCREEN_WIDTH/2)/3, CGRectGetMaxY(gold_label.frame)+10, (SCREEN_WIDTH/2)/3, 2)];
-    package_line.backgroundColor = [UIColor redColor];
+    package_line.backgroundColor = RGBA(255, 129, 3, 1);
     m_package_line = package_line;
     [label_view addSubview:m_package_line];
     
@@ -317,7 +335,13 @@
     header.lastUpdatedTimeLabel.hidden = YES;
     header.stateLabel.hidden = YES;
     gold_tvc.tableView.header = header;
-    [header beginRefreshing];
+    if([Login_info share].isLogined){
+        [header beginRefreshing];
+    }
+    else{
+        [block_self NoResult_gold];
+    }
+    
     
     gold_tvc.tableView.footer = [MJRefreshAutoNormalFooter footerWithRefreshingBlock:^{
         [block_self GetNetData_gold:m_page_gold];
@@ -358,7 +382,13 @@
     header_package.lastUpdatedTimeLabel.hidden = YES;
     header_package.stateLabel.hidden = YES;
     package_tvc.tableView.header = header_package;
-    [header_package beginRefreshing];
+//    [header_package beginRefreshing];
+    if([Login_info share].isLogined){
+        [header_package beginRefreshing];
+    }
+    else{
+        [block_self NoResult_package];
+    }
     
     package_tvc.tableView.footer = [MJRefreshAutoNormalFooter footerWithRefreshingBlock:^{
         [block_self GetNetData_package:m_page_package];
@@ -574,8 +604,6 @@
             }
             
             
-            
-            
             if (type == 0) {
                 if(array_model.count != 0){
                     array_tmp = [[TimeHelper share] sortAllData_day:array_model];//[array,array]
@@ -695,7 +723,7 @@
             if(array_model.count == 0){ //当数据为空时
                 [package_tvc.tableView.footer noticeNoMoreData];
                 
-                [package_tvc.tableView.footer endRefreshing];
+//                [package_tvc.tableView.footer endRefreshing];
                 [package_tvc.tableView.header endRefreshing];
                 return;
             }else{

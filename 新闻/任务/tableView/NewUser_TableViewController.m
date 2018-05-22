@@ -74,7 +74,7 @@
     //是否已经阅读过相关阅读
     if([model.title isEqualToString:NewUserTask_readQuestion]){
         if(model.User_model == nil){
-            
+            model.isDone = NO;
         }
         else{
             if(model.User_model.status == 1 || model.User_model.count >= model.User_model.max){
@@ -89,7 +89,7 @@
     //是否已经微信绑定
     if([model.title isEqualToString:NewUserTask_blindWechat]){
         if(model.User_model == nil){
-            
+            model.isDone = NO;
         }
         else{
             if(model.User_model.status == 1 || model.User_model.count >= model.User_model.max){
@@ -104,7 +104,7 @@
     //阅读新闻
     if([model.title isEqualToString:NewUserTask_readNews]){
         if(model.User_model == nil){
-            
+            model.isDone = NO;
         }
         else{
             if(model.User_model.status == 1 || model.User_model.count >= model.User_model.max){
@@ -120,7 +120,7 @@
     //观看视频
     if([model.title isEqualToString:NewUserTask_readVideo]){
         if(model.User_model == nil){
-            
+            model.isDone = NO;
         }
         else{
             if(model.User_model.status == 1 || model.User_model.count >= model.User_model.max){
@@ -135,7 +135,7 @@
     //是否朋友圈收徒
     if([model.title isEqualToString:NewUserTask_shareByPengyouquan]){
         if(model.User_model == nil){
-            
+            model.isDone = NO;
         }
         else{
             if(model.User_model.status == 1 || model.User_model.count >= model.User_model.max){

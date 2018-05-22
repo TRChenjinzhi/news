@@ -169,23 +169,28 @@ static id _instance;
 
 //用户信息
 -(void)saveUserInfo:(NSDictionary *)dic{
-    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:dic options:NSJSONWritingPrettyPrinted error:nil];
-    
-    NSString* str_dic = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-    [[NSUserDefaults standardUserDefaults] setObject:str_dic forKey:@"userInfo"];//内的值 不允许有nil值
+//    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:dic options:NSJSONWritingPrettyPrinted error:nil];
+//
+//    NSString* str_dic = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+    [[NSUserDefaults standardUserDefaults] setObject:dic forKey:@"userInfo"];//内的值 不允许有nil值
     [[NSUserDefaults standardUserDefaults] synchronize];
 }
 
 
 -(NSDictionary*)GetUserInfo{
-    NSString* str_dic = [[NSUserDefaults standardUserDefaults] objectForKey:@"userInfo"];
+//    NSString* str_dic = [[NSUserDefaults standardUserDefaults] objectForKey:@"userInfo"];
+//    if(str_dic == nil){
+//        return nil;
+//    }
+    
+    NSDictionary* str_dic = [[NSUserDefaults standardUserDefaults] objectForKey:@"userInfo"];
     if(str_dic == nil){
         return nil;
     }
     
-    NSData *jsonData = [str_dic dataUsingEncoding:NSUTF8StringEncoding];
-    NSDictionary *dic = [NSJSONSerialization JSONObjectWithData:jsonData options:NSJSONReadingMutableContainers error:nil];
-    return dic;
+//    NSData *jsonData = [str_dic dataUsingEncoding:NSUTF8StringEncoding];
+//    NSDictionary *dic = [NSJSONSerialization JSONObjectWithData:jsonData options:NSJSONReadingMutableContainers error:nil];
+    return str_dic;
 }
 
 -(void)clearUserInfo{
@@ -326,6 +331,19 @@ static id _instance;
     return date;
 }
 
+//第一次打开app的红包
+-(void)saveRedPackage_first:(NSString*)date{
+    [[NSUserDefaults standardUserDefaults] setObject:date forKey:@"redPack_firstOne"];
+    [[NSUserDefaults standardUserDefaults] synchronize];
+}
+-(NSString*)getRedPackage_first{
+    NSString* date = [[NSUserDefaults standardUserDefaults] objectForKey:@"redPack_firstOne"];
+    if([date isEqualToString:@" "]){
+        return nil;
+    }
+    return date;
+}
+
 //记录提示红包时间
 -(void)saveRedPackage:(NSString*)date{
     [[NSUserDefaults standardUserDefaults] setObject:date forKey:@"redPack_tips"];
@@ -333,7 +351,20 @@ static id _instance;
 }
 -(NSString*)getRedPackage{
     NSString* date = [[NSUserDefaults standardUserDefaults] objectForKey:@"redPack_tips"];
-    if([date isEqualToString:@""]){
+    if([date isEqualToString:@" "]){
+        return nil;
+    }
+    return date;
+}
+
+//红包奖励
+-(void)saveRedPackage_money:(NSString*)date{
+    [[NSUserDefaults standardUserDefaults] setObject:date forKey:[NSString stringWithFormat:@"redPack_money-%@",[Login_info share].userInfo_model.user_id]];
+    [[NSUserDefaults standardUserDefaults] synchronize];
+}
+-(NSString*)getRedPackage_money{
+    NSString* date = [[NSUserDefaults standardUserDefaults] objectForKey:[NSString stringWithFormat:@"redPack_money-%@",[Login_info share].userInfo_model.user_id]];
+    if([date isEqualToString:@" "]){
         return nil;
     }
     return date;

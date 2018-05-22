@@ -86,6 +86,7 @@
     TaskCell_model* model = m_arrayModel[indexPath.row];
     if(![Login_info share].isLogined){
         model.DayDay_model.count = 0;
+        model.isDone = NO;
     }
     else{
         if([model.title isEqualToString:DayDayTask_FirstShouTu]){

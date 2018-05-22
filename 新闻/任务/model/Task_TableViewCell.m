@@ -53,12 +53,13 @@
     if(!m_taskDoing){
         UIButton* taskDoing = [[UIButton alloc] initWithFrame:CGRectMake(SCREEN_WIDTH-16-72, 16, 72, 30)];
         [taskDoing setTitle:@"去完成" forState:UIControlStateNormal];
-        [taskDoing.titleLabel setFont:[UIFont systemFontOfSize:14]];
+        [taskDoing.titleLabel setFont:[UIFont systemFontOfSize:15]];
         [taskDoing setTitleColor:[[ThemeManager sharedInstance] TaskGetCellButtonTitleColor] forState:UIControlStateNormal];
-        taskDoing.backgroundColor = [[ThemeManager sharedInstance] TaskGetCellButtonColor];
+        [m_taskDoing setBackgroundImage:[Color_Image_Helper createImageWithColor:RGBA(242, 242, 242, 1)] forState:UIControlStateNormal];
         [taskDoing addTarget:self action:@selector(ButtonAction:) forControlEvents:UIControlEventTouchUpInside];
         [taskDoing.layer setCornerRadius:16];
         taskDoing.layer.masksToBounds = YES;
+        taskDoing.enabled = NO;
         
         [self addSubview:taskDoing];
         m_taskDoing = taskDoing;
@@ -100,7 +101,7 @@
                 str_money = [NSString stringWithFormat:@"+%ld",taskModel.Money];
             }
             CGFloat width = [LabelHelper GetLabelWidth:[UIFont fontWithName:@"SourceHanSansCN-Regular" size:18] AndText:str_money];
-            UILabel* money = [[UILabel alloc] initWithFrame:CGRectMake(CGRectGetMaxX(m_title.frame)+10, 16, width, 18)];
+            UILabel* money = [[UILabel alloc] initWithFrame:CGRectMake(CGRectGetMaxX(m_title.frame)+kWidth(30), 16, width, 18)];
             
         //    CGRect money_frame = [str_money sizeWithFont:[UIFont systemFontOfSize:18] maxSize:CGSizeMake(SCREEN_WIDTH, 100)];
         //    money.frame = CGRectMake(CGRectGetMaxX(title_view.frame)+20, 16, money_frame.size.width, money_frame.size.height);
@@ -184,20 +185,31 @@
     //按钮
     if(taskModel.isDone){
         [m_taskDoing setTitle:@"已完成" forState:UIControlStateNormal];
-        m_taskDoing.backgroundColor = [UIColor colorWithRed:242/255.0 green:242/255.0 blue:242/255.0 alpha:1/1.0];
+        [m_taskDoing setBackgroundImage:[Color_Image_Helper createImageWithColor:RGBA(242, 242, 242, 1)] forState:UIControlStateNormal];
         [m_taskDoing setTitleColor:[UIColor colorWithRed:167/255.0 green:169/255.0 blue:169/255.0 alpha:1/1.0] forState:UIControlStateNormal];
         m_taskDoing.enabled = NO;
     }else{
-        [m_taskDoing setTitle:@"去完成" forState:UIControlStateNormal];
-        m_taskDoing.backgroundColor = [[ThemeManager sharedInstance] TaskGetCellButtonColor];
-        [m_taskDoing setTitleColor:[[ThemeManager sharedInstance] TaskGetCellButtonTitleColor] forState:UIControlStateNormal];
-        m_taskDoing.enabled = YES;
+        [m_taskDoing setTitle:taskModel.btn_name forState:UIControlStateNormal];
+        if([Login_info share].isLogined){
+//            [m_taskDoing setTitle:@"去完成" forState:UIControlStateNormal];
+            [m_taskDoing setBackgroundImage:[UIImage imageNamed:@"btn"] forState:UIControlStateNormal];
+    //        m_taskDoing.backgroundColor = [[ThemeManager sharedInstance] TaskGetCellButtonColor];
+            [m_taskDoing setTitleColor:[[ThemeManager sharedInstance] TaskGetCellButtonTitleColor] forState:UIControlStateNormal];
+            m_taskDoing.enabled = YES;
+        }
+        else{
+//            [m_taskDoing setTitle:@"去完成" forState:UIControlStateNormal];
+            [m_taskDoing setBackgroundImage:[UIImage imageNamed:@"btn"] forState:UIControlStateNormal];
+            //        m_taskDoing.backgroundColor = [[ThemeManager sharedInstance] TaskGetCellButtonColor];
+            [m_taskDoing setTitleColor:[[ThemeManager sharedInstance] TaskGetCellButtonTitleColor] forState:UIControlStateNormal];
+            m_taskDoing.enabled = NO;
+        }
     }
     
     if(taskModel.DayDay_model != nil){
         //任务限制次数
         if(!m_count_lable){
-            UILabel* count_label = [[UILabel alloc] initWithFrame:CGRectMake(CGRectGetMaxX(m_subtitle_view.frame)+10,
+            UILabel* count_label = [[UILabel alloc] initWithFrame:CGRectMake(CGRectGetMaxX(m_subtitle_view.frame)+20,
                                                                              CGRectGetMinY(m_subtitle_view.frame),
                                                                              30,
                                                                              10)];
@@ -233,11 +245,12 @@
         
         if(taskModel.DayDay_model.maxCout <= taskModel.DayDay_model.count){
             [m_taskDoing setTitle:@"已完成" forState:UIControlStateNormal];
-            [m_taskDoing setBackgroundColor:[UIColor colorWithRed:242/255.0 green:242/255.0 blue:242/255.0 alpha:1/1.0]];
+            [m_taskDoing setTitleColor:RGBA(167, 169, 169, 1) forState:UIControlStateNormal];
+            [m_taskDoing setBackgroundImage:[Color_Image_Helper createImageWithColor:RGBA(242, 242, 242, 1)] forState:UIControlStateNormal];
             m_taskDoing.enabled = NO;
         }else{
-            [m_taskDoing setTitle:@"去完成" forState:UIControlStateNormal];
-            m_taskDoing.backgroundColor = [[ThemeManager sharedInstance] TaskGetCellButtonColor];
+//            m_taskDoing.backgroundColor = [[ThemeManager sharedInstance] TaskGetCellButtonColor];
+            [m_taskDoing setBackgroundImage:[UIImage imageNamed:@"btn"] forState:UIControlStateNormal];
             [m_taskDoing setTitleColor:[[ThemeManager sharedInstance] TaskGetCellButtonTitleColor] forState:UIControlStateNormal];
             m_taskDoing.enabled = YES;
         }
@@ -285,11 +298,12 @@
         
         if(taskModel.User_model.status == 1 || taskModel.User_model.count >= taskModel.User_model.max){//0:未完成 1:完成
             [m_taskDoing setTitle:@"已完成" forState:UIControlStateNormal];
-            [m_taskDoing setBackgroundColor:[UIColor colorWithRed:242/255.0 green:242/255.0 blue:242/255.0 alpha:1/1.0]];
+            [m_taskDoing setTitleColor:RGBA(167, 169, 169, 1) forState:UIControlStateNormal];
+            [m_taskDoing setBackgroundImage:[Color_Image_Helper createImageWithColor:RGBA(242, 242, 242, 1)] forState:UIControlStateNormal];
             m_taskDoing.enabled = NO;
         }else{
-            [m_taskDoing setTitle:@"去完成" forState:UIControlStateNormal];
-            m_taskDoing.backgroundColor = [[ThemeManager sharedInstance] TaskGetCellButtonColor];
+            //            m_taskDoing.backgroundColor = [[ThemeManager sharedInstance] TaskGetCellButtonColor];
+            [m_taskDoing setBackgroundImage:[UIImage imageNamed:@"btn"] forState:UIControlStateNormal];
             [m_taskDoing setTitleColor:[[ThemeManager sharedInstance] TaskGetCellButtonTitleColor] forState:UIControlStateNormal];
             m_taskDoing.enabled = YES;
         }

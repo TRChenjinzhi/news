@@ -55,6 +55,7 @@
 -(void)initTextField{
     UIView* center_view = [UIView new];
     center_view.backgroundColor = RGBA(255, 255, 255, 1);
+    [center_view.layer setCornerRadius:3.0f];
     m_centerView = center_view;
     [self addSubview:center_view];
     [center_view mas_makeConstraints:^(MASConstraintMaker *make) {
@@ -104,7 +105,9 @@
     [cancel_btn setBackgroundColor:RGBA(242, 242, 242, 1)];
     [cancel_btn setTitle:@"取消" forState:UIControlStateNormal];
     [cancel_btn setTitleColor:RGBA(167, 169, 169, 1) forState:UIControlStateNormal];
-    [cancel_btn.layer setCornerRadius:3.0f];
+    [cancel_btn.layer setCornerRadius:kWidth(36)/2];
+    cancel_btn.layer.masksToBounds = YES;
+    [cancel_btn.titleLabel setFont:kFONT(16)];
     [cancel_btn addTarget:self action:@selector(cancel_action) forControlEvents:UIControlEventTouchUpInside];
     [center_view addSubview:cancel_btn];
     [cancel_btn mas_makeConstraints:^(MASConstraintMaker *make) {
@@ -115,11 +118,13 @@
     }];
     
     UIButton* sure_btn = [UIButton new];
-    [sure_btn setBackgroundColor:RGBA(248, 205, 4, 1)];
+    [sure_btn setBackgroundImage:[UIImage imageNamed:@"btn"] forState:UIControlStateNormal];
     [sure_btn setTitle:@"确定" forState:UIControlStateNormal];
-    [sure_btn setTitleColor:RGBA(34, 39, 39, 1) forState:UIControlStateNormal];
+    [sure_btn setTitleColor:RGBA(255, 255, 255, 1) forState:UIControlStateNormal];
     [sure_btn addTarget:self action:@selector(sure_action) forControlEvents:UIControlEventTouchUpInside];
-    [sure_btn.layer setCornerRadius:3.0f];
+    [sure_btn.layer setCornerRadius:kWidth(36)/2];
+    sure_btn.layer.masksToBounds = YES;
+    [sure_btn.titleLabel setFont:kFONT(16)];
     [center_view addSubview:sure_btn];
     [sure_btn mas_makeConstraints:^(MASConstraintMaker *make) {
         make.right.equalTo(center_view.mas_right).with.offset(-kWidth(25));
@@ -132,6 +137,7 @@
 -(void)initChoose{
     UIView* center_view = [UIView new];
     center_view.backgroundColor = RGBA(255, 255, 255, 1);
+    [center_view.layer setCornerRadius:3.0f];
     m_centerView = center_view;
     [self addSubview:center_view];
     [center_view mas_makeConstraints:^(MASConstraintMaker *make) {
@@ -214,7 +220,9 @@
     [cancel_btn setBackgroundColor:RGBA(242, 242, 242, 1)];
     [cancel_btn setTitle:@"取消" forState:UIControlStateNormal];
     [cancel_btn setTitleColor:RGBA(167, 169, 169, 1) forState:UIControlStateNormal];
-    [cancel_btn.layer setCornerRadius:3.0f];
+    [cancel_btn.layer setCornerRadius:kWidth(36)/2];
+    cancel_btn.layer.masksToBounds = YES;
+    [cancel_btn.titleLabel setFont:kFONT(16)];
     [cancel_btn addTarget:self action:@selector(cancel_action) forControlEvents:UIControlEventTouchUpInside];
     [center_view addSubview:cancel_btn];
     [cancel_btn mas_makeConstraints:^(MASConstraintMaker *make) {
@@ -225,11 +233,13 @@
     }];
     
     UIButton* sure_btn = [UIButton new];
-    [sure_btn setBackgroundColor:RGBA(248, 205, 4, 1)];
+    [sure_btn setBackgroundImage:[UIImage imageNamed:@"btn"] forState:UIControlStateNormal];
     [sure_btn setTitle:@"确定" forState:UIControlStateNormal];
-    [sure_btn setTitleColor:RGBA(34, 39, 39, 1) forState:UIControlStateNormal];
+    [sure_btn setTitleColor:RGBA(255, 255, 255, 1) forState:UIControlStateNormal];
+    [sure_btn.titleLabel setFont:kFONT(16)];
     [sure_btn addTarget:self action:@selector(sure_action) forControlEvents:UIControlEventTouchUpInside];
-    [sure_btn.layer setCornerRadius:3.0f];
+    [sure_btn.layer setCornerRadius:kWidth(36)/2];
+    sure_btn.layer.masksToBounds = YES;
     [center_view addSubview:sure_btn];
     [sure_btn mas_makeConstraints:^(MASConstraintMaker *make) {
         make.right.equalTo(center_view.mas_right).with.offset(-kWidth(25));
@@ -244,7 +254,7 @@
         UILabel* lable_item         = m_lable_array[i];
         UIButton*btn_item           = m_btn_array[i];
         if(index == i){
-            lable_item.textColor    = RGBA(248, 205, 4, 1);
+            lable_item.textColor    = RGBA(255, 129, 3, 1);
             [btn_item setImage:[UIImage imageNamed:@"checked"] forState:UIControlStateNormal];
         }
         else{

@@ -39,12 +39,15 @@
 -(void)setIsSelected:(BOOL)isSelected{
     if(!selected){//状态为 NO 时
         if(isSelected){
-            [self.m_title setBackgroundColor:[UIColor colorWithRed:255/255.0 green:212/255.0 blue:57/255.0 alpha:1/1.0]];
+//            [self.m_title setBackgroundColor:[UIColor colorWithRed:255/255.0 green:212/255.0 blue:57/255.0 alpha:1/1.0]];
+            [self.m_title setBackgroundColor:[Color_Image_Helper ImageChangeToColor:[UIImage imageNamed:@"btn"] AndNewSize:self.m_title.frame.size]];
+            self.m_title.textColor = RGBA(255, 255, 255, 1);
             selected = isSelected;
         }
     }else{//状态为 yes 时
         if(!isSelected){
             [self.m_title setBackgroundColor:[[ThemeManager sharedInstance] GetBackgroundColor]];
+            self.m_title.textColor = RGBA(34, 39, 39, 1);
             selected = isSelected;
         }
     }

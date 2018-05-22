@@ -26,9 +26,9 @@
 //                       NewUserTask_readVideo,
 //                       NewUserTask_shareByPengyouquan
                        ];
-    NSArray* money = @[@50,
+    NSArray* money = @[@0,
 //                       @20,
-                       @10
+                       @0
 //                       @10,
 //                       @0
                        ];
@@ -46,13 +46,20 @@
                         ];
     NSArray* subTitle = @[@"绑定后可直接提现至微信",
 //                          @"认真阅读平台规则",
-                          @"阅读5篇新闻，完成新手任务"
+                          @"当前阅读"
 //                          @"观看5个视频，完成新手任务",
 //                          @"分享邀请信息到朋友圈即可"
+                          ];
+    NSArray* array_btn_name = @[@"去绑定",
+                          //                          @"认真阅读平台规则",
+                          @"去阅读"
+                          //                          @"观看5个视频，完成新手任务",
+                          //                          @"分享邀请信息到朋友圈即可"
                           ];
     for(int i=0;i<title.count;i++){
         TaskCell_model* model = [[TaskCell_model alloc] init];
         model.title = title[i];
+        model.btn_name = array_btn_name[i];
         NSNumber* number = money[i];
         model.Money = number.integerValue;
         model.subTitle = subTitle[i];
@@ -125,13 +132,22 @@
                           @"每成功邀请一名好友，奖励2元奖金",
                           @"认真阅读，每篇奖励10金币",
                           @"分享新闻给好友，每次奖励10金币",
-                          @"观看视频超过30s，每次奖励10金币",
+                          @"观看视频，每次奖励5金币",
 //                          @"有见解有趣味的评论会获得额外的奖励",
                           @"晒出自己的收入，每次奖励20金币",
                           @"参与抽奖活动，每次奖励10金币"];
+    NSArray* array_btn_name = @[@"去邀请",
+                                @"去邀请",
+                                @"去阅读",
+                                @"去分享",
+                                @"去观看",
+                                @"晒一晒",
+                                @"去完成"
+                                ];
     for(int i=0;i<title.count;i++){
         TaskCell_model* model = [[TaskCell_model alloc] init];
         model.title = title[i];
+        model.btn_name = array_btn_name[i];
         NSNumber* number = money[i];
         model.Money = number.integerValue;
         model.subTitle = subTitle[i];

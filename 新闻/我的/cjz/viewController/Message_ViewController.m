@@ -30,7 +30,13 @@
 
     self.view.backgroundColor = [[ThemeManager sharedInstance] MineMessageBackgroundColor];
     [self initNavibar];
-    [self getMessageData];
+    if([Login_info share].isLogined){
+        [self getMessageData];
+    }
+    else{
+        [self setMessageVC_state:NO];
+    }
+    
 }
 
 - (void)didReceiveMemoryWarning {

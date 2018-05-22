@@ -162,8 +162,9 @@ typedef enum : NSUInteger {
     [outLogin_button setTitle:@"注销登录" forState:UIControlStateNormal];
     [outLogin_button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
     [outLogin_button.titleLabel setFont:[UIFont fontWithName:@"SourceHanSansCN-Regular" size:16]];
-    outLogin_button.backgroundColor = [UIColor colorWithRed:248/255.0 green:205/255.0 blue:4/255.0 alpha:1/1.0];
-    [outLogin_button.layer setCornerRadius:10.0f];
+    [outLogin_button setBackgroundImage:[UIImage imageNamed:@"btn"] forState:UIControlStateNormal];
+    [outLogin_button.layer setCornerRadius:20.0f];
+    outLogin_button.clipsToBounds = YES;
     [self.view addSubview:outLogin_button];
     self.outLogin = outLogin_button;
     

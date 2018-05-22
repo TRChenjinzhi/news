@@ -71,7 +71,7 @@
     }];
     
     m_lable_money = [[UILabel alloc] initWithFrame:CGRectMake(SCREEN_WIDTH-17-70, 16, 70, kWidth(14))];
-    m_lable_money.textColor = RGBA(251, 84, 38, 1);
+    m_lable_money.textColor = RGBA(255, 129, 3, 1);
     m_lable_money.textAlignment = NSTextAlignmentRight;
     m_lable_money.font = KBFONT(14);
     [self addSubview:m_lable_money];

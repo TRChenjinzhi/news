@@ -102,7 +102,13 @@
     
     self.m_playerView.model = model;
     
-    [m_video_icon sd_setImageWithURL:[NSURL URLWithString:model.avatar] placeholderImage:[UIImage imageNamed:@"user_default"]];
+    if(model.avatar.length > 0){
+        [m_video_icon sd_setImageWithURL:[NSURL URLWithString:model.avatar] placeholderImage:[UIImage imageNamed:@"list_avatar"]];
+    }
+    else{
+        [m_video_icon setImage:[UIImage imageNamed:@"list_avatar"]];
+    }
+    
 //    NSLog(@"----avatar:%@",model.avatar);
     m_video_resouce.text = model.source;
     
@@ -113,7 +119,7 @@
             
             self.readingHere_btn = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, SCREEN_WIDTH, kWidth(30))];
             [self.readingHere_btn setTitle:[NSString stringWithFormat:@"%@ 看到这里,点击刷新",[TimeHelper showTime:model.getVideoTime]] forState:UIControlStateNormal];
-            [self.readingHere_btn setTitleColor:RGBA(248, 205, 4, 1) forState:UIControlStateNormal];
+            [self.readingHere_btn setTitleColor:RGBA(255, 129, 3, 1) forState:UIControlStateNormal];
             [self.readingHere_btn.titleLabel setFont:[UIFont fontWithName:@"SourceHanSansCN-Regular" size:kWidth(16)]];
             [self.readingHere_btn addTarget:self action:@selector(readHere_action) forControlEvents:UIControlEventTouchUpInside];
             [view addSubview:self.readingHere_btn];

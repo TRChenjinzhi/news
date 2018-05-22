@@ -79,6 +79,7 @@
 //    webView.opaque = NO;
     webView.scrollView.delegate = self;
     webView.scrollView.bounces = NO;
+    [webView.scrollView setScrollEnabled:NO];
 //    webView.backgroundColor = [UIColor whiteColor];
     [self.view addSubview:webView];
     self.webview = webView;
@@ -118,7 +119,7 @@
         self.view.frame = CGRectMake(0, 0, size.width, size.height+self.footView.frame.size.height);
 
 //            m_size = self.view.frame.size;
-            [self.delegate setHeaderFrame];
+//            [self.delegate setHeaderFrame];
     }
     
     if ([keyPath isEqualToString:@"estimatedProgress"]) {
@@ -204,8 +205,9 @@
 //    m_size = [self getWebviewSize];
     
     //通知
-    [self.delegate webViewDidLoad:text_all];
     [self.delegate setHeaderFrame];
+    [self.delegate webViewDidLoad:text_all];
+    
     m_isFirst = YES; //代表新闻加载完毕
     
     [webView.scrollView removeObserver:self forKeyPath:@"contentSize"];//加载完后删除监听，防止加载完成后，继续监听，使网页闪现

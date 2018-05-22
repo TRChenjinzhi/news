@@ -76,6 +76,12 @@
 -(void)initWebview{
     UIWebView* webview = [[UIWebView alloc] init];
     m_webview = webview;
+    
+    if(@available(iOS 11.0, *)) {
+        
+        m_webview.scrollView.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;
+        
+    }
 
     if(!_isTask){
         webview.frame = CGRectMake(0, CGRectGetMaxY(m_navibar_view.frame), SCREEN_WIDTH,
@@ -86,7 +92,6 @@
         [self initTime];
     }
 
-    
     webview.scrollView.bounces = NO;
     webview.delegate = self;
     NSURLRequest* request = [NSURLRequest requestWithURL:[NSURL URLWithString:@"http://toutiao.3gshow.cn/help.html"]];

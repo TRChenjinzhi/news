@@ -30,7 +30,7 @@
 #import "NewUserTask_model.h"
 #import "Mine_choujiang_ViewController.h"
 
-@interface MineViewController ()<LoginInterfaceDelegate>
+@interface MineViewController ()<LoginInterfaceDelegate,BannerViewDelegate>
 
 @property (nonatomic,strong)Header_view* headerView;
 
@@ -44,7 +44,6 @@
 
 
 @property (nonatomic)BOOL IsLogined;
-
 
 
 @end
@@ -64,6 +63,10 @@
     
     Header_view*            m_headerView;
     BadgeButton*            m_messageButton;
+    
+    UIView*                 m_deviceInfo_view;
+    
+    BOOL                    m_banner_isLoaded;
 }
 
 -(NSMutableArray *)array_model{
@@ -89,6 +92,7 @@
     [super viewDidLoad];
     // Do any additional setup after loading the view.
 //    self.view.backgroundColor = [UIColor redColor];
+    self.view.backgroundColor = [UIColor whiteColor];
     self.view.userInteractionEnabled = YES;
     [self InitView];
     
@@ -108,6 +112,9 @@
     if([Login_info share].isLogined){ // 更新用户信息
         [InternetHelp AutoLogin];
         [self getMessageData];
+        if(m_banner_isLoaded == NO){ //如果没有加载好，每次进入 我的 界面时 就会重新加载一次
+            [self loadBanner];
+        }
     }
     
     //监听登陆状态
@@ -137,9 +144,9 @@
 
 -(void)initScrollView{
     NSInteger tabbarHight = self.tabBarController.tabBar.frame.size.height;
-    
+
     UIView* statusView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, SCREEN_WIDTH, StaTusHight)];
-    statusView.backgroundColor = [UIColor colorWithRed:248/255.0 green:205/255.0 blue:4/255.0 alpha:1/1.0];
+    statusView.backgroundColor = [Color_Image_Helper ImageChangeToColor:[UIImage imageNamed:@"user_bg"] AndNewSize:CGSizeMake(SCREEN_WIDTH, StaTusHight*2)];//由于图片下方有圆弧白色区域 所以加大高度，不显示白色区域
     [self.view addSubview:statusView];
     
     UIScrollView* scrlView = [[UIScrollView alloc] initWithFrame:CGRectMake(0, StaTusHight, SCREEN_WIDTH, SCREEN_HEIGHT-StaTusHight-tabbarHight)];
@@ -183,6 +190,20 @@
     self.headerView = headerView;
     m_messageButton = headerView.messageButton;
     [self.scrollView addSubview:headerView];
+    
+    //加载banner
+    [self loadBanner];
+}
+
+-(void)loadBanner{
+    [InternetHelp getBanner_Sucess:^(NSArray *array) {
+        [Banner_model arrayToBannerArray:array];
+        [m_headerView bannerView_bengain];
+        m_headerView.bannerView.delegate = self;
+        m_banner_isLoaded = YES;
+    } Fail:^(NSDictionary *dic) {
+        
+    }];
 }
 
 -(void)initTableView{
@@ -203,6 +224,11 @@
     Login_info* loginInfo = [[Login_info share] GetLoginInfo];
     if(loginInfo.isLogined){
         Mine_userInfo_model* model = [[Mine_userInfo_model alloc] init];
+        if ([[DefauteNameHelper getDefuateName] isEqualToString:loginInfo.userInfo_model.name]) {
+            if([loginInfo.userInfo_model.wechat_binding integerValue] == 1){ //当微信绑定了，账号昵称为默认时，使用微信昵称
+                loginInfo.userInfo_model.name = loginInfo.userInfo_model.wechat_nickname;
+            }
+        }
         model.name = loginInfo.userInfo_model.name;
         if([loginInfo.userInfo_model.sex integerValue] == 1){
             model.sex = @"男";
@@ -250,7 +276,7 @@
             model.icon = [Login_info share].userInfo_model.wechat_icon;
         }
         else{
-            model.icon = loginInfo.userInfo_model.avatar;
+            model.icon = @"";
         }
     }
     else{
@@ -273,6 +299,25 @@
     [self refreshData:model];
 }
 
+-(void)BannerViewSelectedAt:(NSInteger)index{
+    Banner_model* model = [Banner_model share].array[index];
+    if([model.name isEqualToString:Banner_shoutu]){
+        if([Login_info share].isLogined){
+            Mine_inviteApprence_ViewController* vc = [Mine_inviteApprence_ViewController new];
+            [self.navigationController pushViewController:vc animated:YES];
+        }
+        else{
+            [MyMBProgressHUD ShowMessage:@"未登录" ToView:self.view AndTime:1.0f];
+        }
+    }
+    else{
+        Web_ViewController* vc = [Web_ViewController new];
+        vc.naviTitle = model.name;
+        vc.url = model.url;
+        [self.navigationController pushViewController:vc animated:YES];
+    }
+}
+
 #pragma mark - 广播监听
 -(void)LoginIn{
     NSLog(@"进入登陆界面1");
@@ -285,43 +330,19 @@
 //    self.headerView.number_gold = 20;
 //    self.headerView.number_package = 2000.0;
 //    self.headerView.number_apprentice = 2;
-    
-    
 }
+
+
 
 #pragma mark - 按钮方法
 -(void)GoToMessage{
     NSLog(@"消息界面");
 //    [self.navigationController addChildViewController:[[Message_ViewController alloc] init]];
-    if(_IsLogined){
         Message_ViewController* message_vc =[[Message_ViewController alloc] init];
 //        [self GetMessageData];
         message_vc.message_arrayModel = self.array_message_model;
         [self.navigationController pushViewController:message_vc animated:YES];
 
-    }else{
-        //没有登陆
-        if(ToastMessage_view){
-            [ToastMessage_view removeFromSuperview];
-        }
-        ToastMessage_view = [[UIView alloc] initWithFrame:CGRectMake(SCREEN_WIDTH/2-140/2, SCREEN_HEIGHT/2-90/2, 140, 90)];
-        ToastMessage_view.backgroundColor = [UIColor colorWithRed:0/255.0 green:0/255.0 blue:0/255.0 alpha:0.6000000238418579/1.0];
-        [ToastMessage_view.layer setCornerRadius:10];
-        
-        UILabel* notice_text = [[UILabel alloc] initWithFrame:CGRectMake(0, 90/2-20/2, 140, 20)];
-        notice_text.text = @"未登陆";
-        notice_text.textColor = [UIColor whiteColor];
-        notice_text.textAlignment = NSTextAlignmentCenter;
-        notice_text.font = [UIFont systemFontOfSize:16];
-        [ToastMessage_view addSubview:notice_text];
-        
-        [self.view addSubview:ToastMessage_view];
-        [UIView animateWithDuration:1 animations:^{
-            ToastMessage_view.alpha = 0.1;
-        } completion:^(BOOL finished) {
-            [ToastMessage_view removeFromSuperview];
-        }];
-    }
 }
 
 -(void)GoToLogin:(UITapGestureRecognizer*)tap{
@@ -334,12 +355,6 @@
 
 -(void)GoToGold_vc{
     NSLog(@"GoToGold_vc");
-    if(![Login_info share].isLogined){
-        Mine_login_ViewController* vc = [[Mine_login_ViewController alloc] init];
-        vc.delegate = self;
-        [self.navigationController pushViewController:vc animated:YES];
-        return;
-    }
     
     Mine_goldDetail_ViewController* vc = [[Mine_goldDetail_ViewController alloc] init];
     vc.selectIndex = 0;
@@ -348,12 +363,7 @@
 
 -(void)GoToPackage_vc{
     NSLog(@"GoToPackage_vc");
-    if(![Login_info share].isLogined){
-        Mine_login_ViewController* vc = [[Mine_login_ViewController alloc] init];
-        vc.delegate = self;
-        [self.navigationController pushViewController:vc animated:YES];
-        return;
-    }
+
     Mine_goldDetail_ViewController* vc = [[Mine_goldDetail_ViewController alloc] init];
     vc.selectIndex = 1;
     [self.navigationController pushViewController:vc animated:YES];
@@ -361,12 +371,6 @@
 
 -(void)GoToApprentice_vc{
     NSLog(@"GoToApprentice_vc");
-    if(![Login_info share].isLogined){
-        Mine_login_ViewController* vc = [[Mine_login_ViewController alloc] init];
-        vc.delegate = self;
-        [self.navigationController pushViewController:vc animated:YES];
-        return;
-    }
     Mine_GetApprentice_ViewController* vc = [[Mine_GetApprentice_ViewController alloc] init];
     [self.navigationController pushViewController:vc animated:YES];
 }
@@ -386,12 +390,6 @@
 -(void)goldChangeToMoney:(NSNotification*)noti{
     Mine_model* model = noti.object;
     if([@"我要提现" isEqualToString:model.title]){
-        if(![Login_info share].isLogined){
-            Mine_login_ViewController* vc = [[Mine_login_ViewController alloc] init];
-            vc.delegate = self;
-            [self.navigationController pushViewController:vc animated:YES];
-            return;
-        }
         GoldChangeToMoney_ViewController* vc = [[GoldChangeToMoney_ViewController alloc] init];
         Mine_changeToMoney_model* model = [[Mine_changeToMoney_model alloc] init];
         model.total_cash = [[Login_info share].userMoney_model.total_cashed floatValue];
@@ -412,12 +410,6 @@
         [self.navigationController pushViewController:vc animated:YES];
     }
     if([@"我的收藏" isEqualToString:model.title]){
-        if(![Login_info share].isLogined){
-            Mine_login_ViewController* vc = [[Mine_login_ViewController alloc] init];
-            vc.delegate = self;
-            [self.navigationController pushViewController:vc animated:YES];
-            return;
-        }
         
         Mine_MyCollect_ViewController* vc = [[Mine_MyCollect_ViewController alloc] init];
         
@@ -455,7 +447,7 @@
 -(void)GetData{
     NSArray* img_str = @[@"ic_list_take",@"ic_list_invite",@"ic_list_collect",@"ic_list_history",@"ic_list_question",@"ic_list_system",@"ic_list_contact"];
     NSArray* lable_str = @[@"我要提现"  ,@"邀请收徒"                  ,@"我的收藏"  ,@"阅读历史",@"常见问题"        ,@"系统设置",@"联系我们"];
-    NSArray* sub_str = @[@"1元提现至微信",@"现金奖励加提成，收益暴涨"     ,@""        ,@""       ,@"30s了解有料这么玩",@""       ,@""];
+    NSArray* sub_str = @[@"1元提现至微信",@"现金奖励加提成，收益暴涨"     ,@""        ,@""       ,@"30s了解橙子快报怎么玩",@""       ,@""];
     for(int i=0;i<img_str.count;i++){
         Mine_model* model = [[Mine_model alloc] init];
         model.title_img = img_str[i];
@@ -483,6 +475,110 @@
 }
 
 -(void)userOutLogin{
+    [self showOutLoginAgain];
+}
+
+-(void)showOutLoginAgain{
+    if(m_deviceInfo_view != nil){
+        [[UIApplication sharedApplication].keyWindow addSubview:m_deviceInfo_view];
+        return;
+    }
+    m_deviceInfo_view = [[UIView alloc] initWithFrame:[UIScreen mainScreen].bounds];
+    m_deviceInfo_view.backgroundColor = RGBA(0, 0, 0, 0.6);
+    [[UIApplication sharedApplication].keyWindow addSubview:m_deviceInfo_view];
+    
+    UIView* center_view = [UIView new];
+    center_view.backgroundColor = RGBA(255, 255, 255, 1);
+    [center_view.layer setCornerRadius:3.0f];
+    [m_deviceInfo_view addSubview:center_view];
+    [center_view mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.left.equalTo(m_deviceInfo_view.mas_left).with.offset(kWidth(45));
+        make.right.equalTo(m_deviceInfo_view.mas_right).with.offset(-kWidth(45));
+        make.height.mas_offset(kWidth(166));
+        make.centerY.equalTo(m_deviceInfo_view.mas_centerY);
+    }];
+    
+    UILabel* title = [UILabel new];
+    title.text          = @"注销登录";
+    title.textColor     = RGBA(122, 125, 125, 1);
+    title.font          = kFONT(14);
+    title.textAlignment = NSTextAlignmentCenter;
+    [center_view addSubview:title];
+    [title mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.left.equalTo(center_view.mas_left);
+        make.right.equalTo(center_view.mas_right);
+        make.top.equalTo(center_view.mas_top);
+        make.height.mas_offset(kWidth(56));
+    }];
+    
+    UILabel* tips = [UILabel new];
+    NSString* phoneNumber = [Login_info share].userInfo_model.device_first_tel;
+    phoneNumber = [NSString stringWithFormat:@"注销后将无法继续愉快的赚钱啦~\n确定注销?"];
+    tips.text          = phoneNumber;
+    tips.textColor     = RGBA(34, 39, 39, 1);
+    tips.font          = kFONT(14);
+    tips.textAlignment = NSTextAlignmentLeft;
+    tips.numberOfLines = 0;
+    
+    NSMutableAttributedString* str_att = [[NSMutableAttributedString alloc] initWithString:phoneNumber];
+    str_att = [LabelHelper GetMutableAttributedSting_lineSpaceing:str_att AndSpaceing:5.0f];
+    tips.attributedText = str_att;
+    [center_view addSubview:tips];
+    [tips mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.left.equalTo(center_view.mas_left).with.offset(kWidth(14));
+        make.right.equalTo(center_view.mas_right).with.offset(-kWidth(14));
+        make.top.equalTo(title.mas_bottom);
+    }];
+    
+    UIButton* know = [UIButton new];
+    [know setTitle:@"注销" forState:UIControlStateNormal];
+    [know setTitleColor:RGBA(255, 255, 255, 1) forState:UIControlStateNormal];
+    [know setBackgroundImage:[UIImage imageNamed:@"btn"] forState:UIControlStateNormal];
+    [know.titleLabel setFont:kFONT(16)];
+    [know.layer setCornerRadius:kWidth(36)/2];
+    know.layer.masksToBounds = YES;
+    [know addTarget:self action:@selector(deviceInfo_action_true) forControlEvents:UIControlEventTouchUpInside];
+    [center_view addSubview:know];
+    [know mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(tips.mas_bottom).with.offset(kWidth(20));
+        make.right.equalTo(center_view.mas_right).with.offset(-kWidth(16));
+        make.height.mas_offset(kWidth(36));
+        make.width.mas_offset(kWidth(100));
+    }];
+    
+    UIButton* cancel = [UIButton new];
+    [cancel setTitle:@"取消" forState:UIControlStateNormal];
+    [cancel setTitleColor:RGBA(167, 169, 169, 1) forState:UIControlStateNormal];
+    [cancel setBackgroundColor:RGBA(242, 242, 242, 1)];
+    [know.titleLabel setFont:kFONT(16)];
+    [cancel.layer setCornerRadius:kWidth(36)/2];
+    cancel.layer.masksToBounds = YES;
+    [cancel addTarget:self action:@selector(deviceInfo_action_cancel) forControlEvents:UIControlEventTouchUpInside];
+    [center_view addSubview:cancel];
+    [cancel mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(tips.mas_bottom).with.offset(kWidth(20));
+        make.left.equalTo(center_view.mas_left).with.offset(kWidth(16));
+        make.height.mas_offset(kWidth(36));
+        make.width.mas_offset(kWidth(100));
+    }];
+}
+
+-(void)deviceInfo_action_true{
+    [m_deviceInfo_view removeFromSuperview];
+    //新手任务信息
+    [[TaskCountHelper share] initData];
+    [[AppConfig sharedInstance] clearNewUserTaskInfo];
+    [[AppConfig sharedInstance] saveShowWinForFirstDone_newUserTask:NO];
+    [[AppConfig sharedInstance] saveGuideOfNewUser:NO];
+    
+    //message信息
+    [[AppConfig sharedInstance] saveMessageDate:@""];
+    [[MyDataBase shareManager] clearTable_Message];
+    
+    //新手红包
+    [[AppConfig sharedInstance] saveRedPackage:@" "];
+    [[AppConfig sharedInstance] saveRedPackage_money:@" "];
+    
     [self.navigationController popToRootViewControllerAnimated:YES];
     self.headerView.IsLognin = NO;
     _IsLogined = NO;
@@ -499,19 +595,9 @@
     self.headerView.number_package = userInfo_model.package;
     self.headerView.number_apprentice = userInfo_model.apprentice;
     self.headerView.IsLognin = NO;
-    
-    //新手任务信息
-    [[TaskCountHelper share] initData];
-    [[AppConfig sharedInstance] clearNewUserTaskInfo];
-    [[AppConfig sharedInstance] saveShowWinForFirstDone_newUserTask:NO];
-    [[AppConfig sharedInstance] saveGuideOfNewUser:NO];
-    
-    //message信息
-    [[AppConfig sharedInstance] saveMessageDate:@""];
-    [[MyDataBase shareManager] clearTable_Message];
-    
-    //新手红包
-    [[AppConfig sharedInstance] saveRedPackage:@""];
+}
+-(void)deviceInfo_action_cancel{
+    [m_deviceInfo_view removeFromSuperview];
 }
 
 -(void)getGoldDetailData{

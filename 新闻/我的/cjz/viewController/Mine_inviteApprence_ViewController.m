@@ -72,6 +72,11 @@
     UIWebView* webview = [[UIWebView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(m_navibar_view.frame), SCREEN_WIDTH, SCREEN_HEIGHT-CGRectGetMaxY(m_navibar_view.frame))];
     webview.scrollView.bounces = NO;
     webview.delegate = self;
+    if(@available(iOS 11.0, *)) {
+        
+        webview.scrollView.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;
+        
+    }
     NSURLRequest* request = [[NSURLRequest alloc] initWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://younews.3gshow.cn/api/shoutu?user_id=%@",[Login_info share].userInfo_model.user_id]]];
     [webview loadRequest:request];
     
@@ -122,7 +127,13 @@
     if(MFMessageComposeViewController.canSendText){
         MFMessageComposeViewController* vc = [MFMessageComposeViewController new];
         vc.recipients = @[phonenumber];
-        vc.body = [message stringByAppendingString:[Login_info share].shareInfo_model.shorLink];//短信内容
+        if([Login_info share].shareInfo_model.shorLink == nil){
+            vc.body = message;//短信内容
+        }
+        else{
+            vc.body = [message stringByAppendingString:[Login_info share].shareInfo_model.shorLink];//短信内容
+        }
+        vc.body = [message stringByAppendingString:@"123"];//短信内容
         vc.messageComposeDelegate = self;
         [self presentViewController:vc animated:YES completion:nil];
     }else{

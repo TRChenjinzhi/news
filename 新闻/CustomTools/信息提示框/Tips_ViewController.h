@@ -11,5 +11,6 @@
 @interface Tips_ViewController : UIViewController
 
 @property (nonatomic,strong)NSString* message;
+@property (nonatomic)CGFloat corner;
 
 @end

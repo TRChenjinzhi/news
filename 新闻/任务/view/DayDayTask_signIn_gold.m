@@ -35,11 +35,11 @@
         goldNumber.font = [UIFont systemFontOfSize:10];
         
         if(model.IsToday){
-            leftLine.backgroundColor = [UIColor colorWithRed:255/255.0 green:201/255.0 blue:6/255.0 alpha:1/1.0];
+            leftLine.backgroundColor = [UIColor colorWithRed:255/255.0 green:129/255.0 blue:3/255.0 alpha:1/1.0];
             [redPackage_img setImage:[UIImage imageNamed:@"task_seven_checked"]];
             goldNumber.textColor = [UIColor whiteColor];
         }else{
-            leftLine.backgroundColor = [UIColor colorWithRed:254/255.0 green:234/255.0 blue:190/255.0 alpha:1/1.0];
+            leftLine.backgroundColor = [UIColor colorWithRed:255/255.0 green:192/255.0 blue:129/255.0 alpha:1/1.0];
             [redPackage_img setImage:[UIImage imageNamed:@"task_seven"]];
             goldNumber.textColor = [UIColor colorWithRed:254/255.0 green:234/255.0 blue:190/255.0 alpha:1/1.0];
         }
@@ -53,9 +53,9 @@
             //左边横线
             UIView* leftLine = [[UIView alloc] initWithFrame:CGRectMake(0, 20, lineWidth, 2)];
             if(model.IsToday){
-                leftLine.backgroundColor = [UIColor colorWithRed:255/255.0 green:201/255.0 blue:6/255.0 alpha:1/1.0];
+                leftLine.backgroundColor = [UIColor colorWithRed:255/255.0 green:129/255.0 blue:3/255.0 alpha:1/1.0];
             }else{
-                leftLine.backgroundColor = [UIColor colorWithRed:254/255.0 green:234/255.0 blue:190/255.0 alpha:1/1.0];
+                leftLine.backgroundColor = [UIColor colorWithRed:255/255.0 green:192/255.0 blue:129/255.0 alpha:1/1.0];
             }
             [self addSubview:leftLine];
         }
@@ -64,9 +64,9 @@
             //右边横线
             UIView* rightLine = [[UIView alloc] initWithFrame:CGRectMake(lineWidth+imgWidth, 20, lineWidth, 2)];
             if(model.IsToday){
-                rightLine.backgroundColor = [UIColor colorWithRed:255/255.0 green:201/255.0 blue:6/255.0 alpha:1/1.0];
+                rightLine.backgroundColor = [UIColor colorWithRed:255/255.0 green:129/255.0 blue:3/255.0 alpha:1/1.0];
             }else{
-                rightLine.backgroundColor = [UIColor colorWithRed:254/255.0 green:234/255.0 blue:190/255.0 alpha:1/1.0];
+                rightLine.backgroundColor = [UIColor colorWithRed:255/255.0 green:192/255.0 blue:129/255.0 alpha:1/1.0];
             }
             [self addSubview:rightLine];
         }
@@ -80,10 +80,10 @@
         
         if(model.IsToday){
             [img setImage:[UIImage imageNamed:@"task_checked"]];
-            goldNumber.textColor = [UIColor colorWithRed:251/255.0 green:185/255.0 blue:38/255.0 alpha:1/1.0];
+            goldNumber.textColor = [UIColor colorWithRed:255/255.0 green:129/255.0 blue:3/255.0 alpha:1/1.0];
         }else{
             [img setImage:[UIImage imageNamed:@"task_check"]];
-            goldNumber.textColor =  [UIColor colorWithRed:254/255.0 green:234/255.0 blue:190/255.0 alpha:1/1.0];
+            goldNumber.textColor = [UIColor colorWithRed:255/255.0 green:192/255.0 blue:129/255.0 alpha:1/1.0];
         }
         
         [self addSubview:img];
@@ -96,9 +96,9 @@
     DayCount.font = [UIFont fontWithName:@"SourceHanSansCN-Regular" size:10];
     
     if(model.IsToday){
-        DayCount.textColor = [UIColor colorWithRed:248/255.0 green:205/255.0 blue:4/255.0 alpha:1/1.0];
+        DayCount.textColor = [UIColor colorWithRed:255/255.0 green:129/255.0 blue:3/255.0 alpha:1/1.0];
     }else{
-        DayCount.textColor = [UIColor colorWithRed:216/255.0 green:216/255.0 blue:216/255.0 alpha:1/1.0];
+        DayCount.textColor = [UIColor colorWithRed:255/255.0 green:192/255.0 blue:129/255.0 alpha:1/1.0];
     }
     [self addSubview:DayCount];
 }

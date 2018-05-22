@@ -151,7 +151,7 @@
         if([[Login_info share].userMoney_model.binding_wechat integerValue] == 1){
             
             UILabel* name_tmp = [UILabel new];
-            name_tmp.text            = [Login_info share].userInfo_model.name;
+            name_tmp.text            = [Login_info share].userInfo_model.wechat_nickname;
             name_tmp.textColor       = RGBA(34, 39, 39, 1);
             name_tmp.textAlignment   = NSTextAlignmentRight;
             name_tmp.font            = kFONT(14);
@@ -163,7 +163,7 @@
             }];
             
             UIImageView* img_icon = [UIImageView new];
-            [img_icon sd_setImageWithURL:[NSURL URLWithString:[Login_info share].userInfo_model.avatar] placeholderImage:[UIImage imageNamed:@"user_default"]];
+            [img_icon sd_setImageWithURL:[NSURL URLWithString:[Login_info share].userInfo_model.wechat_icon] placeholderImage:[UIImage imageNamed:@"user_default"]];
             [img_icon.layer setCornerRadius:kWidth(32)/2];
             img_icon.layer.masksToBounds = YES;
             [self.view addSubview:img_icon];
@@ -239,25 +239,26 @@
             else{
                 [saveButton setTitle:@"保存" forState:UIControlStateNormal];
             }
-            [saveButton setTitleColor:RGBA(34, 39, 39, 1) forState:UIControlStateNormal];
+            [saveButton setTitleColor:RGBA(255, 255, 255, 1) forState:UIControlStateNormal];
             [saveButton setBackgroundColor:RGBA(248, 205, 4, 1)];
-            [saveButton.layer setCornerRadius:kWidth(3)];
+            [saveButton.layer setCornerRadius:kWidth(40)/2];
+            [saveButton.titleLabel setFont:kFONT(16)];
             [saveButton addTarget:self action:@selector(wechat_save:) forControlEvents:UIControlEventTouchUpInside];
             [self.view addSubview:saveButton];
             [saveButton mas_makeConstraints:^(MASConstraintMaker *make) {
                 make.top.equalTo(line_two.mas_bottom).with.offset(kWidth(20));
-                make.left.equalTo(self.view).with.offset(kWidth(16));
-                make.right.equalTo(self.view).with.offset(-kWidth(16));
                 make.height.mas_offset(kWidth(40));
+                make.width.mas_offset(kWidth(160));
+                make.centerX.equalTo(self.view.mas_centerX);
             }];
             
             UILabel* wechat_tips = [UILabel new];
-            wechat_tips.text            = @"温馨提示：\n真实姓名，请填写微信绑定的银行卡的真实姓名";
+            wechat_tips.text            = @"温馨提示：\n请填写微信绑定的银行卡的真实姓名";
             wechat_tips.textColor       = RGBA(16, 0, 0, 1);
             wechat_tips.textAlignment   = NSTextAlignmentLeft;
             wechat_tips.numberOfLines   = 0;
             
-            NSString* str_all   = @"温馨提示：\n真实姓名，请填写微信绑定的银行卡的真实姓名";
+            NSString* str_all   = @"温馨提示：\n请填写微信绑定的银行卡的真实姓名";
             NSString* str       = @"温馨提示：";
             NSMutableAttributedString* att = [[NSMutableAttributedString alloc] initWithString:str_all];
             att = [LabelHelper GetMutableAttributedSting_color:att AndIndex:0 AndCount:str_all.length AndColor:RGBA(16, 0, 0, 1)];
@@ -299,16 +300,17 @@
             else{
                 [saveButton setTitle:@"保存" forState:UIControlStateNormal];
             }
-            [saveButton setTitleColor:RGBA(34, 39, 39, 1) forState:UIControlStateNormal];
+            [saveButton setTitleColor:RGBA(255, 255, 255, 1) forState:UIControlStateNormal];
             [saveButton setBackgroundColor:RGBA(248, 205, 4, 1)];
-            [saveButton.layer setCornerRadius:kWidth(3)];
+            [saveButton.layer setCornerRadius:kWidth(40)/2];
+            [saveButton.titleLabel setFont:kFONT(16)];
             [saveButton addTarget:self action:@selector(ali_save:) forControlEvents:UIControlEventTouchUpInside];
             [self.view addSubview:saveButton];
             [saveButton mas_makeConstraints:^(MASConstraintMaker *make) {
                 make.top.equalTo(line_two.mas_bottom).with.offset(kWidth(20));
-                make.left.equalTo(self.view).with.offset(kWidth(16));
-                make.right.equalTo(self.view).with.offset(-kWidth(16));
                 make.height.mas_offset(kWidth(40));
+                make.width.mas_offset(kWidth(160));
+                make.centerX.equalTo(self.view.mas_centerX);
             }];
         }
     }
@@ -337,8 +339,8 @@
         return;
     }
     
-    NSString* tmp = [m_title_textField.text stringByReplacingOccurrencesOfString:@" " withString:@""]; //防止全部是空格
-    if(m_title_textField.text.length <= 0 || tmp.length <= 0){
+    m_title_textField.text = [m_title_textField.text stringByReplacingOccurrencesOfString:@" " withString:@""]; //防止空格
+    if(m_title_textField.text.length <= 0){
         [MyMBProgressHUD ShowMessage:@"姓名不能为空" ToView:self.view AndTime:1.0f];
         return;
     }
@@ -358,6 +360,8 @@
         [m_title_textField becomeFirstResponder];
         return;
     }
+    m_title_textField.text      = [m_title_textField.text stringByReplacingOccurrencesOfString:@" " withString:@""]; //防止空格
+    m_subTitle_textField.text   = [m_subTitle_textField.text stringByReplacingOccurrencesOfString:@" " withString:@""]; //防止空格
     if(m_title_textField.text.length <= 0 || m_subTitle_textField.text.length <= 0){
         [MyMBProgressHUD ShowMessage:@"姓名或账号不能为空" ToView:self.view AndTime:1.0f];
         return;

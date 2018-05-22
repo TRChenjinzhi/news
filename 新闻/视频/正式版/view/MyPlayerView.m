@@ -63,7 +63,6 @@
         make.top.equalTo(self.m_imgView.mas_top).with.offset(kWidth(16));
         make.height.width.mas_equalTo(kWidth(32));
     }];
-    [self.back setHidden:YES];
     
     
     //视屏上方描述文字
@@ -83,7 +82,7 @@
     title.font = kFONT(16);
     [self.m_topView addSubview:title];
     [title mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.left.equalTo(self.m_topView.mas_left).with.offset(kWidth(16));
+        make.left.equalTo(self.m_topView.mas_left).with.offset(kWidth(16+32+10));
         make.right.equalTo(self.m_topView.mas_right).with.offset(-kWidth(16));
         make.top.equalTo(self.m_topView.mas_top).with.offset(kHeight(16));
         make.bottom.equalTo(self.m_topView.mas_bottom).with.offset(-kWidth(16));
@@ -147,7 +146,8 @@
     [m_buttomView addSubview:self.left_time];
     [self.left_time mas_makeConstraints:^(MASConstraintMaker *make) {
         make.left.mas_equalTo(m_buttomView).with.offset(kWidth(16));
-        make.bottom.mas_equalTo(m_buttomView).with.offset(-kWidth(8));
+//        make.bottom.mas_equalTo(m_buttomView).with.offset(-kWidth(8));
+        make.centerY.equalTo(m_buttomView.mas_centerY);
         make.width.mas_equalTo(kWidth(36));
         make.height.mas_equalTo(kWidth(16));
     }];
@@ -161,7 +161,8 @@
     [m_buttomView addSubview:self.fullScreenButton];
     [self.fullScreenButton mas_makeConstraints:^(MASConstraintMaker *make) {
         make.right.mas_equalTo(m_buttomView.mas_right).with.offset(-kWidth(16));
-        make.bottom.mas_equalTo(m_buttomView.mas_bottom);
+//        make.bottom.mas_equalTo(m_buttomView.mas_bottom);
+        make.centerY.equalTo(m_buttomView.mas_centerY);
         make.width.mas_equalTo(kWidth(32));
         make.height.mas_equalTo(kWidth(32));
     }];
@@ -176,20 +177,28 @@
     [m_buttomView addSubview:self.right_time];
     [self.right_time mas_makeConstraints:^(MASConstraintMaker *make) {
         make.right.mas_equalTo(self.fullScreenButton.mas_left).offset(-kWidth(0));
-        make.bottom.mas_equalTo(m_buttomView).offset(-kWidth(8));
+//        make.bottom.mas_equalTo(m_buttomView).offset(-kWidth(8));
+        make.centerY.equalTo(m_buttomView.mas_centerY);
         make.width.mas_greaterThanOrEqualTo(kWidth(36));
         make.height.mas_equalTo(kWidth(16));
     }];
     
     //进度条 视图
-    self.MyProgressView = [[UIView alloc] init];
-    self.MyProgressView.backgroundColor = RGBA(0, 0, 0, 0.4);
+    self.MyProgressView = [[UIView alloc] initWithFrame:CGRectMake(CGRectGetMaxX(self.left_time.frame)+kWidth(8),
+                                                                   CGRectGetMaxY(self.left_time.frame),
+                                                                   m_width-CGRectGetMinX(self.right_time.frame)-CGRectGetMaxX(self.left_time.frame)-kWidth(8+8),
+                                                                   kWidth(10))];
+//    self.MyProgressView.backgroundColor = RGBA(0, 0, 0, 0.4);
+//    self.MyProgressView.backgroundColor = [UIColor redColor];
     [m_buttomView addSubview:self.MyProgressView];
+    UITapGestureRecognizer *tapSlider = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(touchSlider:)];
+    [self.MyProgressView addGestureRecognizer:tapSlider];
     [self.MyProgressView mas_makeConstraints:^(MASConstraintMaker *make) {
         make.left.mas_equalTo(self.left_time.mas_right).with.offset(kWidth(8));
         make.right.mas_equalTo(self.right_time.mas_left).with.offset(-kWidth(8));
-        make.bottom.mas_equalTo(m_buttomView.mas_bottom).offset(-kWidth(15));
-        make.height.mas_equalTo(kWidth(2));
+//        make.bottom.mas_equalTo(m_buttomView.mas_bottom).offset(-kWidth(15));
+        make.bottom.mas_equalTo(m_buttomView.mas_bottom);
+        make.top.equalTo(m_buttomView.mas_top);
     }];
     
     // 底部缓存进度条
@@ -200,7 +209,11 @@
     [progressView setProgress:0.0 animated:NO];
     [self.MyProgressView addSubview:progressView];
     [progressView mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.edges.equalTo(self.MyProgressView).with.insets(UIEdgeInsetsMake(0, 0, 0, 0));
+//        make.edges.equalTo(self.MyProgressView).with.insets(UIEdgeInsetsMake(0, 0, 0, 0));
+        make.left.and.right.equalTo(self.MyProgressView);
+//        make.top.equalTo(self.MyProgressView.mas_top).offset(kWidth(5));
+        make.centerY.equalTo(self.MyProgressView.mas_centerY);
+        make.height.mas_offset(kWidth(2));
     }];
  
     // 底部进度条
@@ -209,14 +222,18 @@
     self.slider.minimumTrackTintColor = RGBA(248, 205, 4, 1);
     self.slider.maximumTrackTintColor = [UIColor clearColor];
     self.slider.value = 0.0;
-    [self.slider setThumbImage:[UIImage imageNamed:@"ic_ball"] forState:UIControlStateNormal];
+    [self.slider setThumbImage:[Color_Image_Helper imageResize:[UIImage imageNamed:@"ic_ball"] andResizeTo:CGSizeMake(kWidth(10), kWidth(10))] forState:UIControlStateNormal];
     [self.slider addTarget:self action:@selector(sliderDragValueChange:) forControlEvents:UIControlEventValueChanged];
     [self.slider addTarget:self action:@selector(sliderTapValueChange:) forControlEvents:UIControlEventTouchUpInside];
-    UITapGestureRecognizer *tapSlider = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(touchSlider:)];
-    [self.slider addGestureRecognizer:tapSlider];
+    
     [self.MyProgressView addSubview:self.slider];
+    [self.MyProgressView bringSubviewToFront:self.slider];
     [self.slider mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.edges.equalTo(self.MyProgressView).with.insets(UIEdgeInsetsMake(0, 0, 0, 0));
+//        make.edges.equalTo(self.MyProgressView).with.insets(UIEdgeInsetsMake(0, 0, 0, 0));
+        make.left.and.right.equalTo(self.MyProgressView);
+//        make.top.equalTo(self.MyProgressView.mas_top).offset(kWidth(5));
+        make.centerY.equalTo(self.MyProgressView.mas_centerY);
+        make.height.mas_offset(kWidth(2));
     }];
 }
 
@@ -230,12 +247,13 @@
     // layer的frame
     self.playerLayer.frame = self.bounds;
     // layer的填充属性 和UIImageView的填充属性类似
-    // AVLayerVideoGravityResizeAspect 等比例拉伸，会留白
-    // AVLayerVideoGravityResizeAspectFill // 等比例拉伸，会裁剪
-    // AVLayerVideoGravityResize // 保持原有大小拉伸
-    self.playerLayer.videoGravity = AVLayerVideoGravityResizeAspectFill;
+    // AVLayerVideoGravityResizeAspect //等比例填充，直到一个维度到达区域边界
+    // AVLayerVideoGravityResizeAspectFill // 等比例填充，直到填充满整个视图区域，其中一个维度的部分区域会被裁剪
+    // AVLayerVideoGravityResize //  // 非均匀模式。两个维度完全填充至整个视图区域
+    self.playerLayer.videoGravity = AVLayerVideoGravityResizeAspect;
     // 把Layer加到底部View上
     [self.m_imgView.layer insertSublayer:self.playerLayer atIndex:0];
+    [self.m_imgView setImage:[Color_Image_Helper createImageWithColor:[UIColor blackColor]]];
     // 监听播放器状态变化
     [self.playerItem addObserver:self forKeyPath:@"status" options:NSKeyValueObservingOptionNew context:nil];
     // 监听缓存大小
@@ -260,7 +278,7 @@
     m_title.text = model.title;
     
     [self initAll];
-    NSLog(@"initAll:%@",model.title);
+//    NSLog(@"initAll:%@",model.title);
 }
 
 #pragma mark - 按钮
@@ -336,12 +354,13 @@
         [self.MyProgressView removeFromSuperview];
         [self.m_imgView addSubview:self.MyProgressView];
         [self.MyProgressView mas_updateConstraints:^(MASConstraintMaker *make) {
-            make.left.right.bottom.equalTo(self.m_imgView);
+            make.left.and.right.and.bottom.equalTo(self.m_imgView);
             make.height.mas_equalTo(kWidth(2));
         }];
 //        [self.MyProgressView layoutIfNeeded];
         [UIView animateWithDuration:animateTime animations:^{
             
+            self.back.alpha = 0;
             m_buttomView.alpha = 0;
             self.m_topView.alpha = 0;
             m_center_play.alpha = 0;
@@ -357,11 +376,13 @@
         [self.MyProgressView mas_updateConstraints:^(MASConstraintMaker *make) {
             make.left.mas_equalTo(self.left_time.mas_right).with.offset(kWidth(8));
             make.right.mas_equalTo(self.right_time.mas_left).with.offset(-kWidth(8));
-            make.bottom.mas_equalTo(m_buttomView.mas_bottom).offset(-kWidth(15));
-            make.height.mas_equalTo(kWidth(2));
+            //        make.bottom.mas_equalTo(m_buttomView.mas_bottom).offset(-kWidth(15));
+            make.bottom.mas_equalTo(m_buttomView.mas_bottom).offset(0);
+            make.height.mas_equalTo(kWidth(30));
         }];
 //        [self.MyProgressView layoutIfNeeded];
         [UIView animateWithDuration:animateTime animations:^{
+            self.back.alpha = 1.0f;
             m_buttomView.alpha = 1.0f;
             self.m_topView.alpha = 1.0f;
             m_center_play.alpha = 1.0f;
@@ -546,6 +567,7 @@
 }
 
 -(void)initAll{
+    [self.m_imgView sd_setImageWithURL:[NSURL URLWithString:self.data_model.cover]];
     //初始化
     m_playFailed_view = nil;
     m_playWaiting_view = nil;
@@ -640,6 +662,7 @@
             }];
             
             [UIView animateWithDuration:1.0 animations:^{
+                self.back.alpha = 0;
                 m_buttomView.alpha = 0;
                 self.m_topView.alpha = 0;
                 m_center_play.alpha = 0;
@@ -737,5 +760,26 @@
     return [fotmmatter stringFromDate:date];
 }
 
+
+-(void)setIsBackHide:(BOOL)isBackHide{
+    [self.back setHidden:isBackHide];
+    if(isBackHide){
+        [m_title mas_updateConstraints:^(MASConstraintMaker *make) {
+            make.left.equalTo(self.m_topView.mas_left).with.offset(kWidth(16));
+            make.right.equalTo(self.m_topView.mas_right).with.offset(-kWidth(16));
+            make.top.equalTo(self.m_topView.mas_top).with.offset(kHeight(16));
+            make.bottom.equalTo(self.m_topView.mas_bottom).with.offset(-kWidth(16));
+        }];
+    }
+    else{
+        [m_title mas_updateConstraints:^(MASConstraintMaker *make) {
+            make.left.equalTo(self.m_topView.mas_left).with.offset(kWidth(16+32+10));
+            make.right.equalTo(self.m_topView.mas_right).with.offset(-kWidth(16));
+            make.top.equalTo(self.m_topView.mas_top).with.offset(kHeight(16));
+            make.bottom.equalTo(self.m_topView.mas_bottom).with.offset(-kWidth(16));
+        }];
+    }
+    [self layoutIfNeeded];
+}
 
 @end

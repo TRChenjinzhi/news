@@ -30,7 +30,7 @@
 @implementation TabbarViewController{
     BOOL        m_isReInitTabbar;
     UIView*     m_redPackage_view;
-    UIButton*   m_redPackage_oldUser;
+    UIView*   m_redPackage_oldUser;
     UIView*     m_redPackage_newUser_NoShifu;
     UIView*     m_redPackage_newUser_HaveShifu;
     UILabel*    m_textView_placeHolder;
@@ -46,7 +46,6 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    
     [self initTabbar];
     
     [self initControl];
@@ -56,7 +55,6 @@
     
     [self IsShowRedPackage];
 //    [self RedPackage_newUser]; //测试弹窗
-    
     
 }
 
@@ -76,11 +74,11 @@
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(BaiShi:) name:@"拜师_TabBarVCL" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(showDeviceInfo) name:WaringOfNotTheAccount_tips object:nil];
+    
 }
 
 -(void)viewWillDisappear:(BOOL)animated{
     [super viewWillDisappear:animated];
-//    [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 - (void)selectIndex:(int)index
@@ -89,6 +87,7 @@
 }
 
 -(void)changeSelectIndex:(NSNotification*)noti{
+    NSLog(@"频道切换");
     NSNumber* number = noti.object;
     int index =  [number intValue];
 //    [self.tabbar ];
@@ -201,10 +200,10 @@
 
 -(void)IsShowRedPackage{
     if(![Login_info share].isLogined){
-        NSString* str = [[AppConfig sharedInstance] getRedPackage];
+        NSString* str = [[AppConfig sharedInstance] getRedPackage_first];
         if(str == nil){
             [self showRedPackage_view];
-            [[AppConfig sharedInstance] saveRedPackage:@"第一次打开红包"];
+            [[AppConfig sharedInstance] saveRedPackage_first:@"第一次打开app"];
         }
     }
 }
@@ -258,6 +257,11 @@
 //    MeViewController *me = [[MeViewController alloc]init];
     MineViewController* me = [[MineViewController alloc] init];
     [self setupChildViewController:me title:@"我的" imageName:@"ic_menu_home" selectedImage:@"ic_menu_home_pressed"];
+    
+    
+    //iphoneX 底部颜色
+    self.tabBar.backgroundColor = [UIColor whiteColor];
+    self.tabBar.translucent = NO;
 
 }
 
@@ -317,11 +321,12 @@
 
 -(void)redPackage_newUser{
     NSLog(@"RedPackage_newUser");
-    NSString* str = [[AppConfig sharedInstance] getRedPackage];
+    NSString* str = [[AppConfig sharedInstance] getRedPackage_money];
     if(str != nil){
+        NSLog(@"RedPackage_newUser 已经领取");
         return;
     }
-    [[AppConfig sharedInstance] saveRedPackage:@"已发新手红包"];
+    [[AppConfig sharedInstance] saveRedPackage_money:@"已发新手红包"];
     NSString* mastercode = [Login_info share].userInfo_model.mastercode;
     if([mastercode isEqualToString:@""]){
         //没拜师
@@ -389,8 +394,9 @@
         textField.backgroundColor = [[ThemeManager sharedInstance] GetDialogViewColor];
         //    textField.te = @"我来说两句...";
         textField.delegate = self;
-        textField.textAlignment = NSTextAlignmentLeft;
+        textField.textAlignment = NSTextAlignmentCenter;
         textField.keyboardType = UIKeyboardTypeNumberPad;
+        textField.scrollEnabled = NO;
         //    textField.clearButtonMode = UITextFieldViewModeAlways;
         textField.returnKeyType = UIReturnKeyNext;
         textField.keyboardAppearance = UIKeyboardAppearanceDefault;
@@ -399,6 +405,7 @@
         textField.font = [UIFont fontWithName:@"SourceHanSansCN-Regular" size:14];
         [textField.layer setCornerRadius:6.0f];
         textField.bounces = YES;
+        textField.textContainerInset = UIEdgeInsetsMake(10, 10, 10, 10);
         [img_btn addSubview:textField];
         [textField mas_makeConstraints:^(MASConstraintMaker *make) {
             make.top.equalTo(money_lable.mas_bottom).with.offset(kWidth(30));
@@ -411,18 +418,21 @@
         m_textView_placeHolder = [UILabel new];
         m_textView_placeHolder.text = @"输入邀请码(选填)";
         m_textView_placeHolder.textColor = RGBA(167, 169, 169, 1);
-        m_textView_placeHolder.textAlignment = NSTextAlignmentLeft;
+        m_textView_placeHolder.textAlignment = NSTextAlignmentCenter;
         m_textView_placeHolder.font = kFONT(10);
         [textField addSubview:m_textView_placeHolder];
         [m_textView_placeHolder mas_makeConstraints:^(MASConstraintMaker *make) {
             make.left.equalTo(textField.mas_left).with.offset(kWidth(13));
+            make.right.equalTo(textField.mas_right).with.offset(-kWidth(13));
             make.height.mas_offset(kWidth(10));
             make.top.equalTo(textField.mas_top).with.offset(kWidth(14));
         }];
         
         UIButton* sendBtn = [UIButton new];
         [sendBtn.layer setCornerRadius:6.0f];
-        [sendBtn setImage:[UIImage imageNamed:@"receive_default"] forState:UIControlStateNormal];
+//        [sendBtn setImage:[UIImage imageNamed:@"receive_default"] forState:UIControlStateNormal];
+        CGSize size = CGSizeMake(kWidth(175), kWidth(35));
+        [sendBtn setBackgroundColor:[Color_Image_Helper ImageChangeToColor:[UIImage imageNamed:@"receive_default"] AndNewSize:size]];
         sendBtn.clipsToBounds = YES;
         [sendBtn addTarget:self action:@selector(sendBtn_action) forControlEvents:UIControlEventTouchUpInside];
         [img_btn addSubview:sendBtn];
@@ -539,14 +549,14 @@
 }
 
 -(void)sendBtn_action{
-
+    if(m_textField.text.length > 0){
         [InternetHelp BaiShi_API:m_textField.text Sucess:^(NSDictionary *dic) {
             NSDictionary* dic_tmp = dic[@"list"];
             [Login_info share].userInfo_model.mastercode = dic_tmp[@"master_code"];
             [Login_info share].userInfo_model.master_name = dic_tmp[@"master_name"];
             [Login_info share].userInfo_model.master_avatar = dic_tmp[@"master_avatar"];
             
-            [MyMBProgressHUD ShowMessage:@"邀请成功" ToView:self.view AndTime:1];
+            [MyMBProgressHUD ShowMessage:@"拜师成功!" ToView:self.view AndTime:1];
             [m_redPackage_newUser_NoShifu removeFromSuperview];
         } Fail:^(NSDictionary *dic) {
             if(dic == nil){
@@ -555,7 +565,12 @@
                 NSString* msg = dic[@"msg"];
                 [MyMBProgressHUD ShowMessage:msg ToView:self.view AndTime:1];
             }
+            [m_redPackage_newUser_NoShifu removeFromSuperview];
         }];
+    }
+    else{
+        [m_redPackage_newUser_NoShifu removeFromSuperview];
+    }
 }
 
 -(void)closeRedPackage_oldUser{
@@ -564,18 +579,40 @@
 }
 
 -(void)redPackage_oldUser{
-    NSString* str = [[AppConfig sharedInstance] getRedPackage];
+    NSString* str = [[AppConfig sharedInstance] getRedPackage_money];
     if(str != nil){
         return;
     }
-    [[AppConfig sharedInstance] saveRedPackage:@"已发新手红包"];
+    [[AppConfig sharedInstance] saveRedPackage_money:@"已发新手红包"];
     if(YES){
-        UIButton* img_btn = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT)];
+        UIView* redPack_view = [UIView new];
+        redPack_view.backgroundColor = [UIColor colorWithRed:0/255.0 green:0/255.0 blue:0/255.0 alpha:0.6/1.0];
+        [self.view addSubview:redPack_view];
+        m_redPackage_oldUser = redPack_view;
+        [redPack_view mas_makeConstraints:^(MASConstraintMaker *make) {
+            make.edges.equalTo(self.view);
+        }];
+        
+        UIButton* img_btn = [UIButton new];
         [img_btn setImage:[UIImage imageNamed:@"bg_02"] forState:UIControlStateNormal];
         [img_btn addTarget:self action:@selector(redPackage_old_action) forControlEvents:UIControlEventTouchUpInside];
-        img_btn.backgroundColor = [UIColor colorWithRed:0/255.0 green:0/255.0 blue:0/255.0 alpha:0.6/1.0];
-        m_redPackage_oldUser = img_btn;
-        [self.view addSubview:img_btn];
+        [redPack_view addSubview:img_btn];
+        [img_btn mas_makeConstraints:^(MASConstraintMaker *make) {
+            make.left.equalTo(redPack_view.mas_left).with.offset(kWidth(50));
+            make.right.equalTo(redPack_view.mas_right).with.offset(-kWidth(50));
+            make.centerY.equalTo(redPack_view.mas_centerY);
+            make.height.mas_offset(kWidth(360));
+        }];
+        
+        UIButton* close_btn = [UIButton new];
+        [close_btn setImage:[UIImage imageNamed:@"ic_delete"] forState:UIControlStateNormal];
+        [close_btn addTarget:self action:@selector(redPackage_old_action) forControlEvents:UIControlEventTouchUpInside];
+        [img_btn addSubview:close_btn];
+        [close_btn mas_makeConstraints:^(MASConstraintMaker *make) {
+            make.top.equalTo(img_btn.mas_top).with.offset(kWidth(10));
+            make.right.equalTo(img_btn.mas_right).with.offset(-kWidth(10));
+            make.width.and.height.mas_offset(kWidth(15));
+        }];
     }
 }
 

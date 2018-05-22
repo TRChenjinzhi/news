@@ -63,7 +63,7 @@
     [lable_view addSubview:label];
     
     UIView* yellow = [[UIView alloc] initWithFrame:CGRectMake(16, 24, 4, 20)];
-    yellow.backgroundColor = [UIColor colorWithRed:248/255.0 green:205/255.0 blue:4/255.0 alpha:1/1.0];
+    yellow.backgroundColor = RGBA(255, 129, 3, 1);
     [lable_view addSubview:yellow];
     
     [view addSubview:lable_view];
@@ -87,7 +87,7 @@
     [reply_view addSubview:label];
     
     UIView* yellow = [[UIView alloc] initWithFrame:CGRectMake(16, 24, 4, 20)];
-    yellow.backgroundColor = [UIColor colorWithRed:248/255.0 green:205/255.0 blue:4/255.0 alpha:1/1.0];
+    yellow.backgroundColor = RGBA(255, 129, 3, 1);
     [reply_view addSubview:yellow];
     
     [self.m_ReadingWithOther_view addSubview:reply_view];
@@ -227,6 +227,7 @@
     [cell setLayoutMargins:UIEdgeInsetsZero];
 }
 
+#pragma mark - API
 -(void)GetDataWithReadingOther{
     //http://younews.3gshow.cn/api/getRelateNews?json={"user_id":"YangYiTestNumber1713841009","news_id":120,"channel":1}
     NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://younews.3gshow.cn/api/getRelateNews"]];

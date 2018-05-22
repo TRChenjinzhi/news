@@ -39,7 +39,7 @@
         model.duration = dic_item[@"duration"];
         model.play_count = dic_item[@"play_count"];
         model.time = dic_item[@"publish_time"];
-        
+
         [array addObject:model];
     }
     

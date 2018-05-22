@@ -68,7 +68,7 @@
     UIImageView* img_next = [[UIImageView alloc] initWithFrame:CGRectMake(SCREEN_WIDTH-kWidth(16)-kWidth(16), kWidth(24), kWidth(16), kWidth(22))];
     [img_next setImage:[UIImage imageNamed:@"ic_list_next"]];
     
-    UILabel* lable_money = [[UILabel alloc] initWithFrame:CGRectMake(CGRectGetMinX(img_next.frame)-kWidth(4)-kWidth(60), kWidth(17), kWidth(60), kWidth(14))];
+    UILabel* lable_money = [[UILabel alloc] initWithFrame:CGRectMake(CGRectGetMinX(img_next.frame)-kWidth(4)-kWidth(60), kWidth(76)/2-kWidth(14+2), kWidth(60), kWidth(14))];
     lable_money.textAlignment = NSTextAlignmentRight;
     lable_money.textColor = [[ThemeManager sharedInstance] Mine_MyApprentice_stateColor];
     lable_money.font = kFONT(14);
@@ -96,7 +96,7 @@
 }
 
 -(void)setModel:(Mine_GetApprentice_model *)model{
-    [m_img sd_setImageWithURL:[NSURL URLWithString:model.avatar] placeholderImage:[UIImage imageNamed:@"user_default"]];
+    [m_img sd_setImageWithURL:[NSURL URLWithString:model.avatar] placeholderImage:[UIImage imageNamed:@"list_avatar"]];
     [m_img.layer setCornerRadius:m_img.frame.size.width/2];
     m_title.text = model.name;
     m_ShouTutime.text = [NSString stringWithFormat:@"收徒时间: %@",[[TimeHelper share] GetDateFromString_YYYYMMDD:model.time]];

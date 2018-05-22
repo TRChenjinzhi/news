@@ -19,6 +19,216 @@
 @implementation InternetHelp
 
 #pragma mark - 登陆api
++(void)replyToServer_test:(NSString*)user_id andNewsId:(NSString*)newsId AndComment:(NSString*)comment Sucess:(void (^)(NSDictionary *dic))success Fail:(void (^)(NSDictionary *dic))fail{
+    // 1.创建一个网络路径
+    // http://younews.3gshow.cn/api/comment?json={"user_id":"xxxxxx","to_user_id":"xxxxxx","news_id":"10","pid":0,"comment":"hehe"}
+    NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://younews.3gshow.cn/api/comment"]];
+    //    NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://dev.3gshow.cn/api/comment"]];
+    // 2.创建一个网络请求，分别设置请求方法、请求参数
+    NSMutableURLRequest *request =[NSMutableURLRequest requestWithURL:url];
+    request.HTTPMethod = @"POST";
+    NSString *args = @"json=";
+    NSString* argument = @"";
+    NSMutableDictionary* dic = [[NSMutableDictionary alloc] init]; //用json传值 ：\n 加密就不会去掉换行符
+    [dic setValue:user_id forKey:@"user_id"];
+    [dic setValue:newsId forKey:@"news_id"];
+    [dic setValue:comment forKey:@"comment"];
+    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:dic options:0 error:NULL];
+    NSString* str_tmp = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+    argument = [MyEntrypt MakeEntryption:str_tmp];
+    args = [args stringByAppendingString:[NSString stringWithFormat:@"%@",argument]];
+    request.HTTPBody = [args dataUsingEncoding:NSUTF8StringEncoding];
+    // 3.获得会话对象
+    NSURLSession *session = [NSURLSession sharedSession];
+    // 4.根据会话对象，创建一个Task任务
+    NSURLSessionDataTask *sessionDataTask = [session dataTaskWithRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            
+            
+            if(error || data == nil){
+                NSLog(@"SendReply网络获取失败");
+                //发送失败消息
+                fail(nil);
+                return ;
+            }
+            
+            success(dic);
+        });
+        
+    }];
+    //5.最后一步，执行任务，(resume也是继续执行)。
+    [sessionDataTask resume];
+}
++(void)getBanner_Sucess:(void (^)(NSArray *))success Fail:(void (^)(NSDictionary *))fail{
+    // 1.创建一个网络路径
+    NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://younews.3gshow.cn/interface/banner"]];
+    // 2.创建一个网络请求，分别设置请求方法、请求参数
+    NSMutableURLRequest *request =[NSMutableURLRequest requestWithURL:url];
+    // 3.获得会话对象
+    NSURLSession *session = [NSURLSession sharedSession];
+    // 4.根据会话对象，创建一个Task任务
+    //    IMP_BLOCK_SELF(Mine_login_ViewController);
+    NSURLSessionDataTask *sessionDataTask = [session dataTaskWithRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            
+            if(error || data == nil){
+                NSLog(@"getBanner网络获取失败");
+                fail(nil);
+                return ;
+            }
+            
+            NSLog(@"getBanner从服务器获取到数据");
+            NSString* str_json = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+            str_json = [@"{\"result\":" stringByAppendingString:str_json];
+            str_json = [str_json stringByAppendingString:@"}"];
+            NSData* xmlData = [str_json dataUsingEncoding:NSUTF8StringEncoding];
+            NSDictionary* dict = [NSJSONSerialization JSONObjectWithData:xmlData options:0 error:nil];
+            if([dict valueForKey:@"result"]){
+                NSArray *arr2 = dict[@"result"];
+                if(arr2.count > 0){
+                    success(arr2);
+                }
+            }
+            
+            
+        });
+        
+    }];
+    //5.最后一步，执行任务，(resume也是继续执行)。
+    [sessionDataTask resume];
+}
++(void)DianzanById:(NSString*)comment_id andUser_id:(NSString*)user_id AndActionType:(NSInteger)type{
+    NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://younews.3gshow.cn/api/thumbs"]];
+    NSMutableURLRequest *request =[NSMutableURLRequest requestWithURL:url];
+    request.HTTPMethod = @"POST";
+    NSString *args = @"json=";
+    NSString* argument = @"{";
+    argument = [argument stringByAppendingString:[NSString stringWithFormat:@"\"%@\":\"%@\"",@"user_id",user_id]];
+    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"comment_id",comment_id]];
+    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%ld\"",@"action",type]];//1：点赞    2：取消点赞
+    argument = [argument stringByAppendingString:@"}"];
+    argument = [MyEntrypt MakeEntryption:argument];
+    args = [args stringByAppendingString:[NSString stringWithFormat:@"%@",argument]];
+    request.HTTPBody = [args dataUsingEncoding:NSUTF8StringEncoding];
+    // 3.获得会话对象
+    NSURLSession *session = [NSURLSession sharedSession];
+    // 4.根据会话对象，创建一个Task任务
+    //    IMP_BLOCK_SELF(DetailWeb_ViewController);
+    NSURLSessionDataTask *sessionDataTask = [session dataTaskWithRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            if(error || data == nil){
+                NSLog(@"网络获取失败");
+                //发送失败消息
+                //                [block_self.tableView.footer endRefreshing];
+            }
+            
+            //            NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:data options:(NSJSONReadingMutableLeaves) error:nil];
+            //            NSNumber* code = dict[@"code"];
+        });
+        
+    }];
+    [sessionDataTask resume];
+}
+
++(void)replyToOterReplyByUserId:(NSString*)user_id andToUserId:(NSString*)ToUserId andNewsId:(NSString*)newsId AndPid:(NSInteger)Pid AndComment:(NSString*)comment Sucess:(void (^)(NSDictionary *dic))success Fail:(void (^)(NSDictionary *dic))fail{
+    // 1.创建一个网络路径
+    // http://younews.3gshow.cn/api/comment?json={"user_id":"xxxxxx","to_user_id":"xxxxxx","news_id":"10","pid":0,"comment":"hehe"}
+//    NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://younews.3gshow.cn/api/comment"]];
+    NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://dev.3gshow.cn/api/comment"]];
+    // 2.创建一个网络请求，分别设置请求方法、请求参数
+    NSMutableURLRequest *request =[NSMutableURLRequest requestWithURL:url];
+    request.HTTPMethod = @"POST";
+    NSString *args = @"json=";
+    NSString* argument = @"";
+    NSMutableDictionary* dic = [[NSMutableDictionary alloc] init]; //用json传值 ：\n 加密就不会去掉换行符
+    [dic setValue:user_id forKey:@"user_id"];
+    [dic setValue:ToUserId forKey:@"to_user_id"];
+    [dic setValue:newsId forKey:@"news_id"];
+    [dic setValue:[NSNumber numberWithInteger:Pid] forKey:@"pid"];
+    [dic setValue:comment forKey:@"comment"];
+    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:dic options:0 error:NULL];
+    NSString* str_tmp = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+    argument = [MyEntrypt MakeEntryption:str_tmp];
+    args = [args stringByAppendingString:[NSString stringWithFormat:@"%@",argument]];
+    request.HTTPBody = [args dataUsingEncoding:NSUTF8StringEncoding];
+    // 3.获得会话对象
+    NSURLSession *session = [NSURLSession sharedSession];
+    // 4.根据会话对象，创建一个Task任务
+    NSURLSessionDataTask *sessionDataTask = [session dataTaskWithRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            
+            
+            if(error || data == nil){
+                NSLog(@"SendReply网络获取失败");
+                //发送失败消息
+                fail(nil);
+                return ;
+            }
+            
+            success(dic);
+        });
+        
+    }];
+    //5.最后一步，执行任务，(resume也是继续执行)。
+    [sessionDataTask resume];
+}
+
++(void)replyAllByUserId:(NSString *)user_id AndNewsId:(NSString *)newsId AndPid:(NSInteger)pid AndPage:(NSInteger)page AndSize:(NSInteger)size Sucess:(void (^)(NSDictionary *))success Fail:(void (^)(NSDictionary *))fail{
+    // 1.创建一个网络路径
+    // http://younews.3gshow.cn/api/getCommentReply?json={"user_id":"XXX","news_id":10,"pid":1,"page":0,"size":8}
+    //    NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://younews.3gshow.cn/api/getCommentReply"]];
+    NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://dev.3gshow.cn/api/getCommentReply"]];
+    // 2.创建一个网络请求，分别设置请求方法、请求参数
+    NSMutableURLRequest *request =[NSMutableURLRequest requestWithURL:url];
+    request.HTTPMethod = @"POST";
+    NSString *args = @"json=";
+    NSString* argument = @"";
+    NSMutableDictionary* dic = [[NSMutableDictionary alloc] init]; //用json传值 ：\n 加密就不会去掉换行符
+    [dic setValue:user_id forKey:@"user_id"];
+    [dic setValue:newsId forKey:@"news_id"];
+    [dic setValue:[NSNumber numberWithInteger:pid] forKey:@"pid"];
+    [dic setValue:[NSNumber numberWithInteger:page] forKey:@"page"];
+    [dic setValue:[NSNumber numberWithInteger:size] forKey:@"size"];
+    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:dic options:0 error:NULL];
+    NSString* str_tmp = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+    argument = [MyEntrypt MakeEntryption:str_tmp];
+    args = [args stringByAppendingString:[NSString stringWithFormat:@"%@",argument]];
+    request.HTTPBody = [args dataUsingEncoding:NSUTF8StringEncoding];
+    // 3.获得会话对象
+    NSURLSession *session = [NSURLSession sharedSession];
+    // 4.根据会话对象，创建一个Task任务
+    NSURLSessionDataTask *sessionDataTask = [session dataTaskWithRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            
+            
+            if(error || data == nil){
+                NSLog(@"replyAllByUserId网络获取失败");
+                //发送失败消息
+                fail(nil);
+                return ;
+            }
+            NSLog(@"replyAllByUserId网络获取成功");
+            NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:data options:(NSJSONReadingMutableLeaves) error:nil];
+            NSNumber* code = dict[@"code"];
+            if([code integerValue] == 200){
+                success(dict);
+            }
+            else{
+                fail(dict);
+            }
+            
+        });
+        
+    }];
+    //5.最后一步，执行任务，(resume也是继续执行)。
+    [sessionDataTask resume];
+}
+
 +(void)AutoLogin{
     // 1.创建一个网络路径
     NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://younews.3gshow.cn/member/login"]];
@@ -32,6 +242,9 @@
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":%d",@"client_type",2]];//设备类型 1:android 2；ios
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"imei",IDFA]];
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"unique_id",(NSString*)[MyKeychain queryDataWithService:MyKeychain_server]]];
+    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"model",[[DeviveHelper share] getDeviceName]]];
+    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"os_version",[UIDevice currentDevice].systemVersion]];
+    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"mac",[[DeviveHelper share] getMacAddress]]];
     argument = [argument stringByAppendingString:@"}"];
     argument = [MyEntrypt MakeEntryption:argument];
     args = [args stringByAppendingString:[NSString stringWithFormat:@"%@",argument]];
@@ -75,6 +288,13 @@
             
             NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:data options:(NSJSONReadingMutableLeaves) error:nil];
             [Login_info dicToModel:dict];
+            Login_userInfo* userInfo = [Login_info share].userInfo_model;
+            if ([[DefauteNameHelper getDefuateName] isEqualToString:userInfo.name]) {
+                if([userInfo.wechat_binding integerValue] == 1){ //当微信绑定了，账号昵称为默认时，使用微信昵称
+                    userInfo.name = userInfo.wechat_nickname;
+                    [InternetHelp updateUserInfo];
+                }
+            }
             
             [[NSNotificationCenter defaultCenter] postNotificationName:@"用户信息更新" object:nil];
             
@@ -93,7 +313,54 @@
     [sessionDataTask resume];
 }
 
-+(void)wechat_blindingWithOpenId:(NSString*)OpenId{
++(void)updateUserInfo{
+    // 1.创建一个网络路径
+    NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://younews.3gshow.cn/member/UpdateMember"]];
+    // 2.创建一个网络请求，分别设置请求方法、请求参数
+    NSMutableURLRequest *request =[NSMutableURLRequest requestWithURL:url];
+    request.HTTPMethod = @"POST";
+    NSString *args = @"json=";
+    NSString *argument = @"{";
+    argument = [argument stringByAppendingString:[NSString stringWithFormat:@"\"%@\":\"%@\"",@"user_id",[Login_info share].userInfo_model.user_id]];
+    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"name",[Login_info share].userInfo_model.name]];
+    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"sex",[Login_info share].userInfo_model.sex]];
+    argument = [argument stringByAppendingString:@"}"];
+    argument = [MyEntrypt MakeEntryption:argument];
+    args = [args stringByAppendingString:[NSString stringWithFormat:@"%@",argument]];
+    request.HTTPBody = [args dataUsingEncoding:NSUTF8StringEncoding];
+    // 3.获得会话对象
+    NSURLSession *session = [NSURLSession sharedSession];
+    // 4.根据会话对象，创建一个Task任务
+    NSURLSessionDataTask *sessionDataTask = [session dataTaskWithRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            
+            
+            if(error){
+                NSLog(@"网络获取失败");
+                //发送失败消息
+//                [MyMBProgressHUD ShowMessage:@"网络错误" ToView:self.view AndTime:1.0f];
+                return ;
+            }
+            
+            NSLog(@"GetNetData_package从服务器获取到数据");
+            
+            NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:data options:(NSJSONReadingMutableLeaves) error:nil];
+            NSNumber* code = dict[@"code"];
+            if([code longValue] != 200){
+//                [MyMBProgressHUD ShowMessage:@"修改失败" ToView:[UIApplication sharedApplication].keyWindow AndTime:1.0f];
+                return;
+            }
+            [Login_info dicToModel:dict];
+//            [MyMBProgressHUD ShowMessage:@"修改成功" ToView:[UIApplication sharedApplication].keyWindow AndTime:1.0f];
+        });
+        
+    }];
+    //5.最后一步，执行任务，(resume也是继续执行)。
+    [sessionDataTask resume];
+}
+
++(void)wechat_blindingWithOpenId:(UMSocialUserInfoResponse*)resp{
     // 1.创建一个网络路径
     NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://younews.3gshow.cn/member/bind"]];
     // 2.创建一个网络请求，分别设置请求方法、请求参数
@@ -102,10 +369,15 @@
     NSString *args = @"json=";
     NSString* argument = @"{";
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@"\"%@\":\"%@\"",@"user_id",[Login_info share].userInfo_model.user_id]];
-    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"openid",OpenId]];
-    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"avatar",[Login_info share].userInfo_model.avatar]];
-    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"name",[Login_info share].userInfo_model.name]];
-    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%d\"",@"sex",[[Login_info share].userInfo_model.name intValue]]];
+    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"openid",resp.openid]];
+    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"avatar",resp.iconurl]];
+    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"name",resp.name]];
+    if([resp.unionGender isEqualToString:@"男"]){
+        argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%d\"",@"sex",1]];
+    }else{
+        argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%d\"",@"sex",2]];
+    }
+//    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%d\"",@"sex",[[Login_info share].userInfo_model.name intValue]]];
 //    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"city",@"朝阳"]];
 //    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"province",@"北京"]];
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%ld\"",@"client_type",IOS]];//设备类型 1:android 2；ios
@@ -150,7 +422,7 @@
             }else{
                 NSLog(@"微信绑定成功");
 //                NSString* tips = dict[@"info"];
-                [MBProgressHUD showError:@"微信绑定成功!"];
+                [MBProgressHUD showSuccess:@"微信绑定成功!"];
                 NSDictionary* data_dic = dict[@"list"];
                 [Login_info share].userMoney_model.wechat_openid        = data_dic[@"openid"];
                 [Login_info share].userMoney_model.binding_wechat       = data_dic[@"wechat_binding"];
@@ -626,7 +898,7 @@
     NSURLSessionDataTask *sessionDataTask = [session dataTaskWithRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
         
         dispatch_async(dispatch_get_main_queue(), ^{
-            if(error){
+            if(error || data == nil){
                 NSLog(@"Video_detail_tuijian_channelID网络获取失败");
                 //发送失败消息
                 fail(nil);

@@ -62,7 +62,7 @@
 {
     [super viewDidLoad];
    
-    
+    self.view.backgroundColor = [UIColor whiteColor];
     self.edgesForExtendedLayout = UIRectEdgeNone;
 
     //监听夜间模式的改变
@@ -180,7 +180,7 @@
     _navTabBar = [[SCNavTabBar alloc] initWithFrame:CGRectMake(kWidth(40), StaTusHight, SCREEN_WIDTH-kWidth(40)-kWidth(40) , kWidth(44))];
     _navTabBar.backgroundColor = [[ThemeManager sharedInstance] GetBackgroundColor];
     _navTabBar.delegate = self;
-    _navTabBar.lineColor = RGBA(248, 205, 4, 1);;
+    _navTabBar.lineColor = RGBA(255, 129, 3, 1);;
     _navTabBar.itemTitles = _titles;
     [_navTabBar updateDataAgain];
     [self.view addSubview:_navTabBar];
@@ -265,7 +265,7 @@
     _navTabBar = [[SCNavTabBar alloc] initWithFrame:CGRectMake(kWidth(40), StaTusHight, SCREEN_WIDTH-kWidth(40)-kWidth(40) , kWidth(44))];
     _navTabBar.backgroundColor = [[ThemeManager sharedInstance] GetBackgroundColor];
     _navTabBar.delegate = self;
-    _navTabBar.lineColor = RGBA(248, 205, 4, 1);;
+    _navTabBar.lineColor = RGBA(255, 129, 3, 1);;
     _navTabBar.itemTitles = _titles;
     [_navTabBar updateData];
     [self.view addSubview:_navTabBar];
@@ -327,7 +327,7 @@
     //时间差
     NSInteger count = time_now - time_start;
     
-    if(count > 2*60*60){
+    if(count > BoxTime){
         if(m_boxView != nil){ //当隐藏时
             [m_boxView setHidden:NO];
             return;
@@ -337,7 +337,7 @@
         }
         UITabBarController *tabBarVC = [[UITabBarController alloc] init];//(这儿取你当前tabBarVC的实例)
         CGFloat tabBarHeight = tabBarVC.tabBar.frame.size.height;
-        m_boxView = [[FloatView alloc] initWithFrame:CGRectMake(SCREEN_WIDTH-80-10, SCREEN_HEIGHT-90-tabBarHeight-10, 80, 90)];
+        m_boxView = [[FloatView alloc] initWithFrame:CGRectMake(SCREEN_WIDTH-80-10, SCREEN_HEIGHT-90-tabBarHeight*2-10, 80, 90)];
         [m_boxView.close_btn addTarget:self action:@selector(boxClosebtn_action) forControlEvents:UIControlEventTouchUpInside];
         [m_boxView.box_btn addTarget:self action:@selector(boxOpenBtn_action) forControlEvents:UIControlEventTouchUpInside];
         [[UIApplication sharedApplication].keyWindow addSubview:m_boxView];
@@ -417,8 +417,9 @@
     [closeButton setTitle:@"关闭" forState:UIControlStateNormal];
     [closeButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
     [closeButton.titleLabel setFont:[UIFont fontWithName:@"SourceHanSansCN-Regular" size:14]];
-    closeButton.backgroundColor = [UIColor colorWithRed:248/255.0 green:205/255.0 blue:4/255.0 alpha:1/1.0];
+    [closeButton setBackgroundImage:[UIImage imageNamed:@"btn"] forState:UIControlStateNormal];
     closeButton.layer.cornerRadius = 18.0;
+    closeButton.clipsToBounds = YES;
     [closeButton addTarget:self action:@selector(closeBoxWind) forControlEvents:UIControlEventTouchUpInside];
     [view addSubview:closeButton];
     

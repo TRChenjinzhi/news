@@ -53,7 +53,7 @@
 -(void)viewWillAppear:(BOOL)animated{
     [super viewWillAppear:animated];
     [self.navigationController.navigationBar setHidden:YES];
-    [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(SaveVideos) name:@"AppDelegate_SocietyViewCtl" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(SaveVideos) name:@"AppDelegate_SocietyViewCtl" object:nil];
 }
 
 -(void)viewWillDisappear:(BOOL)animated{
@@ -206,6 +206,7 @@
     video_info_model* model = m_tableview_array[indexPath.row];
     cell.m_playerView.delegate = self;
     cell.model = model;
+    cell.m_playerView.isBackHide = YES;
     cell.delegate = self;
     return cell;
 }
@@ -507,14 +508,16 @@
             }else{
                 //提示信息
                 tip_vc = [[Tips_ViewController alloc] init];
-                tip_vc.view.frame = CGRectMake(0, CGRectGetMaxY(m_tableview.frame)-50, SCREEN_WIDTH, 30);
-                //            tip_vc.view.backgroundColor = [UIColor redColor];
-                tip_vc.message = [NSString stringWithFormat:@"更新%ld条新闻",m_tableview_array.count];
+                tip_vc.view.frame = CGRectMake(0, CGRectGetMinY(m_tableview.frame)+kWidth(10), SCREEN_WIDTH, kWidth(30));
+                //                            tip_vc.view.backgroundColor = [UIColor redColor];
+                tip_vc.message = [NSString stringWithFormat:@"更新%ld条视频",array.count];
+                tip_vc.corner = kWidth(30)/2;
                 [self.view addSubview:tip_vc.view];
                 [UIView animateWithDuration:1.0f delay:0 options:UIViewAnimationOptionBeginFromCurrentState animations:^{
                     tip_vc.view.alpha = 0.0;
                 } completion:^(BOOL finished) {
                     [tip_vc.view removeFromSuperview];
+                    tip_vc = nil;
                 }];
                 
                 //添加阅读到这里
@@ -535,7 +538,8 @@
             }
         }else{
             if(array.count == 0){
-                [m_tableview.footer noticeNoMoreData];
+                [m_tableview.footer endRefreshing];
+//                [m_tableview.footer noticeNoMoreData];
             }else{
                 [m_tableview_array addObjectsFromArray:array];
                 [m_tableview reloadData];
@@ -586,6 +590,10 @@
                     }
                 }
                 
+                if(array.count < 10){
+                    [m_tableview.footer removeFromSuperview];
+                }
+                
                 [array addObjectsFromArray:m_tableview_array];
                 m_tableview_array = array;
                 [m_tableview reloadData];
@@ -594,7 +602,8 @@
             }
         }else{
             if(array.count == 0){
-                [m_tableview.footer noticeNoMoreData];
+//                [m_tableview.footer noticeNoMoreData];
+                [m_tableview.footer endRefreshing];
             }else{
                 [m_tableview_array addObjectsFromArray:array];
                 [m_tableview reloadData];

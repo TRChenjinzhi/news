@@ -53,7 +53,7 @@
         [NoInterest_button setTitle:@"不感兴趣" forState:UIControlStateNormal];
         [NoInterest_button setTitleColor:[UIColor colorWithRed:34/255.0 green:39/255.0 blue:39/255.0 alpha:1/1.0] forState:UIControlStateNormal];
         [NoInterest_button setTitleColor:[UIColor grayColor] forState:UIControlStateHighlighted];
-        NoInterest_button.backgroundColor = [UIColor colorWithRed:248/255.0 green:205/255.0 blue:4/255.0 alpha:1/1.0];
+        NoInterest_button.backgroundColor = [UIColor colorWithRed:255/255.0 green:129/255.0 blue:3/255.0 alpha:1/1.0];
         NoInterest_button.titleLabel.font = [UIFont fontWithName:@"SourceHanSansCN-Regular" size:14.0];
         [NoInterest_button.layer setCornerRadius:14];//设置圆角
         [NoInterest_button.layer setMasksToBounds:YES];
@@ -103,7 +103,10 @@
         
         [self addSubview:imgView_reply];
         self.imgReply = imgView_reply;
-        self.imgReply.hidden = YES;
+//        self.imgReply.hidden = YES;
+    }
+    else{
+        self.imgReply.frame = CGRectMake(CGRectGetMaxX(self.resouce.frame)+8, cellHight-16-11, 10, 11);
     }
     
     if(self.lbReply == nil){
@@ -117,17 +120,45 @@
         
         [self addSubview:label_reply];
         self.lbReply = label_reply;
-        self.lbReply.hidden = YES;
+//        self.lbReply.hidden = YES;
+    }
+    else{
+        self.lbReply.frame = CGRectMake(CGRectGetMaxX(self.imgReply.frame)+4, cellHight-16-11, 20, 11);
+        if([model.comment_num integerValue] == 0){
+            self.lbReply.text = @"0";
+        }else{
+            self.lbReply.text = [NSString stringWithFormat:@"%ld",[model.comment_num integerValue]];
+        }
     }
     
     if(self.time == nil){
-        UILabel* time_label = [[UILabel alloc] initWithFrame:CGRectMake(CGRectGetMaxX(self.resouce.frame)+10, cellHight-16-11, 100, 11)];
+        UILabel* time_label = [[UILabel alloc] init];
+        if([model.comment_num integerValue] > 0){
+            time_label.frame = CGRectMake(CGRectGetMaxX(self.lbReply.frame)+10, cellHight-16-11, 70, 11);
+            [self.imgReply setHidden:NO];
+            [self.lbReply setHidden:NO];
+        }
+        else{
+            time_label.frame = CGRectMake(CGRectGetMaxX(self.resouce.frame)+10, cellHight-16-11, 70, 11);
+            [self.imgReply setHidden:YES];
+            [self.lbReply setHidden:YES];
+        }
         time_label.text = [TimeHelper showTime:model.publish_time];
         time_label.font = [UIFont fontWithName:@"SourceHanSansCN-Regular" size:10];
         
         [self addSubview:time_label];
         self.time = time_label;
     }else{
+        if([model.comment_num integerValue] > 0){
+            self.time.frame = CGRectMake(CGRectGetMaxX(self.lbReply.frame)+10, cellHight-16-11, 70, 11);
+            [self.imgReply setHidden:NO];
+            [self.lbReply setHidden:NO];
+        }
+        else{
+            self.time.frame = CGRectMake(CGRectGetMaxX(self.resouce.frame)+10, cellHight-16-11, 70, 11);
+            [self.imgReply setHidden:YES];
+            [self.lbReply setHidden:YES];
+        }
         self.time.text = [TimeHelper showTime:model.publish_time];
     }
     m_time = model.publish_time;
@@ -158,7 +189,7 @@
             
             self.readingHere_btn = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, SCREEN_WIDTH, 30)];
             [self.readingHere_btn setTitle:[NSString stringWithFormat:@"%@ 看到这里,点击刷新",[TimeHelper showTime:model.publish_time]] forState:UIControlStateNormal];
-            [self.readingHere_btn setTitleColor:RGBA(248, 205, 4, 1) forState:UIControlStateNormal];
+            [self.readingHere_btn setTitleColor:RGBA(255, 129, 3, 1) forState:UIControlStateNormal];
             [self.readingHere_btn.titleLabel setFont:[UIFont fontWithName:@"SourceHanSansCN-Regular" size:16]];
             [self.readingHere_btn addTarget:self action:@selector(readHere_action) forControlEvents:UIControlEventTouchUpInside];
             [view addSubview:self.readingHere_btn];

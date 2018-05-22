@@ -91,20 +91,22 @@
     statusHight = [[UIApplication sharedApplication] statusBarFrame].size.height;
     //背景层
     UIView* backgroundView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, SCREEN_WIDTH, 314)];
-    backgroundView.backgroundColor = [UIColor colorWithRed:242/255.0 green:242/255.0 blue:242/255.0 alpha:1/1.0];
+    backgroundView.backgroundColor = RGBA(242, 242, 242, 1);
     backgroundView.userInteractionEnabled = YES;
     
     //登陆状态层
-    UIView* loginBackground_view = [[UIView alloc] initWithFrame:CGRectMake(0, 0, SCREEN_WIDTH, 164)];
-    loginBackground_view.backgroundColor = [UIColor colorWithRed:248/255.0 green:205/255.0 blue:4/255.0 alpha:1/1.0];
+    UIView* loginBackground_view = [[UIView alloc] initWithFrame:CGRectMake(0, 0, SCREEN_WIDTH, 180)];
+    loginBackground_view.backgroundColor = [Color_Image_Helper ImageChangeToColor:[UIImage imageNamed:@"user_bg"] AndNewSize:CGSizeMake(SCREEN_WIDTH, 180)];
+//    loginBackground_view.backgroundColor = RGBA(0, 0, 0, 0.0001);
     
     self.login_view = loginBackground_view;
     [backgroundView addSubview:self.login_view];
     
     //消息按钮
-    BadgeButton* message_button = [[BadgeButton alloc] initWithFrame:CGRectMake(SCREEN_WIDTH-kWidth(16)-25, statusHight+21, 25, 28)];
+    BadgeButton* message_button = [[BadgeButton alloc] initWithFrame:CGRectMake(SCREEN_WIDTH-kWidth(16)-25, 21, 25, 28)];
     [message_button setImage:[UIImage imageNamed:@"ic_nav_message"] forState:UIControlStateNormal];
     message_button.contentEdgeInsets = UIEdgeInsetsMake(0, 0, 0, 0);
+    message_button.isMessage = YES;
     [message_button setCount:0];//消息数
 //    [message_button addTarget:self action:@selector(GoToMessage) forControlEvents:UIControlEventTouchUpInside];
     self.messageButton = message_button;
@@ -113,22 +115,22 @@
     //登陆界面
     [self initLoginView];
     
-    //曲线层
-    UIImageView* img_view = [[UIImageView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(loginBackground_view.frame), SCREEN_WIDTH, 16)];
-    img_view.backgroundColor = [UIColor colorWithRed:248/255.0 green:205/255.0 blue:4/255.0 alpha:1/1.0];
-//    img_view.contentMode = UIViewContentModeBottom;
-//    img_view.backgroundColor = [UIColor blackColor];
-    [img_view setImage:[UIImage imageNamed:@"mine_bg"]];
-    
-    UIView* line = [[UIView alloc] initWithFrame:CGRectMake(0, 15, SCREEN_WIDTH, 1)];//为了覆盖 图片下面的一条黄线
-    line.backgroundColor = [UIColor whiteColor];
-    [img_view addSubview:line];
-    
-    [backgroundView addSubview:img_view];
+//    //曲线层
+//    UIImageView* img_view = [[UIImageView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(loginBackground_view.frame), SCREEN_WIDTH, 16)];
+//    img_view.backgroundColor = [UIColor colorWithRed:248/255.0 green:205/255.0 blue:4/255.0 alpha:1/1.0];
+////    img_view.contentMode = UIViewContentModeBottom;
+////    img_view.backgroundColor = [UIColor blackColor];
+//    [img_view setImage:[UIImage imageNamed:@"mine_bg"]];
+//
+//    UIView* line = [[UIView alloc] initWithFrame:CGRectMake(0, 15, SCREEN_WIDTH, 1)];//为了覆盖 图片下面的一条黄线
+//    line.backgroundColor = [UIColor whiteColor];
+//    [img_view addSubview:line];
+//
+//    [backgroundView addSubview:img_view];
     
     
     //金币细节显示层
-    UIView* gold_view = [[UIView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(img_view.frame), SCREEN_WIDTH, 44)];
+    UIView* gold_view = [[UIView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(loginBackground_view.frame), SCREEN_WIDTH, 44)];
     gold_view.backgroundColor = [UIColor whiteColor];
     gold_view.userInteractionEnabled = YES;
     
@@ -165,6 +167,7 @@
     //广告层
     UIImageView* guanggao_img = [[UIImageView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(gold_view.frame)+10, SCREEN_WIDTH, 70)];
     [guanggao_img setImage:[UIImage imageNamed:@"invite_banner"]];
+
     guanggao_img.userInteractionEnabled = YES;
     
     UIView* guanggao_clickView = [[UIView alloc]initWithFrame:CGRectMake(0, 0, guanggao_img.frame.size.width, guanggao_img.frame.size.height)];
@@ -180,6 +183,17 @@
     [self addSubview:headerBackView];
 }
 
+-(void)bannerView_bengain{
+    [_m_guanggao_img removeFromSuperview];
+    NSMutableArray* tmp = [NSMutableArray array];
+    for (Banner_model* item in [Banner_model share].array) {
+        [tmp addObject:[NSURL URLWithString:item.ad_url]];
+    }
+    self.bannerView = [[BannerView alloc] initWithFrame:_m_guanggao_img.frame ImageUrls:tmp IntervalTime:3.0];
+    //    self.bannerView.delegate = self;
+    [headerBackView addSubview:self.bannerView];
+}
+
 -(void)initLoginView{
     self.UnLogin_view = [[UIView alloc] initWithFrame:CGRectMake(SCREEN_WIDTH/2-104/2, 86, 104, 32)];
     
@@ -189,6 +203,7 @@
     [login_button setTitle:@"登录" forState:UIControlStateNormal];
     [login_button setTitleColor:[UIColor colorWithRed:255/255.0 green:255/255.0 blue:255/255.0 alpha:1/1.0] forState:UIControlStateNormal];
     [login_button.titleLabel setFont:[UIFont fontWithName:@"SourceHanSansCN-Regular" size:14]];
+    [login_button.layer setCornerRadius:16];
     [login_button addTarget:self action:@selector(loginAction) forControlEvents:UIControlEventTouchUpInside];
     
     [self.UnLogin_view addSubview:login_button];
@@ -216,14 +231,14 @@
     name_label.textAlignment = NSTextAlignmentLeft;
     name_label.text = @"123";
     name_label.font = [UIFont boldSystemFontOfSize:18];
-    name_label.textColor = [UIColor colorWithRed:34/255.0 green:39/255.0 blue:39/255.0 alpha:1/1.0];
+    name_label.textColor = RGBA(255, 255, 255, 1);
     
     userinfo_name = name_label;
     [self.logined_view addSubview:name_label];
     
     //img（右箭头）
     UIImageView* img_jiantou = [[UIImageView alloc] initWithFrame:CGRectMake(SCREEN_WIDTH-kWidth(16)-16, 15, 16, 16)];
-    [img_jiantou setImage:[UIImage imageNamed:@"ic_list_next_black"]];
+    [img_jiantou setImage:[UIImage imageNamed:@"ic_list_next_white"]];
     [self.logined_view addSubview:img_jiantou];
     
     //点击层
@@ -251,7 +266,7 @@
           numberGold_label.frame.size.width,
           numberGold_label.frame.size.height);
     numberGold_label.text = str_int;
-    numberGold_label.textColor = [UIColor colorWithRed:251/255.0 green:84/255.0 blue:38/255.0 alpha:1/1.0];
+    numberGold_label.textColor = [UIColor colorWithRed:255/255.0 green:129/255.0 blue:3/255.0 alpha:1/1.0];
     
     [self.goldView addSubview:numberGold_label];
     self.numberGold_label = numberGold_label;
@@ -285,7 +300,7 @@
                                            width+10,
                                            16);
     numberPackage_label.text = str_int;
-    numberPackage_label.textColor = [UIColor colorWithRed:251/255.0 green:84/255.0 blue:38/255.0 alpha:1/1.0];
+    numberPackage_label.textColor = [UIColor colorWithRed:255/255.0 green:129/255.0 blue:3/255.0 alpha:1/1.0];
     
     [self.goldView addSubview:numberPackage_label];
     self.numberPackage_label = numberPackage_label;
@@ -318,7 +333,7 @@
                                               width+10,
                                               16);
     numberApprentice_label.text = str_int;
-    numberApprentice_label.textColor = [UIColor colorWithRed:251/255.0 green:84/255.0 blue:38/255.0 alpha:1/1.0];
+    numberApprentice_label.textColor = [UIColor colorWithRed:255/255.0 green:129/255.0 blue:3/255.0 alpha:1/1.0];
     [self.goldView addSubview:numberApprentice_label];
     self.numberApprentice_label = numberApprentice_label;
     
@@ -370,7 +385,7 @@
 -(void)setUserInfo_model:(Mine_userInfo_model *)userInfo_model{
     m_userInfo_model = userInfo_model;
     if([userInfo_model.icon isEqualToString:@""]){
-        [userInfo_img setImage:[UIImage imageNamed:@"user_default"]];
+        [userInfo_img setImage:[UIImage imageNamed:@"list_avatar"]];
     }else{
         UIImage* img = [[AppConfig sharedInstance] getUserIcon];
         if(img){
@@ -379,7 +394,7 @@
             [userInfo_img sd_setImageWithURL:[NSURL URLWithString:userInfo_model.icon] placeholderImage:nil options:SDWebImageRefreshCached];
         }
     }
-    
+
     userinfo_name.text = userInfo_model.name;
     self.IsLognin = userInfo_model.IsLogin;
     self.number_gold = userInfo_model.gold;

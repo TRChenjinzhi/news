@@ -43,6 +43,7 @@
 @property (nonatomic)BOOL isFullScreen;// 是否全屏
 
 @property (nonatomic,strong)UIButton* back;//返回
+@property (nonatomic)BOOL isBackHide;//返回
 
 -(void)playerInFullScreen;
 -(void)initView;

@@ -63,11 +63,11 @@
 
 -(void)initView{
     UIImageView* img = [[UIImageView alloc] initWithFrame:CGRectMake(SCREEN_WIDTH/2-72/2, CGRectGetMaxY(m_navibar_view.frame)+120, 72, 72)];
-    [img setImage:[UIImage imageNamed:@"about"]];
+    [img setImage:[UIImage imageNamed:@"about-1"]];
     [self.view addSubview:img];
     
     UILabel* APPName_label = [[UILabel alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(img.frame)+24, SCREEN_WIDTH, 20)];
-    APPName_label.text = @"有料";
+    APPName_label.text = @"橙子快报";
     APPName_label.textColor = [UIColor blackColor];
     APPName_label.textAlignment = NSTextAlignmentCenter;
     APPName_label.font = [UIFont boldSystemFontOfSize:20];

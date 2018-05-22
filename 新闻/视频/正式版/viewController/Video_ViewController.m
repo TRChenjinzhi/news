@@ -105,7 +105,7 @@
     _navTabBar.backgroundColor = [[ThemeManager sharedInstance] GetBackgroundColor];
 //    _navTabBar.backgroundColor = [UIColor blueColor];
     _navTabBar.delegate = self;
-    _navTabBar.lineColor = RGBA(248, 205, 4, 1);
+    _navTabBar.lineColor = RGBA(255, 129, 3, 1);
     _navTabBar.itemTitles = m_tabBarTitles_array;
     [_navTabBar updateData];
     [self.view addSubview:_navTabBar];

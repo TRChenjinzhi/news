@@ -12,6 +12,7 @@
 #import "Mine_apprenceInfo_ViewController.h"
 #import "Mine_inviteApprence_ViewController.h"
 #import "Mine_GetApprentice_TableViewCell.h"
+#import "Mine_login_ViewController.h"
 
 @interface Mine_GetApprentice_ViewController ()<MyApprenceTVCL_GetApprenceVCL_protocl,UITableViewDelegate,UITableViewDataSource>
 
@@ -37,6 +38,17 @@
     [self initNavi];
     [self initTabeView];
 
+}
+
+-(void)viewWillAppear:(BOOL)animated{
+    [super viewWillAppear:animated];
+    if([Login_info share].isLogined){
+        [m_tableview.header beginRefreshing];
+        [self.view addSubview:m_tableview];
+    }
+    else{
+        [self initView];
+    }
 }
 
 - (void)didReceiveMemoryWarning {
@@ -103,7 +115,13 @@
     headerView.lastUpdatedTimeLabel.hidden = YES;
     headerView.stateLabel.hidden = YES;
     m_tableview.header = headerView;
-    [headerView beginRefreshing];
+    if([Login_info share].isLogined){
+        [headerView beginRefreshing];
+        [self.view addSubview:m_tableview];
+    }
+    else{
+        [self initView];
+    }
     
     MJRefreshAutoFooter* footer = [MJRefreshAutoNormalFooter footerWithRefreshingBlock:^{
         [self GetApprenticeData:m_page];
@@ -111,7 +129,6 @@
     m_tableview.footer = footer;
     
     
-    [self.view addSubview:m_tableview];
 }
 
 -(void)initView{
@@ -131,14 +148,16 @@
     [main_view addSubview:tips_label];
     
     UIButton* GoToGetMoney = [[UIButton alloc] initWithFrame:CGRectMake(SCREEN_WIDTH/2-240/2, CGRectGetMaxY(tips_label.frame)+32, 240, 40)];
-    [GoToGetMoney setBackgroundColor:[UIColor colorWithRed:248/255.0 green:205/255.0 blue:4/255.0 alpha:1/1.0]];
+    [GoToGetMoney setBackgroundImage:[UIImage imageNamed:@"btn"] forState:UIControlStateNormal];
     [GoToGetMoney setTitle:@"马上邀请好友" forState:UIControlStateNormal];
     [GoToGetMoney setTitleColor:[UIColor colorWithRed:0/255.0 green:0/255.0 blue:0/255.0 alpha:0.87/1.0] forState:UIControlStateNormal];
     [GoToGetMoney.titleLabel setFont:[UIFont fontWithName:@"SourceHanSansCN-Regular" size:16]];
     [GoToGetMoney addTarget:self action:@selector(GetFreinds) forControlEvents:UIControlEventTouchUpInside];
+    [GoToGetMoney.layer setCornerRadius:20];
+    GoToGetMoney.clipsToBounds = YES;
     [main_view addSubview:GoToGetMoney];
     
-//    [self.view addSubview:main_view];
+    [self.view addSubview:main_view];
 }
 
 -(void)show_NoApprentice_view{
@@ -201,6 +220,11 @@
 
 -(void)GetFreinds{
     NSLog(@"马上邀请好友");
+    if(![Login_info share].isLogined){
+        Mine_login_ViewController*vc = [Mine_login_ViewController new];
+        [self.navigationController pushViewController:vc animated:YES];
+        return;
+    }
     Mine_inviteApprence_ViewController* vc = [[Mine_inviteApprence_ViewController alloc] init];
     [self.navigationController pushViewController:vc animated:YES];
 }

@@ -38,13 +38,14 @@
     m_img = big_img;
         //title
     UILabel* title_label = [[UILabel alloc]initWithFrame:CGRectMake(0, 40, big_img.frame.size.width, 24)];
-    NSMutableAttributedString* att_string = [[NSMutableAttributedString alloc] initWithString:@"我在有料里"];
-    att_string = [LabelHelper GetMutableAttributedSting_bold_font:att_string AndIndex:0 AndCount:2 AndFontSize:16];
-    att_string = [LabelHelper GetMutableAttributedSting_color:att_string AndIndex:0 AndCount:2 AndColor: [UIColor colorWithRed:34/255.0 green:39/255.0 blue:39/255.0 alpha:1/1.0]];
-    att_string = [LabelHelper GetMutableAttributedSting_bold_font:att_string AndIndex:2 AndCount:2 AndFontSize:26];
-    att_string = [LabelHelper GetMutableAttributedSting_color:att_string AndIndex:2 AndCount:2 AndColor:[UIColor blackColor]];
-    att_string = [LabelHelper GetMutableAttributedSting_bold_font:att_string AndIndex:4 AndCount:1 AndFontSize:16];
-    att_string = [LabelHelper GetMutableAttributedSting_color:att_string AndIndex:4 AndCount:1 AndColor: [UIColor colorWithRed:34/255.0 green:39/255.0 blue:39/255.0 alpha:1/1.0]];
+    NSString* str_title = @"我在橙子快报里";
+    NSString* str_title_one = @"橙子快报";
+    NSMutableAttributedString* att_string = [[NSMutableAttributedString alloc] initWithString:str_title];
+    att_string = [LabelHelper GetMutableAttributedSting_bold_font:att_string AndIndex:0 AndCount:str_title.length AndFontSize:16];
+    att_string = [LabelHelper GetMutableAttributedSting_color:att_string AndIndex:0 AndCount:str_title.length AndColor: [UIColor colorWithRed:34/255.0 green:39/255.0 blue:39/255.0 alpha:1/1.0]];
+    att_string = [LabelHelper GetMutableAttributedSting_bold_font:att_string AndIndex:[str_title rangeOfString:str_title_one].location AndCount:str_title_one.length AndFontSize:26];
+    att_string = [LabelHelper GetMutableAttributedSting_color:att_string AndIndex:[str_title rangeOfString:str_title_one].location AndCount:str_title_one.length AndColor:[UIColor blackColor]];
+
     title_label.textAlignment = NSTextAlignmentCenter;
     title_label.attributedText = att_string;
     [big_img addSubview:title_label];

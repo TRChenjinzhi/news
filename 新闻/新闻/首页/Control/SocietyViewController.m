@@ -641,10 +641,11 @@
         }
             
             //去重
-            for (CJZdataModel* tmp in dataarray.reverseObjectEnumerator) {
+            for (CJZdataModel* tmp in statusArray.reverseObjectEnumerator) {
                 for (CJZdataModel* tmp_other in block_self.totalArray.reverseObjectEnumerator) {
                     if([tmp.ID isEqualToString:tmp_other.ID]){
-                        [dataarray removeObject:tmp];
+                        NSLog(@"%@",tmp.title);
+                        [statusArray removeObject:tmp];
                     }
                 }
             }
@@ -657,14 +658,16 @@
             }else{
                 //提示信息
                 tip_vc = [[Tips_ViewController alloc] init];
-                tip_vc.view.frame = CGRectMake(0, CGRectGetMaxY(block_self.tableview.frame)-50, SCREEN_WIDTH, 30);
-                //            tip_vc.view.backgroundColor = [UIColor redColor];
+                tip_vc.view.frame = CGRectMake(0, CGRectGetMinY(block_self.tableview.frame)+kWidth(10), SCREEN_WIDTH, kWidth(30));
+//                            tip_vc.view.backgroundColor = [UIColor redColor];
                 tip_vc.message = [NSString stringWithFormat:@"更新%ld条新闻",statusArray.count];
+                tip_vc.corner = kWidth(30)/2;
                 [block_self.view addSubview:tip_vc.view];
                 [UIView animateWithDuration:1.0f delay:0 options:UIViewAnimationOptionBeginFromCurrentState animations:^{
                     tip_vc.view.alpha = 0.0;
                 } completion:^(BOOL finished) {
                     [tip_vc.view removeFromSuperview];
+                    tip_vc = nil;
                 }];
                 
                 //添加阅读到这里
@@ -684,7 +687,8 @@
         }
             
             if(statusArray.count == 0){
-                [block_self.tableview.footer noticeNoMoreData];
+//                [block_self.tableview.footer noticeNoMoreData];
+                [block_self.tableview.footer endRefreshing];
             }else{
                 
                 block_self.page += 1;
@@ -847,10 +851,11 @@
             }
             
             if(statusArray.count == 0){
-                [block_self.tableview.footer noticeNoMoreData];
-                if(type == 0){
-                    [block_self NoResult];
-                }
+//                [block_self.tableview.footer noticeNoMoreData];
+                [block_self.tableview.header endRefreshing];
+//                if(type == 0){
+//                    [block_self NoResult];
+//                }
             }else{
                 [block_self.tableview reloadData];
                 block_self.page += 1;

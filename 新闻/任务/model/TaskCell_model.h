@@ -14,6 +14,7 @@
 
 @property (nonatomic,strong)NSString*   title;
 @property (nonatomic,strong)NSString*   subTitle;
+@property (nonatomic,strong)NSString*   btn_name;
 @property (nonatomic)       NSInteger   Money;
 @property (nonatomic)       BOOL        IsYuan;
 @property (nonatomic)       NSInteger   type;

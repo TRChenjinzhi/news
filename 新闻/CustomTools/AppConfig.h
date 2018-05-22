@@ -68,8 +68,14 @@
 -(void)saveMessageDate:(NSString*)date;
 -(NSString*)getMessageDate;
 
+-(void)saveRedPackage_first:(NSString*)date;
+-(NSString*)getRedPackage_first;
+
 -(void)saveRedPackage:(NSString*)date;
 -(NSString*)getRedPackage;
+
+-(void)saveRedPackage_money:(NSString*)date;
+-(NSString*)getRedPackage_money;
 
 -(void)saveUserId:(NSString*)userId;
 -(NSString*)getUserId:(NSString*)userId;

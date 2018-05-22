@@ -136,7 +136,13 @@
     }];
     
     UILabel* money_number_tips = [UILabel new];
-    money_number_tips.text         = [Login_info share].userMoney_model.cash;
+    if([Login_info share].isLogined){
+        money_number_tips.text         = [Login_info share].userMoney_model.cash;
+    }
+    else{
+        money_number_tips.text         = @"0.00";
+    }
+    
     money_number_tips.textColor    = RGBA(34, 39, 39, 1);
     money_number_tips.textAlignment= NSTextAlignmentLeft;
     money_number_tips.font         = KBFONT(24);
@@ -357,13 +363,13 @@
         [self.view layoutIfNeeded];
         
         if([[Login_info share].userInfo_model.wechat_binding integerValue] == 1){
-            if([Login_info share].userMoney_model.wechat_name.length > 0){
+            if([Mine_zhifu_model share].wechat_name.length > 0){//进行手动设置信息
                 [m_zhifu_icon setImage:[UIImage imageNamed:@"ic_WeChat2"]];
                 m_zhifu_tips.text = @"微信账号已设置";
             }
-            else if([Mine_zhifu_model share].wechat_name.length > 0){//进行手动设置信息
-                [m_zhifu_icon setImage:[UIImage imageNamed:@"ic_WeChat2"]];
-                m_zhifu_tips.text = @"微信账号已设置";
+            else{
+                [m_zhifu_icon setImage:[UIImage imageNamed:@"ic_WeChat"]];
+                m_zhifu_tips.text = @"您尚未设置微信账号";
             }
         }
         else{
@@ -586,13 +592,13 @@
             }
             if([Login_info share].userMoney_model.wechat_name.length > 0){
                 [m_sendBtn setTitleColor:RGBA(255, 255, 255, 1) forState:UIControlStateNormal];
-                [m_sendBtn setBackgroundColor:RGBA(251, 84, 38, 1)];
+                [m_sendBtn setBackgroundImage:[UIImage imageNamed:@"btn"] forState:UIControlStateNormal];
                 [m_sendBtn setEnabled:YES];
             }
             else{
                 if([Mine_zhifu_model share].wechat_name.length > 0){//手动进行支付信息填写
                     [m_sendBtn setTitleColor:RGBA(255, 255, 255, 1) forState:UIControlStateNormal];
-                    [m_sendBtn setBackgroundColor:RGBA(251, 84, 38, 1)];
+                    [m_sendBtn setBackgroundImage:[UIImage imageNamed:@"btn"] forState:UIControlStateNormal];
                     [m_sendBtn setEnabled:YES];
                 }
                 else{
@@ -606,14 +612,14 @@
             m_sendTips.text = [NSString stringWithFormat:@"实付款：%ld元（含手续费1元）",m_btn_index];
             if([[Login_info share].userMoney_model.binding_alipay integerValue] == 1){
                 [m_sendBtn setTitleColor:RGBA(255, 255, 255, 1) forState:UIControlStateNormal];
-                [m_sendBtn setBackgroundColor:RGBA(251, 84, 38, 1)];
+                [m_sendBtn setBackgroundImage:[UIImage imageNamed:@"btn"] forState:UIControlStateNormal];
                 [m_sendBtn setEnabled:YES];
             }
             else{
                 if([Mine_zhifu_model share].ali_name.length > 0 &&
                    [Mine_zhifu_model share].ali_num.length > 0){//手动进行支付信息填写
                     [m_sendBtn setTitleColor:RGBA(255, 255, 255, 1) forState:UIControlStateNormal];
-                    [m_sendBtn setBackgroundColor:RGBA(251, 84, 38, 1)];
+                    [m_sendBtn setBackgroundImage:[UIImage imageNamed:@"btn"] forState:UIControlStateNormal];
                     [m_sendBtn setEnabled:YES];
                 }
                 else{

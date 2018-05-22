@@ -139,7 +139,7 @@ static ThemeManager * defaultManager;
 
 -(UIColor*)TaskGetCellButtonTitleColor{
     if([_state isEqualToString:@"day"]){
-        return [UIColor colorWithRed:34/255.0 green:39/255.0 blue:39/255.0 alpha:1/1.0];
+        return RGBA(255, 255, 255, 1);
     }
     else{
         return [UIColor whiteColor];

@@ -21,6 +21,7 @@
 #import "NewUserTask_model.h"
 #import "GoldChangeToMoney_ViewController.h"
 #import "Mine_choujiang_ViewController.h"
+#import "Task_newUser_ViewController.h"
 
 @interface TaskViewController ()<choujiang_protocol>
 
@@ -96,13 +97,13 @@
     // Do any additional setup after loading the view.
 //    [self setupChildViewController:task title:@"任务" imageName:@"ic_menu_task_default" selectedImage:@"ic_menu_task_pressed"];
     m_isFirst = YES;//用来页面刷新,下次进入时
+    self.view.backgroundColor = [UIColor whiteColor];
     [self initNavi];
     [self initView];
     if([Login_info share].isLogined){
         [self GetMaxTaskCount];
     }
     
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(newuserTask_click:) name:@"新手任务点击" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(dayDayTask_click:) name:@"日常任务点击" object:nil];
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(SendTaskType_157:) name:@"任务完成157" object:nil];
@@ -123,10 +124,10 @@
         if([Login_info share].isLogined){
             [InternetHelp AutoLogin];
             [self GetMaxTaskCount];
-            [self getNewUserTaskCount];
+//            [self getNewUserTaskCount];
             
             [self IsClicked]; //宝箱倒计时
-            [self IsHideUserTask];//是否隐藏新手任务
+            
             
             //由于要隐藏已完成的 首次收徒。 要隐藏 所以减少 scrollview的contentsize
 //            if([Login_info share].userInfo_model.mastercode.length > 0){
@@ -134,8 +135,14 @@
 //                [self.MainScrollView setContentSize:CGSizeMake(size.width, size.height-[Task_TableViewCell HightForcell])];
 //            }
         }
+        else{
+            //登陆后再退出登录，要进行数据刷新
+            [self GetDayDayTaskData];
+            DayDayTaskTabelViewConrol.array_model = DayDayTaskTitleArray_model;
+        }
     }
     
+    [self IsHideUserTask];//是否隐藏新手任务
     
 }
 
@@ -242,7 +249,7 @@
     //时间差
     NSInteger count = time_now - time_start;
     
-    if(0 <= count && count < 2*60*60){
+    if(0 <= count && count < BoxTime){
         [self LogoClicked];
     }else{
         m_isClicked_logo = NO;
@@ -251,19 +258,75 @@
 
 -(void)initTabelView{
     //新手
-    [self GetData];
-    NSLog(@"logoView-->%f",CGRectGetMaxY(self.titleView.frame));
-    UIView* newUserView = [[UIView alloc] initWithFrame:CGRectMake(0, 94, SCREEN_WIDTH, 48+66*userTitleArray_model.count)];
-    newUserView.backgroundColor = [[ThemeManager sharedInstance] GetDialogViewColor];
-    NewUser_TableViewController* newUser_tableView = [[NewUser_TableViewController alloc] initWithStyle:UITableViewStylePlain];
-    newUser_tableView.view.frame = CGRectMake(0, 0, SCREEN_WIDTH, 48+66*userTitleArray_model.count);
-    newUser_tableView.array_model = userTitleArray_model;
-    newUser_tableView.Headertitle = @"新手任务";
-    [newUser_tableView.tableView registerClass:[Task_TableViewCell class] forCellReuseIdentifier:@"TaskCell"];
-    [newUserView addSubview:newUser_tableView.tableView];
-    NewUserTabelViewControl = newUser_tableView;
-    [self.MainView addSubview:newUserView];
+    UIView* newUserView = [[UIView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(m_logo_view.frame)+kWidth(10), SCREEN_WIDTH, kWidth(128))];
+    newUserView.backgroundColor = [UIColor whiteColor];
     m_newuserVCL_view = newUserView;
+    [self.MainView addSubview:newUserView];
+    
+    UIView* shu_line = [[UIView alloc] initWithFrame:CGRectMake(kWidth(16), kWidth(20), kWidth(4), kWidth(20))];
+    shu_line.backgroundColor = RGBA(255, 129, 3, 1);
+    [newUserView addSubview:shu_line];
+//    [shu_line mas_makeConstraints:^(MASConstraintMaker *make) {
+//        make.top.equalTo(newUserView.mas_bottom).with.offset(kWidth(20));
+//        make.left.equalTo(newUserView.mas_left).with.offset(kWidth(16));
+//        make.width.mas_offset(kWidth(4));
+//        make.height.mas_offset(kWidth(20));
+//    }];
+    
+    UILabel* tips = [[UILabel alloc] initWithFrame:CGRectMake(CGRectGetMaxX(shu_line.frame)+kWidth(8), kWidth(20), kWidth(80), kWidth(18))];
+    tips.text           = @"新手任务";
+    tips.textColor      = RGBA(122, 125, 125, 1);
+    tips.textAlignment  = NSTextAlignmentLeft;
+    tips.font           = kFONT(18);
+    [newUserView addSubview:tips];
+//    [tips mas_makeConstraints:^(MASConstraintMaker *make) {
+//        make.left.equalTo(shu_line.mas_right).with.offset(kWidth(8));
+//        make.top.equalTo(newUserView.mas_bottom).with.offset(kWidth(20));
+//        make.height.mas_offset(kWidth(18));
+//    }];
+    
+    UIImageView* img = [[UIImageView alloc] initWithFrame:CGRectMake(kWidth(16), newUserView.frame.size.height-kWidth(10)-kWidth(70), SCREEN_WIDTH-kWidth(16)*2, kWidth(70))];
+    [img setImage:[UIImage imageNamed:@"banner_bg"]];
+    img.userInteractionEnabled = YES;
+    [newUserView addSubview:img];
+    [img mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.left.equalTo(newUserView.mas_left).with.offset(kWidth(16));
+        make.right.equalTo(newUserView.mas_right).with.offset(-kWidth(16));
+        make.bottom.equalTo(newUserView.mas_bottom).with.offset(-kWidth(10));
+        make.height.mas_offset(kWidth(70));
+    }];
+    
+    UIImageView* img_go = [UIImageView new];
+    [img_go setImage:[UIImage imageNamed:@"banner_go_s"]];
+    [img addSubview:img_go];
+    NSArray* array_imgs = @[[UIImage imageNamed:@"banner_go_s"],[UIImage imageNamed:@"banner_go"]];
+    img_go.animationImages = array_imgs;
+    img_go.animationDuration = 1.0;
+    img_go.animationRepeatCount = NSUIntegerMax;
+    [img_go startAnimating];
+    
+    [img_go mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.height.and.width.mas_offset(kWidth(70));
+        make.right.equalTo(img).with.offset(-kWidth(11));
+        make.centerY.equalTo(img.mas_centerY);
+    }];
+    
+    UITapGestureRecognizer* tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(goToUserTask)];
+    [img addGestureRecognizer:tap];
+    
+//    [self GetData];
+////    NSLog(@"logoView-->%f",CGRectGetMaxY(self.titleView.frame));
+//    UIView* newUserView = [[UIView alloc] initWithFrame:CGRectMake(0, 94, SCREEN_WIDTH, 48+66*userTitleArray_model.count)];
+//    newUserView.backgroundColor = [[ThemeManager sharedInstance] GetDialogViewColor];
+//    NewUser_TableViewController* newUser_tableView = [[NewUser_TableViewController alloc] initWithStyle:UITableViewStylePlain];
+//    newUser_tableView.view.frame = CGRectMake(0, 0, SCREEN_WIDTH, 48+66*userTitleArray_model.count);
+//    newUser_tableView.array_model = userTitleArray_model;
+//    newUser_tableView.Headertitle = @"新手任务";
+//    [newUser_tableView.tableView registerClass:[Task_TableViewCell class] forCellReuseIdentifier:@"TaskCell"];
+//    [newUserView addSubview:newUser_tableView.tableView];
+//    NewUserTabelViewControl = newUser_tableView;
+//    [self.MainView addSubview:newUserView];
+//    m_newuserVCL_view = newUserView;
 
     
     //中间灰色 分界区域
@@ -301,6 +364,7 @@
     [self.MainScrollView addSubview:self.MainView];
     [self.view addSubview:self.MainScrollView];
     
+    [self IsHideUserTask];//是否隐藏新手任务
 }
 
 -(void)IsHideUserTask{
@@ -309,24 +373,28 @@
         //是否已经微信绑定
         //是否已经收徒
 
-        if([[TaskCountHelper share] newUserTask_isOver]){
-            [m_newuserVCL_view removeFromSuperview];
-            [m_grayView removeFromSuperview];
-            m_dayDayVCL_view.frame = CGRectMake(0, 94, SCREEN_WIDTH, 30+176+66*DayDayTaskTitleArray_model.count);
-            [self.MainScrollView setContentSize:CGSizeMake(SCREEN_WIDTH, m_logo_view.frame.size.height+m_dayDayVCL_view.frame.size.height)];
+//        if([[TaskCountHelper share] newUserTask_isOver]){
+        if([[Login_info share].userMoney_model.is_wechat_withdraw integerValue] == 1){ // 0：否 1：是
+//            return; //测试
+
+                //当完成首次1元提现后 才能隐藏新手任务
+                [m_newuserVCL_view removeFromSuperview];
+                [m_grayView removeFromSuperview];
+                m_dayDayVCL_view.frame = CGRectMake(0, CGRectGetMaxY(m_logo_view.frame)+kWidth(10), SCREEN_WIDTH, 30+176+66*DayDayTaskTitleArray_model.count);
+                [self.MainScrollView setContentSize:CGSizeMake(SCREEN_WIDTH, m_logo_view.frame.size.height+m_dayDayVCL_view.frame.size.height)];
+
             
+            [self.view layoutIfNeeded];
+        }else{ //没有完成 首次一元任务
             //弹出 “恭喜您完成新手任务”
-            if([[Login_info share].userMoney_model.is_wechat_withdraw integerValue] == 0){//是否已经使用了 首次1元
+            if([[TaskCountHelper share] newUserTask_isOver]){
                 if(![[AppConfig sharedInstance] getShowWinForFirstDone_newUserTask]){ //是否已经显示过了
                     [[AppConfig sharedInstance] saveShowWinForFirstDone_newUserTask:YES];
-                    //显示弹窗
+                    //显示弹窗-提醒用户可以首次1元提现
                     [self showNewUserWin_Done];
                 }
             }
-            
-            [self.view layoutIfNeeded];
-        }else{
-            m_newuserVCL_view.frame = CGRectMake(0, 94, SCREEN_WIDTH, 48+66*userTitleArray_model.count);
+            m_newuserVCL_view.frame = CGRectMake(0, CGRectGetMaxY(m_logo_view.frame)+kWidth(10), SCREEN_WIDTH, kWidth(128));
             [self.MainView addSubview:m_grayView];
             [self.MainView addSubview:m_newuserVCL_view];
             m_dayDayVCL_view.frame = CGRectMake(0, CGRectGetMaxY(m_grayView.frame), SCREEN_WIDTH, 30+176+66*DayDayTaskTitleArray_model.count);
@@ -341,7 +409,7 @@
         }
         
     }else{//未登陆时
-        m_newuserVCL_view.frame = CGRectMake(0, 94, SCREEN_WIDTH, 48+66*userTitleArray_model.count);
+        m_newuserVCL_view.frame = CGRectMake(0, CGRectGetMaxY(m_logo_view.frame)+kWidth(10), SCREEN_WIDTH, kWidth(128));
         [self.MainView addSubview:m_grayView];
         [self.MainView addSubview:m_newuserVCL_view];
         m_dayDayVCL_view.frame = CGRectMake(0, CGRectGetMaxY(m_grayView.frame), SCREEN_WIDTH, 30+176+66*DayDayTaskTitleArray_model.count);
@@ -431,7 +499,7 @@
     [oneYuan_btn setTitleColor:RGBA(217, 31, 3, 1) forState:UIControlStateNormal];
     [oneYuan_btn setBackgroundImage:[UIImage imageNamed:@"btn_bg"] forState:UIControlStateNormal];
     [oneYuan_btn.layer setCornerRadius:kWidth(36)/2];
-    [oneYuan_btn addTarget:self action:@selector(goToReplyMoney) forControlEvents:UIControlEventTouchUpInside];
+    [oneYuan_btn addTarget:self action:@selector(goToUserTask) forControlEvents:UIControlEventTouchUpInside];
     oneYuan_btn.clipsToBounds = YES;
     [bottom_view addSubview:oneYuan_btn];
     [oneYuan_btn mas_makeConstraints:^(MASConstraintMaker *make) {
@@ -469,6 +537,12 @@
 }
 
 #pragma mark - 按钮方法
+-(void)goToUserTask{
+    Task_newUser_ViewController* vc = [Task_newUser_ViewController new];
+    [self.navigationController pushViewController:vc animated:YES];
+    
+    [self closeWin];
+}
 -(void)LogoClick{
     NSLog(@"LogoClick");
     if(![Login_info share].isLogined){
@@ -562,14 +636,14 @@
     NSInteger time_now = [[NSDate date] timeIntervalSince1970];
     
     if(time_start == 0){
-        m_timer_count = 2*60*60;
+        m_timer_count = BoxTime;
         [[AppConfig sharedInstance] saveBoxTime:time_now];
     }else{
         NSInteger count = time_now - time_start;
-        if(count < 2*60*60 ){
-            m_timer_count = 2*60*60-count;
+        if(count < BoxTime ){
+            m_timer_count = BoxTime-count;
         }else{
-            m_timer_count = 2*60*60;
+            m_timer_count = BoxTime;
             [[AppConfig sharedInstance] saveBoxTime:0];
         }
     }
@@ -659,10 +733,11 @@
     
     UIButton* closeButton = [[UIButton alloc] initWithFrame:CGRectMake(SCREEN_WIDTH/2-120/2, CGRectGetMaxY(number.frame)+16, 120, 36)];
     [closeButton setTitle:@"关闭" forState:UIControlStateNormal];
-    [closeButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+    [closeButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     [closeButton.titleLabel setFont:[UIFont fontWithName:@"SourceHanSansCN-Regular" size:14]];
-    closeButton.backgroundColor = [UIColor colorWithRed:248/255.0 green:205/255.0 blue:4/255.0 alpha:1/1.0];
+    [closeButton setBackgroundImage:[UIImage imageNamed:@"btn"] forState:UIControlStateNormal];
     closeButton.layer.cornerRadius = 18.0;
+    closeButton.clipsToBounds = YES;
     [closeButton addTarget:self action:@selector(closeBoxWind) forControlEvents:UIControlEventTouchUpInside];
     [view addSubview:closeButton];
     
@@ -698,12 +773,6 @@
     [m_newUserTaskOver_win removeFromSuperview];
 }
 
--(void)goToReplyMoney{
-    GoldChangeToMoney_ViewController* vc = [[GoldChangeToMoney_ViewController alloc] init];
-    [self.navigationController pushViewController:vc animated:YES];
-    
-    [self closeWin];
-}
 
 -(void)closeGuideOfNewUserUI{
     NSLog(@"退出新手指导");
@@ -711,61 +780,6 @@
 }
 
 #pragma mark - 通知
--(void)newuserTask_click:(NSNotification*)noti{
-    /*
-     1. 绑定微信（+50金币）
-     2. 查看常见问题（+20金币）
-     3. 阅读新闻（0/5）
-     4. 观看视频（0/5）
-     5. 朋友圈收徒
-     */
-    NSNumber* number = noti.object;
-    NSInteger index = [number integerValue];
-    
-    if(![Login_info share].isLogined){//未登陆时
-        Mine_login_ViewController* vc = [[Mine_login_ViewController alloc] init];
-        [self.navigationController pushViewController:vc animated:YES];
-        return;
-    }
-    else{
-        if([[Login_info share].userInfo_model.device_mult_user integerValue] == NotTheDevice){
-            [MyMBProgressHUD ShowMessage:@"非绑定设备，不能执行任务" ToView:self.view AndTime:1.0f];
-            return;
-        }
-    }
-    switch (index) {
-        case Task_blindWechat:
-            NSLog(@"绑定微信");
-            [UMShareHelper LoginWechat:NewUserTask_blindWechat];
-            break;
-        case Task_readQuestion:{
-            NSLog(@"查看常见问题");
-            Mine_question_ViewController* vc = [[Mine_question_ViewController alloc] init];
-            vc.isTask = YES;
-            [self.navigationController pushViewController:vc animated:YES];
-            break;
-        }
-        case Task_apprenitceByPengyouquan:{
-            NSLog(@"朋友圈收徒");
-            [UMShareHelper ShareName:WeChat_pengyoujuan];
-            break;
-        }
-        case Task_reading:{
-            NSLog(@"阅读新闻");
-            [[NSNotificationCenter defaultCenter] postNotificationName:@"频道切换" object: [NSNumber numberWithInt:0]];
-            break;
-        }
-        case Task_video:{
-            NSLog(@"观看视频");
-            [[NSNotificationCenter defaultCenter] postNotificationName:@"频道切换" object: [NSNumber numberWithInt:0]];
-            break;
-        }
-        default:
-            break;
-    }
-    
-}
-
 -(void)dayDayTask_click:(NSNotification*)noti{
     /*
      1. 签到
@@ -871,6 +885,7 @@
         }];
     }
 }
+
 
 #pragma mark - 获取task_id
 -(NSString*)GetTaskId:(NSInteger)type{
@@ -1134,72 +1149,7 @@
     [sessionDataTask resume];
 }
 
--(void)getNewUserTaskCount{
-    //获取新手任务 信息
-    [InternetHelp GetNewUserTaskCount_Sucess:^(NSDictionary *dic) {
 
-        userTaskCount_array = [NewUserTask_model dicToArray:dic[@"list"]];
-        [TaskCountHelper share].task_newUser_name_array = userTaskCount_array;
-        
-        //将数据插入到该任务
-        for (NewUserTask_model* item in userTaskCount_array) {
-            for (TaskCell_model* model in userTitleArray_model) {
-                //@[@"邀请好友",@"阅读新闻",@"绑定分享新闻",@"优质评论",@"晒收入",@"参与抽奖"];
-                if(item.type == Task_blindWechat && [model.title isEqualToString:NewUserTask_blindWechat]){
-                    model.User_model = item;
-                    
-                    if(item.status == 1 || item.max <= item.count){//0：未完成   1：完成
-                        model.isDone = YES;
-                    }
-                    break;
-                }
-                if(item.type == Task_readQuestion && [model.title isEqualToString:NewUserTask_readQuestion]){
-                    model.User_model = item;
-                    
-                    if(item.status == 1 || item.max <= item.count){//0：未完成   1：完成
-                        model.isDone = YES;
-                    }
-                    break;
-                }
-                if(item.type == Task_reading && [model.title isEqualToString:NewUserTask_readNews]){
-                    model.User_model = item;
-                    
-                    if(item.status == 1 || item.max <= item.count){//0：未完成   1：完成
-                        model.isDone = YES;
-                    }
-                    break;
-                }
-                if(item.type == Task_video && [model.title isEqualToString:NewUserTask_readVideo]){
-                    model.User_model = item;
-                    
-                    if(item.status == 1 || item.max <= item.count){//0：未完成   1：完成
-                        model.isDone = YES;
-                    }
-                    break;
-                }
-                if(item.type == Task_apprenitceByPengyouquan && [model.title isEqualToString:NewUserTask_shareByPengyouquan]){
-                    model.User_model = item;
-                    
-                    if(item.status == 1 || item.max <= item.count){//0：未完成   1：完成
-                        model.isDone = YES;
-                    }
-                    break;
-                }
-            }
-        }
-        
-        NewUserTabelViewControl.array_model = userTitleArray_model;
-        
-        [self IsHideUserTask];
-        
-    } Fail:^(NSDictionary *dic) {
-        if(dic == nil){
-            [MyMBProgressHUD ShowMessage:@"网络错误" ToView:self.view AndTime:1.0f];
-        }else{
-            [MyMBProgressHUD ShowMessage:dic[@"msg"] ToView:self.view AndTime:1.0f];
-        }
-    }];
-}
 
 //同步服务器宝箱时间
 -(void)synchronousBoxTime:(NSArray*)array{

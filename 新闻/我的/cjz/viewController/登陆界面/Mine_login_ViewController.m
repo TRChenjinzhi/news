@@ -154,13 +154,14 @@
 //    [get_yanzhengma_button setBackgroundColor:[UIColor blackColor]];
     [get_yanzhengma_button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
     [get_yanzhengma_button.titleLabel setFont:[UIFont fontWithName:@"SourceHanSansCN-Regular" size:12]];
-    get_yanzhengma_button.layer.cornerRadius = 4;
+    get_yanzhengma_button.layer.cornerRadius = kWidth(30)/2;
     get_yanzhengma_button.layer.borderWidth = 1;
     get_yanzhengma_button.layer.borderColor = [UIColor colorWithRed:46.0/255 green:46.0/255 blue:46.0/255 alpha:1.1/1].CGColor;
+    get_yanzhengma_button.clipsToBounds = YES;
     [get_yanzhengma_button addTarget:self action:@selector(GetYanzhengma:) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:get_yanzhengma_button];
     [get_yanzhengma_button mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.top.equalTo(line_one.mas_bottom).with.offset(kWidth(30));
+        make.bottom.equalTo(line_one.mas_bottom).with.offset(-kWidth(8));
         make.right.equalTo(self.view.mas_right).with.offset(-kWidth(20));
         make.height.mas_offset(kWidth(30));
         make.width.mas_offset(kWidth(76));
@@ -183,10 +184,11 @@
     UIButton* login_button = [[UIButton alloc] initWithFrame:CGRectMake(20, CGRectGetMaxY(password_textfield.frame)+48, SCREEN_WIDTH-20-20, 52)];
     [login_button setTitle:@"登录" forState:UIControlStateNormal];
     [login_button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
-    [login_button setBackgroundColor:[UIColor colorWithRed:247/255.0 green:195/255.0 blue:72/255.0 alpha:1/1.0]];
+    [login_button setBackgroundImage:[UIImage imageNamed:@"btn"] forState:UIControlStateNormal];
     [login_button.titleLabel setFont:kFONT(16)];
     [login_button addTarget:self action:@selector(PhoneNumberLoginAction) forControlEvents:UIControlEventTouchUpInside];
-    [login_button.layer setCornerRadius:kWidth(4)];
+    [login_button.layer setCornerRadius:kWidth(52)/2];
+    login_button.clipsToBounds = YES;
     [self.view addSubview:login_button];
     m_login_btn = login_button;
     [login_button mas_makeConstraints:^(MASConstraintMaker *make) {
@@ -218,7 +220,7 @@
     [wechat_login setTitle:@"微信登录" forState:UIControlStateHighlighted];
     [wechat_login setTitleColor:RGBA(28, 193, 92, 1) forState:UIControlStateNormal];
     [wechat_login setTitleColor:RGBA(255, 255, 255, 1) forState:UIControlStateHighlighted];
-    [wechat_login.layer setCornerRadius:kWidth(4)];
+    [wechat_login.layer setCornerRadius:kWidth(52)/2];
     [wechat_login.layer setBorderWidth:kWidth(1)];
     [wechat_login.layer setBorderColor:RGBA(28, 193, 92, 1).CGColor];
     [wechat_login.titleLabel setFont:kFONT(16)];
@@ -233,8 +235,8 @@
     }];
     
     //底部 协议提醒
-    NSString* str               = @"登录即表示您已同意《有料用户协议》";
-    NSString* str_one           = @"《有料用户协议》";
+    NSString* str               = @"登录即表示您已同意《橙子快报用户协议》";
+    NSString* str_one           = @"《橙子快报用户协议》";
     
     NSMutableAttributedString *one = [[NSMutableAttributedString alloc] initWithString:str];
     one.font = kFONT(12);
@@ -281,6 +283,9 @@
 }
 
 -(void)IsShowBtnTime:(UIButton*)bt{
+    if(m_btn_IsClicked){
+        return;
+    }
     NSNumber* tmp = [[AppConfig sharedInstance] getIdefyCode];
     double time_get = [tmp doubleValue];
     
@@ -295,7 +300,6 @@
                 m_btn_IsClicked = NO;
                 dispatch_async(dispatch_get_main_queue(), ^{
                     [bt setTitle:@"重新发送" forState:UIControlStateNormal];
-                    m_btn_IsClicked = NO;
                     m_timer_count = TimeCount;
                     [m_timer invalidate];
                     [[AppConfig sharedInstance] saveIdifyCode:[NSNumber numberWithInteger:0]];
@@ -306,7 +310,6 @@
                 dispatch_async(dispatch_get_main_queue(), ^{
                     [bt.titleLabel setFont:[UIFont fontWithName:@"SourceHanSansCN-Regular" size:12]];
                     [bt setTitle:[NSString stringWithFormat:@"%ld s",m_timer_count] forState:UIControlStateNormal];
-                    m_btn_IsClicked = YES;
                     
                 });
             }
@@ -319,6 +322,10 @@
 #pragma mark - 按钮方法
 -(void)GetYanzhengma:(UIButton*)bt{
     NSLog(@"获取验证码");
+    if(m_phoneNumber_textfeild.text.length <= 0){
+        [MyMBProgressHUD ShowMessage:@"手机号码不能为空" ToView:self.view AndTime:1.0f];
+        return;
+    }
     if(m_btn_IsClicked){
         return;
     }
@@ -330,21 +337,19 @@
     
     m_timer = [NSTimer scheduledTimerWithTimeInterval:1 repeats:YES block:^(NSTimer * _Nonnull timer) {
         if(m_timer_count <= 0){
-            m_btn_IsClicked = YES;
+            m_btn_IsClicked = NO;
             dispatch_async(dispatch_get_main_queue(), ^{
                 [bt setTitle:@"重新发送" forState:UIControlStateNormal];
-                m_btn_IsClicked = YES;
                 m_timer_count = TimeCount;
                 [m_timer invalidate];
                 [[AppConfig sharedInstance] saveIdifyCode:[NSNumber numberWithInteger:0]];
             });
         }else{
             m_timer_count--;
-            m_btn_IsClicked = NO;
+            m_btn_IsClicked = YES;
             dispatch_async(dispatch_get_main_queue(), ^{
                 [bt.titleLabel setFont:[UIFont fontWithName:@"SourceHanSansCN-Regular" size:12]];
                 [bt setTitle:[NSString stringWithFormat:@"%ld s",m_timer_count] forState:UIControlStateNormal];
-                m_btn_IsClicked = NO;
                 
             });
         }
@@ -357,14 +362,19 @@
 
 -(void)PhoneNumberLoginAction{
     NSLog(@"手机登陆");
-//    //检查手机号码格式是否正确
-//    if([self CheckPhoneNumber:m_phoneNumber_textfeild.text]){
-//        [[IdentifyingCode ShareInstance] MakeTureIdentifyingCode:m_password_textfeild.text AndPhoneNumber:m_phoneNumber_textfeild.text];
-//    }else{
-//        [[AlertHelper Share] ShowMe:self And:2.0 And:@"手机号码格式不对"];
-//    }
-//
-    [self SendLoginToServer];
+    //苹果审核测试账号
+    if([m_phoneNumber_textfeild.text isEqualToString:@"13000000000"] && [m_password_textfeild.text isEqualToString:@"112233"]){
+        [self SendLoginToServer];
+        return;
+    }
+    //检查手机号码格式是否正确
+    if([self CheckPhoneNumber:m_phoneNumber_textfeild.text]){
+        [[IdentifyingCode ShareInstance] MakeTureIdentifyingCode:m_password_textfeild.text AndPhoneNumber:m_phoneNumber_textfeild.text];
+    }else{
+        [MyMBProgressHUD ShowMessage:@"手机号码格式不对" ToView:self.view AndTime:1.0f];
+    }
+
+//    [self SendLoginToServer];
 }
 
 -(BOOL)CheckPhoneNumber:(NSString*)mobileNum{
@@ -428,6 +438,7 @@
 #pragma mark - 验证码协议方法
 -(void)MakeTureIdentifyingCode_failed{
     NSLog(@"MakeTureIdentifyingCode_failed");
+    [MyMBProgressHUD ShowMessage:@"验证码错误!" ToView:self.view AndTime:1.0f];
 }
 -(void)MakeTureIdentifyingCode_sucess{
     NSLog(@"MakeTureIdentifyingCode_sucess");
@@ -516,6 +527,7 @@
 -(void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event{
     [self.view endEditing:YES];
 }
+
 /*
 {
     "user_id": "814B08C64ADD12284CA82BA39384B177",    //用户唯一标识id
@@ -558,12 +570,12 @@
 //    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"mobileOperator",@"46002"]];
 //    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"mobileOperatorName",@"中国移动"]];
 //    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"deviceid",@"ca9e5c58ef7c9432"]];
-//    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"mac",@"02:00:00:00:00:00"]];
+    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"mac",[[DeviveHelper share] getMacAddress]]];
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"imei",IDFA]];
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"unique_id",(NSString*)[MyKeychain queryDataWithService:MyKeychain_server]]];
 //    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%d\"",@"net_type",1]];
-//    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"os_version",@"7.1"]];
-//    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"model",@"A0001"]];
+    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"model",[[DeviveHelper share] getDeviceName]]];
+    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"os_version",[UIDevice currentDevice].systemVersion]];
 //    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"brand",@"oneplus"]];
     argument = [argument stringByAppendingString:@"}"];
     argument = [MyEntrypt MakeEntryption:argument];
@@ -597,8 +609,15 @@
                 return ;
             }
             [Login_info dicToModel:dict];
-            Login_userMoney* userMoney = [[Login_info share] GetUserMoney];
-            Login_userInfo* userInfo = [[Login_info share] GetUserInfo];
+            Login_userMoney* userMoney = [Login_info share].userMoney_model;
+            Login_userInfo* userInfo = [Login_info share].userInfo_model;
+            
+            if ([[DefauteNameHelper getDefuateName] isEqualToString:userInfo.name]) {
+                if([userInfo.wechat_binding integerValue] == 1){ //当微信绑定了，账号昵称为默认时，使用微信昵称
+                    userInfo.name = userInfo.wechat_nickname;
+                    [InternetHelp updateUserInfo];
+                }
+            }
             
             Mine_userInfo_model* model = [[Mine_userInfo_model alloc] init];
             model.name = userInfo.name;
@@ -624,6 +643,10 @@
             
             //"reg_reward_cash" = 0;//要显示的金额
             //"reg_reward_status" = 1;0:新用户 1:老用户
+            //测试
+//            userInfo.mastercode = @"";
+//            userInfo.reg_reward_status = @"0";
+//            userInfo.device_mult_user = @"0";
             
             if([userInfo.device_mult_user integerValue] == TheDevice){
                 if([userInfo.reg_reward_status integerValue] == 0){

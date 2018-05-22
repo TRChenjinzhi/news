@@ -29,18 +29,23 @@
 
 -(void)initView{
     tips = [[UILabel alloc] init];
-    tips.backgroundColor = RGBA(0, 0, 0, 0.6);
+    tips.backgroundColor = RGBA(255, 129, 3, 1);
 //    tips.text = self.message;
     tips.textColor = [UIColor whiteColor];
     tips.textAlignment = NSTextAlignmentCenter;
-    tips.font = [UIFont systemFontOfSize:14];
+    tips.font = [UIFont systemFontOfSize:kWidth(14)];
     [self.view addSubview:tips];
 }
 
 -(void)setMessage:(NSString *)message{
-    CGFloat width = [LabelHelper GetLabelWidth:[UIFont systemFontOfSize:14] AndText:message] + 10;
     tips.text = message;
-    tips.frame = CGRectMake(SCREEN_WIDTH/2-width/2, 0, width, self.view.frame.size.height);
+}
+
+-(void)setCorner:(CGFloat)corner{
+    CGFloat width = [LabelHelper GetLabelWidth:[UIFont systemFontOfSize:kWidth(14)] AndText:tips.text] + 10;
+    tips.frame = CGRectMake(SCREEN_WIDTH/2-(width+40)/2, 0, width+40, corner*2);
+    [tips.layer setCornerRadius:corner];
+    tips.layer.masksToBounds = YES;
 }
 
 /*

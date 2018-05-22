@@ -60,7 +60,6 @@
     }
     
     if (btn.tag == self.selectedButton.tag) {
-        
         [[NSNotificationCenter defaultCenter]postNotificationName:btn.titleLabel.text object:nil];
     }
 

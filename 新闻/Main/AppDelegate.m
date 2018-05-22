@@ -108,6 +108,17 @@
         NSLog(@"uuid:%@",(NSString*)[MyKeychain queryDataWithService:MyKeychain_server] );
     }
     
+    // 这个方法后面会列出来
+    NSString *deviceName = [[DeviveHelper share] getDeviceName];
+    NSLog(@"设备型号-->%@", deviceName);
+    
+    NSString *iPhoneName = [UIDevice currentDevice].name;
+    NSLog(@"iPhone名称-->%@", iPhoneName);
+    
+//    NSString *appVerion = [UIDevice currentDevice].systemVersion;
+    NSLog(@"app系统版本号-->%@", [UIDevice currentDevice].systemVersion);
+    NSLog(@"MAC地址-->%@", [[DeviveHelper share] getMacAddress]);
+    
     NSLog(@"width-->%f",[UIScreen mainScreen].bounds.size.width);
     NSLog(@"hight-->%f",[UIScreen mainScreen].bounds.size.height);
     

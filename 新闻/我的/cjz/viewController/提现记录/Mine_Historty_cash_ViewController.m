@@ -87,6 +87,7 @@
 -(void)NoDataView{
     m_Nothings_view = [[UIView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(m_navibar_view.frame),
                                                                SCREEN_WIDTH, SCREEN_HEIGHT-CGRectGetMaxY(m_navibar_view.frame))];
+    m_Nothings_view.backgroundColor = [UIColor whiteColor];
     UIImageView* imgV = [[UIImageView alloc] initWithFrame:CGRectMake(SCREEN_WIDTH/2-90/2, m_Nothings_view.frame.size.height/2-90/2, 90, 90)];
     [imgV setImage:[UIImage imageNamed:@"ic_empty_take"]];
     [m_Nothings_view addSubview:imgV];
@@ -107,25 +108,35 @@
 }
 
 -(void)Total_cash_View{
-    m_header_view = [[UIView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(m_navibar_view.frame), SCREEN_WIDTH, 120)];
-    m_header_view.backgroundColor = [UIColor colorWithRed:248/255.0 green:205/255.0 blue:4/255.0 alpha:1/1.0];
+    m_header_view = [[UIView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(m_navibar_view.frame), SCREEN_WIDTH, kWidth(88))];
+    m_header_view.backgroundColor = RGBA(255, 255, 255, 1);
     [self.view addSubview:m_header_view];
     
     //tips
     UILabel* cash_label = [[UILabel alloc] initWithFrame:CGRectMake(0, 22, SCREEN_WIDTH, kWidth(18))];
     cash_label.text = @"累计提现(元)";
     cash_label.textColor = RGBA(34, 39, 39, 1);
-    cash_label.textAlignment = NSTextAlignmentCenter;
+    cash_label.textAlignment = NSTextAlignmentLeft;
     cash_label.font = [UIFont fontWithName:@"SourceHanSansCN-Regular" size:kWidth(12)];
     [m_header_view addSubview:cash_label];
+    [cash_label mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.left.equalTo(m_header_view.mas_left).with.offset(kWidth(16));
+        make.top.equalTo(m_header_view.mas_top).with.offset(kWidth(20));
+        make.height.mas_offset(kWidth(18));
+    }];
     
-    UILabel* cash_number = [[UILabel alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(cash_label.frame)+16, SCREEN_WIDTH, kWidth(42))];
+    UILabel* cash_number = [[UILabel alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(cash_label.frame)+16, SCREEN_WIDTH, kWidth(24))];
     CGFloat number = [[Login_info share].userMoney_model.total_cashed floatValue];
     cash_number.text = [NSString stringWithFormat:@"%.2f",number];
     cash_number.textColor = RGBA(34, 39, 39, 1);
-    cash_number.textAlignment = NSTextAlignmentCenter;
-    cash_number.font = [UIFont boldSystemFontOfSize:kWidth(40)];
+    cash_number.textAlignment = NSTextAlignmentLeft;
+    cash_number.font = [UIFont boldSystemFontOfSize:kWidth(24)];
     [m_header_view addSubview:cash_number];
+    [cash_number mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.left.equalTo(m_header_view.mas_left).with.offset(kWidth(16));
+        make.top.equalTo(cash_label.mas_bottom).with.offset(kWidth(10));
+        make.height.mas_offset(kWidth(24));
+    }];
 }
 
 -(void)initTableView{
@@ -144,7 +155,12 @@
     header.lastUpdatedTimeLabel.hidden = YES;
     header.stateLabel.hidden = YES;
     m_tableview_ctr.tableView.header = header;
-    [header beginRefreshing];
+    if([Login_info share].isLogined){
+        [header beginRefreshing];
+    }
+    else{
+        [self NoDataView];
+    }
     
     m_tableview_ctr.tableView.footer = [MJRefreshAutoNormalFooter footerWithRefreshingBlock:^{
         [block_self GetHistoryData_changeToMoney];

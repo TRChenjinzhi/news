@@ -52,7 +52,13 @@
     [super viewWillAppear:animated];
     [self.navigationController.navigationBar setHidden:YES];
     m_title.text = @"我的收藏";
-    [self.tableview.header beginRefreshing];
+    if([Login_info share].isLogined){
+        [self.tableview.header beginRefreshing];
+    }
+    else{
+        [self getDataFailed];
+    }
+    
 }
 -(void)initNavi{
     UIView* navibar_view = [[UIView alloc] initWithFrame:CGRectMake(0, StaTusHight, SCREEN_WIDTH, 56)];
@@ -122,7 +128,12 @@
     header.lastUpdatedTimeLabel.hidden = YES;
     header.stateLabel.hidden = YES;
     self.tableview.header = header;
-    [header beginRefreshing];
+    if([Login_info share].isLogined){
+        [header beginRefreshing];
+    }
+    else{
+        [self getDataFailed];
+    }
     
     self.tableview.footer = [MJRefreshAutoNormalFooter footerWithRefreshingBlock:^{
         [self getData:m_page];

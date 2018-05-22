@@ -14,6 +14,7 @@
 
 @property (nonatomic) NSInteger count;
 @property (nonatomic,strong)UILabel* badgeLabel;
+@property (nonatomic)BOOL isMessage;
 
 -(void)showText;
 

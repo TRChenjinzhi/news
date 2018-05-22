@@ -83,7 +83,7 @@
     
     //进度条初始化
     self.progressView = [[UIProgressView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(m_navibar_view.frame), [[UIScreen mainScreen] bounds].size.width, kWidth(2))];
-    self.progressView.progressTintColor = RGBA(248, 205, 4, 1);
+    self.progressView.progressTintColor = RGBA(255, 129, 3, 1);
     self.progressView.trackTintColor = [UIColor whiteColor];
     //设置进度条的高度，下面这句代码表示进度条的宽度变为原来的1倍，高度变为原来的1.5倍.
     self.progressView.transform = CGAffineTransformMakeScale(1.0f, 1.5f);
