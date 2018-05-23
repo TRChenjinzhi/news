@@ -65,7 +65,7 @@
     m_lable_time.font = kFONT(12);
     [self addSubview:m_lable_time];
     [m_lable_time mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.left.equalTo(img.mas_right).with.offset(kWidth(8));
+        make.right.equalTo(self.mas_right).with.offset(-kWidth(16));
         make.top.equalTo(m_lable_title.mas_bottom).with.offset(kWidth(6));
         make.height.mas_offset(kWidth(12));
     }];
@@ -82,12 +82,12 @@
     }];
     
     m_lable_state = [[UILabel alloc] initWithFrame:CGRectMake(SCREEN_WIDTH-17-70, CGRectGetMaxY(m_lable_title.frame)+6, 70, kWidth(12))];
-    m_lable_state.textColor = RGBA(135, 138, 138, 1);
+    m_lable_state.textColor = RGBA(283, 8, 32, 1);
     m_lable_state.textAlignment = NSTextAlignmentRight;
     m_lable_state.font = kFONT(12);
     [self addSubview:m_lable_state];
     [m_lable_state mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.right.equalTo(self.mas_right).with.offset(-kWidth(16));
+        make.left.equalTo(img.mas_right).with.offset(kWidth(8));
         make.top.equalTo(m_lable_title.mas_bottom).with.offset(kWidth(6));
         make.height.mas_offset(kWidth(12));
     }];
@@ -119,8 +119,15 @@
     m_lable_title.text = title;
     CGFloat money = [model.moeny floatValue];
     m_lable_money.text = [NSString stringWithFormat:@"%.2f元",money];
-    m_lable_time.text = [[TimeHelper share] GetDateFromString_yyMMDD_HHMMSS:model.time];
+    m_lable_time.text = [[TimeHelper share] GetDateFromString_yyMMDD_HHMM:model.time];
     m_lable_state.text = model.state;
+    
+    if([model.withDraw_type integerValue] == 1){
+        m_lable_state.textColor = RGBA(41, 174, 26, 1);
+    }
+    else{
+        m_lable_state.textColor = RGBA(283, 8, 32, 1);
+    }
 }
 
 @end

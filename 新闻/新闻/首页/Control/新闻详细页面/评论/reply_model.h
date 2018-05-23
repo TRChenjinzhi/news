@@ -23,20 +23,20 @@
 @interface reply_model : NSObject
 
 @property (nonatomic,strong)NSString* ID;
-//@property (nonatomic,strong)NSString* pid;
-//@property (nonatomic,strong)reply_userInfo_model* myUserModel;
-//@property (nonatomic,strong)reply_userInfo_model* ToUserModel;
+@property (nonatomic,strong)NSString* pid;
+@property (nonatomic,strong)reply_userInfo_model* myUserModel;
+@property (nonatomic,strong)reply_userInfo_model* ToUserModel;
 @property (nonatomic,strong)NSString* comment;
 @property (nonatomic,strong)NSString* thumbs_num;
 @property (nonatomic,strong)NSString* ctime;
-//@property (nonatomic,strong)NSString* reply_count;
+@property (nonatomic,strong)NSString* reply_count;
 @property (nonatomic,strong)NSArray*  array_reply;
 @property (nonatomic)NSInteger DianZan_type;//是否已经点赞 1:点赞 2.没点赞
 
-@property (nonatomic,strong)NSString* user_icon;
-@property (nonatomic,strong)NSString* user_name;
-@property (nonatomic,strong)NSString* wechat_icon;
-@property (nonatomic,strong)NSString* wechat_nickname;
+//@property (nonatomic,strong)NSString* user_icon;
+//@property (nonatomic,strong)NSString* user_name;
+//@property (nonatomic,strong)NSString* wechat_icon;
+//@property (nonatomic,strong)NSString* wechat_nickname;
 
 +(NSArray*)dicToArray:(NSDictionary*)dic;
 +(reply_model*)getModelByDic:(NSDictionary*)item_dic;

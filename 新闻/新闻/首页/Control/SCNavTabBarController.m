@@ -19,12 +19,22 @@
 #import "IndexOfNews.h"
 #import "Channel_guanli_ViewController.h"
 #import "FloatView.h"
+#import "Mine_login_ViewController.h"
 
 
 @interface SCNavTabBarController () <UIScrollViewDelegate, SCNavTabBarDelegate,Channel_guanli_SCNavTabBar_Delegate>
 {
     NSInteger       _currentIndex;
     NSMutableArray  *_titles;
+    CGFloat         m_naviHeight;
+    
+    UIView*         m_logoView;
+    UIView*         m_searchView;
+    UIButton*       m_boxBtn;
+    UIImageView*    m_box_timeTips;
+    UILabel*        m_time_label;
+    NSInteger         m_timer_count;
+    NSTimer*        m_timer;
     
     SCNavTabBar     *_navTabBar;
     UIScrollView    *_mainView;
@@ -61,7 +71,7 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-   
+    m_naviHeight = kWidth(32);
     self.view.backgroundColor = [UIColor whiteColor];
     self.edgesForExtendedLayout = UIRectEdgeNone;
 
@@ -177,8 +187,9 @@
     _subViewControllers = array;
     _titles = array_titles;
     [_navTabBar removeFromSuperview];
-    _navTabBar = [[SCNavTabBar alloc] initWithFrame:CGRectMake(kWidth(40), StaTusHight, SCREEN_WIDTH-kWidth(40)-kWidth(40) , kWidth(44))];
+    _navTabBar = [[SCNavTabBar alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(m_logoView.frame), SCREEN_WIDTH-kWidth(40) , m_naviHeight)];
     _navTabBar.backgroundColor = [[ThemeManager sharedInstance] GetBackgroundColor];
+    _navTabBar.topMargin = kWidth(32)/2-kWidth(16)/2;
     _navTabBar.delegate = self;
     _navTabBar.lineColor = RGBA(255, 129, 3, 1);;
     _navTabBar.itemTitles = _titles;
@@ -262,9 +273,12 @@
 
 - (void)viewInit
 {
-    _navTabBar = [[SCNavTabBar alloc] initWithFrame:CGRectMake(kWidth(40), StaTusHight, SCREEN_WIDTH-kWidth(40)-kWidth(40) , kWidth(44))];
+    [self initLogoView];
+    
+    _navTabBar = [[SCNavTabBar alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(m_logoView.frame), SCREEN_WIDTH-kWidth(40) , m_naviHeight)];
     _navTabBar.backgroundColor = [[ThemeManager sharedInstance] GetBackgroundColor];
     _navTabBar.delegate = self;
+    _navTabBar.topMargin = kWidth(32)/2-kWidth(16)/2;
     _navTabBar.lineColor = RGBA(255, 129, 3, 1);;
     _navTabBar.itemTitles = _titles;
     [_navTabBar updateData];
@@ -284,19 +298,72 @@
     [self.view addSubview:linev];
     
     //搜索
-    UIButton *btn = [[UIButton alloc]initWithFrame:CGRectMake(0, StaTusHight, kWidth(40), kWidth(44))];
-//    btn.backgroundColor = [UIColor greenColor];
-    [btn setImage:[UIImage imageNamed:@"ic_nav_search"] forState:UIControlStateNormal];
-    [btn addTarget:self action:@selector(searchClick) forControlEvents:UIControlEventTouchUpInside];
-    [self.view addSubview:btn];
+//    UIButton *btn = [[UIButton alloc]initWithFrame:CGRectMake(0, StaTusHight, kWidth(40), kWidth(44))];
+////    btn.backgroundColor = [UIColor greenColor];
+//    [btn setImage:[UIImage imageNamed:@"ic_nav_search"] forState:UIControlStateNormal];
+//    [btn addTarget:self action:@selector(searchClick) forControlEvents:UIControlEventTouchUpInside];
+//    [self.view addSubview:btn];
     
     //频道添加
-    UIButton *addChannel = [[UIButton alloc]initWithFrame:CGRectMake(SCREEN_WIDTH-40, StaTusHight, 40, kWidth(44))];
+    UIButton *addChannel = [[UIButton alloc]initWithFrame:CGRectMake(SCREEN_WIDTH-kWidth(40), CGRectGetMaxY(m_logoView.frame), 40, kWidth(40))];
     //    btn.backgroundColor = [UIColor greenColor];
     [addChannel setImage:[UIImage imageNamed:@"ic_nav_more"] forState:UIControlStateNormal];
     [addChannel addTarget:self action:@selector(EditChannel) forControlEvents:UIControlEventTouchUpInside];
+    addChannel.imageEdgeInsets = UIEdgeInsetsMake(0, 0, kWidth(40)-kWidth(14), 0);
     [self.view addSubview:addChannel];
     
+}
+
+-(void)initLogoView{
+    UIView* logoView = [[UIView alloc] initWithFrame:CGRectMake(0, StaTusHight, SCREEN_WIDTH, kWidth(48))];
+    logoView.backgroundColor = [UIColor whiteColor];
+    m_logoView = logoView;
+    [self.view addSubview:logoView];
+    
+    UIImageView* img_logo = [UIImageView new];
+    [img_logo setImage:[UIImage imageNamed:@"icon_nav_icon"]];
+    [logoView addSubview:img_logo];
+    [img_logo mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.left.equalTo(self.view.mas_left).offset(kWidth(16));
+        make.top.equalTo(self.view.mas_top).offset(StaTusHight+kWidth(14));
+        make.width.mas_offset(kWidth(82));
+        make.height.mas_offset(kWidth(20));
+    }];
+    
+    UIButton* searchView = [UIButton new];
+    m_searchView = searchView;
+    searchView.backgroundColor = RGBA(242, 242, 242, 1);
+    [searchView addTarget:self action:@selector(searchClick) forControlEvents:UIControlEventTouchUpInside];
+    [searchView.layer setCornerRadius:kWidth(28)/2];
+    searchView.layer.masksToBounds = YES;
+    [logoView addSubview:searchView];
+    [searchView mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.left.equalTo(img_logo.mas_right).offset(kWidth(10));
+        make.top.equalTo(logoView.mas_top).offset(kWidth(10));
+        make.bottom.equalTo(logoView.mas_bottom).offset(-kWidth(10));
+        make.right.equalTo(logoView.mas_right).offset(-kWidth(52));
+    }];
+    
+    UIImageView* img = [UIImageView new];
+    [img setImage:[UIImage imageNamed:@"ic_nav_search2"]];
+    [searchView addSubview:img];
+    [img mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.left.equalTo(searchView.mas_left).offset(kWidth(10));
+        make.width.and.height.mas_offset(kWidth(12));
+        make.centerY.equalTo(searchView.mas_centerY);
+    }];
+    
+    UILabel* tips = [UILabel new];
+    tips.text                   = @"搜索你感兴趣的内容";
+    tips.textColor              = RGBA(167, 169, 169, 1);
+    tips.textAlignment          = NSTextAlignmentLeft;
+    tips.font                   = kFONT(12);
+    [searchView addSubview:tips];
+    [tips mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.left.equalTo(img.mas_right).offset(kWidth(10));
+        make.height.mas_offset(kWidth(12));
+        make.centerY.equalTo(searchView.mas_centerY);
+    }];
 }
 
 -(void)searchClick
@@ -315,9 +382,9 @@
 }
 
 -(void)IsShowBox{
-    if(![Login_info share].isLogined){
-        return;
-    }
+//    if(![Login_info share].isLogined){
+//        return;
+//    }
     
     //获取保存时间点
     NSInteger time_start = [[AppConfig sharedInstance] getBoxTime];
@@ -332,35 +399,153 @@
             [m_boxView setHidden:NO];
             return;
         }
-        if(m_isShowBox){ //当关闭时
-            return;
+        //显示宝箱
+        if(m_boxBtn == nil){ //防止广播多次
+            [m_box_timeTips removeFromSuperview];
+            m_box_timeTips = nil;
+            
+            UIButton* boxBtn = [UIButton new];
+            [boxBtn addTarget:self action:@selector(boxOpenBtn_action) forControlEvents:UIControlEventTouchUpInside];
+            m_boxBtn = boxBtn;
+            UIImage* img_box = [UIImage animatedImageWithImages:@[[UIImage imageNamed:@"ic_nav_box_change"],[UIImage imageNamed:@"ic_nav_box"]] duration:0.5f];
+            [boxBtn setImage:img_box forState:UIControlStateNormal];
+            [m_logoView addSubview:boxBtn];
+            [boxBtn mas_makeConstraints:^(MASConstraintMaker *make) {
+                make.width.and.height.mas_offset(kWidth(24));
+                make.right.equalTo(m_logoView.mas_right).offset(-kWidth(16));
+                make.centerY.equalTo(m_logoView.mas_centerY);
+            }];
+            
+            [m_searchView mas_updateConstraints:^(MASConstraintMaker *make) {
+                make.right.equalTo(m_boxBtn.mas_left).offset(-kWidth(10));
+            }];
         }
-        UITabBarController *tabBarVC = [[UITabBarController alloc] init];//(这儿取你当前tabBarVC的实例)
-        CGFloat tabBarHeight = tabBarVC.tabBar.frame.size.height;
-        m_boxView = [[FloatView alloc] initWithFrame:CGRectMake(SCREEN_WIDTH-80-10, SCREEN_HEIGHT-90-tabBarHeight*2-10, 80, 90)];
-        [m_boxView.close_btn addTarget:self action:@selector(boxClosebtn_action) forControlEvents:UIControlEventTouchUpInside];
-        [m_boxView.box_btn addTarget:self action:@selector(boxOpenBtn_action) forControlEvents:UIControlEventTouchUpInside];
-        [[UIApplication sharedApplication].keyWindow addSubview:m_boxView];
-        if(!m_VCL_isShow){
-            [m_boxView setHidden:YES];
-        }
-//        [self.view addSubview:m_boxView];
-//        [self.view bringSubviewToFront:m_boxView];
+        
+//        UITabBarController *tabBarVC = [[UITabBarController alloc] init];//(这儿取你当前tabBarVC的实例)
+//        CGFloat tabBarHeight = tabBarVC.tabBar.frame.size.height;
+//        m_boxView = [[FloatView alloc] initWithFrame:CGRectMake(SCREEN_WIDTH-80-10, SCREEN_HEIGHT-90-tabBarHeight*2-10, 80, 90)];
+//        [m_boxView.close_btn addTarget:self action:@selector(boxClosebtn_action) forControlEvents:UIControlEventTouchUpInside];
+//        [m_boxView.box_btn addTarget:self action:@selector(boxOpenBtn_action) forControlEvents:UIControlEventTouchUpInside];
+//        [[UIApplication sharedApplication].keyWindow addSubview:m_boxView];
+//        if(!m_VCL_isShow){
+//            [m_boxView setHidden:YES];
+//        }
         
     }else{
-        [m_boxView removeFromSuperview];
-        m_boxView = nil;
-        m_isShowBox = YES;
+        //显示倒计时
+        [m_boxBtn removeFromSuperview];
+        m_boxBtn = nil;
+        
+        [self initBoxTimeTips];
+        
     }
 }
 
--(void)boxClosebtn_action{
-    [m_boxView removeFromSuperview];
-    m_boxView = nil;
-    m_isShowBox = YES;
+-(void)initBoxTimeTips{
+    if(m_box_timeTips != nil){
+        return;
+    }
+    m_box_timeTips = [UIImageView new];
+    [m_box_timeTips setImage:[UIImage imageNamed:@"countdown"]];
+    [m_logoView addSubview:m_box_timeTips];
+    [m_box_timeTips mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.right.equalTo(m_logoView.mas_right).offset(-kWidth(16));
+        make.height.mas_offset(kWidth(25));
+        make.width.mas_offset(kWidth(60));
+        make.centerY.equalTo(m_logoView.mas_centerY);
+    }];
+    
+    UILabel* time_label = [UILabel new];
+    m_time_label = time_label;
+    time_label.text                 = @"";
+    time_label.textColor            = RGBA(255, 255, 255, 1);
+    time_label.textAlignment        = NSTextAlignmentRight;
+    time_label.font                 = kFONT(10);
+    [m_box_timeTips addSubview:time_label];
+    [time_label mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.right.equalTo(m_box_timeTips.mas_right).offset(-kWidth(5));
+        make.height.mas_offset(kWidth(11));
+//        make.width.mas_offset(kWidth(26));
+        make.centerY.equalTo(m_box_timeTips.mas_centerY);
+    }];
+    
+    [m_searchView mas_updateConstraints:^(MASConstraintMaker *make) {
+        make.right.equalTo(m_logoView.mas_right).offset(-kWidth(82));
+    }];
+    
+    [self Label_time_show];
+}
+
+-(void)Label_time_show{
+    //获取保存时间点
+    NSInteger time_start = [[AppConfig sharedInstance] getBoxTime];
+    //获取当前 时间点
+    NSInteger time_now = [[NSDate date] timeIntervalSince1970];
+    
+    if(time_start == 0){
+        m_timer_count = BoxTime;
+        [[AppConfig sharedInstance] saveBoxTime:time_now];
+    }else{
+        NSInteger count = time_now - time_start;
+        if(count < BoxTime ){
+            m_timer_count = BoxTime-count;
+        }else{
+            m_timer_count = BoxTime;
+            [[AppConfig sharedInstance] saveBoxTime:0];
+        }
+    }
+    
+    //直接就开始显示倒计时时间 不用等1秒
+//    NSInteger hour = m_timer_count / 3600;
+    NSInteger min = m_timer_count / 60;
+    if(min >= 60){
+        min = min%60;
+    }
+    NSInteger sec = m_timer_count % 60;
+//    m_logo_hour_lable.text = [NSString stringWithFormat:@"%02ld",hour];
+//    m_logo_min_lable.text = [NSString stringWithFormat:@"%02ld",min];
+//    m_logo_second_lable.text = [NSString stringWithFormat:@"%02ld",sec];
+    m_time_label.text = [NSString stringWithFormat:@"%02ld:%02ld",min,sec];
+    
+    m_timer = [NSTimer scheduledTimerWithTimeInterval:1 repeats:YES block:^(NSTimer * _Nonnull timer) {
+        if(m_timer_count <= 0){
+            dispatch_async(dispatch_get_main_queue(), ^{
+                if(m_timer_count <= 0){
+                    [m_timer invalidate];
+                    //保存时间
+                    [[AppConfig sharedInstance] saveBoxTime:0];
+                    [self IsShowBox];
+                    
+                    [[NSNotificationCenter defaultCenter] postNotificationName:@"TaskVCL_SCNaci_宝箱重置提醒" object:nil];
+                }
+            });
+        }else{
+            
+            dispatch_async(dispatch_get_main_queue(), ^{
+                m_timer_count--;
+//                NSInteger hour = m_timer_count/3600;
+                NSInteger min = m_timer_count/60;
+                if(min >= 60){
+                    min = min%60;
+                }
+                NSInteger sec = m_timer_count%60;
+                m_time_label.text = [NSString stringWithFormat:@"%02ld:%02ld",min,sec];
+                
+            });
+        }
+    }];
+    
+    //当手指在屏幕时，nstimer停止运行 参考：https://www.cnblogs.com/6duxz/p/4633741.html
+    [[NSRunLoop mainRunLoop] addTimer:m_timer forMode:NSRunLoopCommonModes];
 }
 
 -(void)boxOpenBtn_action{
+    if(![Login_info share].isLogined){
+//        [MyMBProgressHUD ShowMessage:@"请登录!" ToView:self.view AndTime:1.0f];
+        Mine_login_ViewController* vc = [Mine_login_ViewController new];
+        [self.navigationController pushViewController:vc animated:YES];
+        return;
+    }
     //非绑定设备不能执行任务
         if([[Login_info share].userInfo_model.device_mult_user integerValue] == NotTheDevice){
             [MyMBProgressHUD ShowMessage:@"非绑定设备，不能执行任务" ToView:self.view AndTime:1.0f];
@@ -368,12 +553,12 @@
         }
 
     
-    [m_boxView removeFromSuperview];
     NSString* box_taskId = [Md5Helper Box_taskId:[Login_info share].userInfo_model.user_id];
     [InternetHelp SendTaskId:box_taskId AndType:Task_box Sucess:^(NSInteger type, NSDictionary *dic) {
         if(type == Task_box){
             NSString* coin = dic[@"list"][@"reward_coin"];
             [self showBoxWin:coin];
+            [self IsShowBox];
         }
     } Fail:^(NSDictionary *dic) {
         NSLog(@"SCNAv-宝箱任务上传失败");
@@ -526,15 +711,16 @@
     [super viewWillAppear:animated];
     [self.navigationController setNavigationBarHidden:YES];
     m_VCL_isShow = YES;
-    [self IsShowBox];
+    if(m_logoView != nil){
+        [self IsShowBox];
+    }
+    
 }
 
 -(void)viewWillDisappear:(BOOL)animated
 {
     [super viewWillDisappear:animated];
     [self.navigationController setNavigationBarHidden:NO];
-    m_VCL_isShow = NO;
-    [m_boxView  setHidden:YES];
 }
 
 -(void)initNaviBarItem{

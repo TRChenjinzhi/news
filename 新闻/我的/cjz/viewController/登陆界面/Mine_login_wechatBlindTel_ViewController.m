@@ -289,7 +289,8 @@
     [telephone_cancel setTitle:@"取消" forState:UIControlStateNormal];
     [telephone_cancel setTitleColor:RGBA(167, 169, 169, 1) forState:UIControlStateNormal];
     [telephone_cancel setBackgroundColor:RGBA(242, 242, 242, 1)];
-    [telephone_cancel.layer setCornerRadius:3.0f];
+    [telephone_cancel.layer setCornerRadius:kWidth(36)/2];
+    telephone_cancel.clipsToBounds = YES;
     [telephone_cancel addTarget:self action:@selector(telephone_cancel_action) forControlEvents:UIControlEventTouchUpInside];
     [center_view addSubview:telephone_cancel];
     [telephone_cancel mas_makeConstraints:^(MASConstraintMaker *make) {

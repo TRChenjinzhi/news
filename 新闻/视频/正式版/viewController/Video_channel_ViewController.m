@@ -78,7 +78,7 @@
     [self.view addSubview:m_tableview];
     [m_tableview mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.left.right.equalTo(self.view);
-        make.height.mas_equalTo(SCREEN_HEIGHT-64-49);
+        make.height.mas_equalTo(SCREEN_HEIGHT-StaTusHight-kWidth(10)-kWidth(32));
     }];
     
     m_page = 0;

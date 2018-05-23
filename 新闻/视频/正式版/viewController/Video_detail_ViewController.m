@@ -16,8 +16,9 @@
 #import "ShareSettingView.h"
 #import "ShareSetting_view.h"
 #import "reply_model.h"
+#import "ReplyAll_ViewController.h"
 
-@interface Video_detail_ViewController ()<UITableViewDelegate,UITableViewDataSource,MyPlayerView_ptotocl,shareSetting_protocol,UITextViewDelegate,video_tuijian_tableview_protocol>
+@interface Video_detail_ViewController ()<UITableViewDelegate,UITableViewDataSource,MyPlayerView_ptotocl,shareSetting_protocol,UITextViewDelegate,video_tuijian_tableview_protocol,reply_cell_protocol>
 
 @property (nonatomic,strong)MyPlayerView* m_playerView;
 @property (nonatomic,strong)UITableView* m_talbeView;
@@ -44,6 +45,10 @@
     CGFloat                 _transformY;
     CGFloat                 _currentKeyboardH;
     NSInteger               m_page;
+    
+    //评论
+    reply_model*                    m_otherReply_model;
+    NSString*                       m_pre_reply;//回复头  例子： 回复 cjz：
 }
 
 - (void)viewDidLoad {
@@ -174,6 +179,7 @@
     self.m_talbeView.separatorStyle = UITableViewCellSeparatorStyleNone;
     self.m_talbeView.delegate = self;
     self.m_talbeView.dataSource = self;
+    self.m_talbeView.estimatedRowHeight = kWidth(100.0);
     [self.m_talbeView registerClass:[NoReply_TableViewCell class] forCellReuseIdentifier:@"NullReply"];
     [self.m_talbeView registerClass:[reply_Cell class] forCellReuseIdentifier:@"reply"];
     [self.view addSubview:self.m_talbeView];
@@ -399,6 +405,22 @@
     //    [self.view layoutIfNeeded];
 }
 
+-(void)replyFromMymodel:(reply_model *)myModel{
+    //    return;//用于第一个版本 不要回复
+    [self InputTextAction];
+    m_textView_placeHolder.text = @"";
+    m_pre_reply = [NSString stringWithFormat:@"回复 %@:\n",myModel.myUserModel.user_name];
+    m_textField.text = m_pre_reply;
+    m_otherReply_model = myModel;
+}
+
+-(void)GoToReplyAll:(reply_model *)model{
+    ReplyAll_ViewController* vc = [ReplyAll_ViewController new];
+    vc.model = model;
+    vc.newsId = self.model.ID;
+    [self.navigationController pushViewController:vc animated:YES];
+}
+
 -(void)Message{
     NSLog(@"点击 message");
     NSIndexPath* path = [NSIndexPath indexPathForRow:0 inSection:0];
@@ -531,13 +553,19 @@
 -(void)DialogCancel{
     NSLog(@"DialogCancel");
     [self.inputReply removeFromSuperview];
+    m_pre_reply = nil;
 }
 
 -(void)DialogTure{
     NSLog(@"DialogTure");
     NSString* str_comment = m_textField.text;
+    if(m_pre_reply != nil){
+        str_comment = [str_comment stringByReplacingOccurrencesOfString:m_pre_reply withString:@""];
+    }
+    m_pre_reply = nil;
     [self SendReply:str_comment];
     [self.inputReply removeFromSuperview];
+    m_otherReply_model = nil;
 }
 
 -(void)tapClick:(UITapGestureRecognizer*)tap{
@@ -607,8 +635,13 @@
         return cell;
     }else{
         reply_Cell* cell = [reply_Cell cellWithTableView:tableView];
+        cell.delegate = self;
         reply_model* model = self.reply_array[indexPath.row];
         cell.model =model;
+        
+        //点击时 高亮的颜色
+        cell.selectedBackgroundView = [[UIImageView alloc] initWithImage:[Color_Image_Helper createImageWithColor:RGBA(255, 85, 0, 0.3)]];
+        
         return cell;
     }
     
@@ -621,17 +654,51 @@
     return self.m_headerView.frame.size.height;
 }
 -(CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath{
-    if(self.reply_array == nil || self.reply_array.count == 0){
+    if(_reply_array.count == 0){
         return 150.0;
     }else{
         reply_model* model = _reply_array[indexPath.row];
-        CGFloat hight = [LabelHelper GetLabelHight:[UIFont fontWithName:@"SourceHanSansCN-Regular" size:14] AndText:model.comment AndWidth:SCREEN_WIDTH-16-24-8];
+        CGFloat hight = [LabelHelper GetLabelHight:kFONT(14) AndText:model.comment AndWidth:SCREEN_WIDTH-kWidth(38)-kWidth(16)];//评论高度
         
-        return (102.0f+hight);
+        //回复高度
+        NSInteger count = 0;
+        for (reply_model* item in model.array_reply) {
+            //上边距+name+name和content的边距+content
+            if(count == 3) break;
+            hight += [LabelHelper GetLabelHight:kFONT(14) AndText:item.comment AndWidth:SCREEN_WIDTH-kWidth(46)-kWidth(16)]+kWidth(13)+kWidth(5)+kWidth(12);
+            count++;
+        }
+        if(model.array_reply.count > 0){
+            hight += kWidth(16); //这个 16 是灰色回复区域 离 时间 的距离
+        }
+        
+        if(model.array_reply.count > 3){
+            hight += kWidth(24);
+        }
+        
+        
+        return kWidth(100)+hight;
+        
+        //            reply_Cell* cell = [reply_Cell cellWithTableView:tableView];
+        //            cell.model = model;
+        //            NSLog(@"cell height-->%f",cell.height);
+        //            return cell.height;
     }
 }
 -(BOOL)tableView:(UITableView *)tableView shouldHighlightRowAtIndexPath:(NSIndexPath *)indexPath{
-    return NO;
+    if(_reply_array.count == 0){
+        return NO;
+    }
+    return YES;
+}
+
+-(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath{
+    if(_reply_array.count != 0){
+        [tableView deselectRowAtIndexPath:indexPath animated:NO];
+    }
+    reply_model* model = _reply_array[indexPath.row];
+    [self replyFromMymodel:model];
+    
 }
 
 #pragma mark - textField代理
@@ -890,7 +957,8 @@
 
 -(void)GetReplyComment:(NSInteger)type{
     // 1.创建一个网络路径
-    NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://younews.3gshow.cn/api/getComment"]];
+//    NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://younews.3gshow.cn/api/getComment"]];
+    NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://dev.3gshow.cn/api/getComment"]];
     // 2.创建一个网络请求，分别设置请求方法、请求参数
     NSMutableURLRequest *request =[NSMutableURLRequest requestWithURL:url];
     request.HTTPMethod = @"POST";
@@ -898,7 +966,7 @@
     NSString* argument = @"{";
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@"\"%@\":\"%@\"",@"user_id",[[Login_info share] GetUserInfo].user_id]];
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":%@",@"news_id",self.model.ID]];
-    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":%ld",@"page",m_page]];
+    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":%ld",@"page",type]];
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":%d",@"size",10]];
     argument = [argument stringByAppendingString:@"}"];
     argument = [MyEntrypt MakeEntryption:argument];
@@ -914,12 +982,13 @@
             
             
             if(error || data == nil){
-                NSLog(@"网络获取失败");
+                NSLog(@"视频GetReplyComment获取失败");
                 //发送失败消息
                 [block_self.m_talbeView.footer endRefreshing];
                 return ;
             }
             
+            NSLog(@"视频GetReplyComment获取成功");
             NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:data options:(NSJSONReadingMutableLeaves) error:nil];
             NSNumber* code = dict[@"code"];
             if([code integerValue] == 200){
@@ -938,10 +1007,12 @@
                 [block_self.m_talbeView reloadData];
                 if(_reply_array.count != 0){
                     m_page += 1;
+                    [block_self.m_talbeView.footer endRefreshing];
+                }
+                else{
+                    [block_self.m_talbeView.footer removeFromSuperview];
                 }
                 
-                [block_self.m_talbeView.footer endRefreshing];
-                [block_self.m_talbeView.footer setHidden:YES];
             }else{
                 [statusArray addObjectsFromArray:_reply_array];
                 [statusArray addObjectsFromArray:dataarray];
@@ -963,96 +1034,34 @@
 }
 
 -(void)SendReply:(NSString*)str_comment{
-//    // 1.创建一个网络路径
-//    NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://younews.3gshow.cn/api/comment"]];
-//    // 2.创建一个网络请求，分别设置请求方法、请求参数
-//    NSMutableURLRequest *request =[NSMutableURLRequest requestWithURL:url];
-//    request.HTTPMethod = @"POST";
-//    NSString *args = @"json=";
-//    NSString* argument = @"";
-//    //    argument = [argument stringByAppendingString:[NSString stringWithFormat:@"\"%@\":\"%@\"",@"user_id",[[Login_info share] GetUserInfo].user_id]];
-//    //    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"news_id",self.CJZ_model.ID]];
-//    //    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"comment",str_comment]];
-//    //    argument = [argument stringByAppendingString:@"}"];
-//    NSMutableDictionary* dic = [[NSMutableDictionary alloc] init]; //用json传值 ：\n 加密就不会去掉换行符
-//    [dic setValue:[[Login_info share] GetUserInfo].user_id forKey:@"user_id"];
-//    [dic setValue:self.model.ID forKey:@"news_id"];
-//    [dic setValue:str_comment forKey:@"comment"];
-//    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:dic options:0 error:NULL];
-//    NSString* str_tmp = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-//    argument = [MyEntrypt MakeEntryption:str_tmp];
-//    args = [args stringByAppendingString:[NSString stringWithFormat:@"%@",argument]];
-//    request.HTTPBody = [args dataUsingEncoding:NSUTF8StringEncoding];
-//    // 3.获得会话对象
-//    NSURLSession *session = [NSURLSession sharedSession];
-//    // 4.根据会话对象，创建一个Task任务
-//    IMP_BLOCK_SELF(Video_detail_ViewController);
-//    NSURLSessionDataTask *sessionDataTask = [session dataTaskWithRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
-//        
-//        dispatch_async(dispatch_get_main_queue(), ^{
-//            
-//            
-//            if(error){
-//                NSLog(@"网络获取失败");
-//                //发送失败消息
-//                [block_self.m_talbeView.footer endRefreshing];
-//                return ;
-//            }
-//            //提示信息
-//            Tips_ViewController* tip_vc = [[Tips_ViewController alloc] init];
-//            tip_vc.view.frame = CGRectMake(0, SCREEN_HEIGHT/2-50/2, SCREEN_WIDTH, 50);
-//            //            tip_vc.view.backgroundColor = [UIColor grayColor];
-//            
-//            
-//            NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:data options:(NSJSONReadingMutableLeaves) error:nil];
-//            NSNumber* code = dict[@"code"];
-//            if([code integerValue] == 200){
-//                //                [[AlertHelper Share] ShowMe:self And:0.8 And:@"评论成功"];
-//                NSDictionary* dic_tmp = dict[@"list"];
-//                reply_model* model = [[reply_model alloc] init];
-//                model.ID = dic_tmp[@"id"];
-//                model.myUserModel.user_name = [Login_info share].userInfo_model.name;
-//                model.myUserModel.user_icon = [Login_info share].userInfo_model.avatar;
-//                model.comment = dic_tmp[@"comment"];
-//                model.thumbs_num = @"0";
-//                NSNumber* number = dic_tmp[@"ctime"];
-//                model.ctime = [NSString stringWithFormat:@"%ld",[number integerValue]];
-//                
-//                NSMutableArray* array_tmp = [NSMutableArray arrayWithArray:_reply_array];
-//                [array_tmp insertObject:model atIndex:0];
-//                _reply_array = array_tmp;
-//                [block_self.m_talbeView reloadData];
-//                
-//                //                [MBProgressHUD showSuccess:@"评论成功"];
-//                //                [self GetReplyComment:0];//重新加载评论
-//                tip_vc.message = [NSString stringWithFormat:@"评论成功"];
-//                
-//            }else{
-//                //                [[AlertHelper Share] ShowMe:self And:0.8 And:@"评论失败"];
-//                //                [MBProgressHUD showError:@"评论失败"];
-//                tip_vc.message = [NSString stringWithFormat:@"评论失败"];
-//            }
-//            
-//            
-//            [block_self.view addSubview:tip_vc.view];
-//            [UIView animateWithDuration:1.0f delay:0 options:UIViewAnimationOptionBeginFromCurrentState animations:^{
-//                tip_vc.view.alpha = 0.0;
-//            } completion:^(BOOL finished) {
-//                [tip_vc.view removeFromSuperview];
-//            }];
-//            
-//        });
-//        
-//    }];
-//    //5.最后一步，执行任务，(resume也是继续执行)。
-//    [sessionDataTask resume];
+    NSString* To_userId = @"";
+    if(m_otherReply_model != nil){ //当直接评论新闻时，没有userid
+        To_userId = m_otherReply_model.myUserModel.user_id;
+    }
+    NSInteger pid = 0;
+    if([m_otherReply_model.pid integerValue] == 0){
+        pid = [m_otherReply_model.ID integerValue];
+    }
+    else{
+        pid = [m_otherReply_model.pid integerValue];
+    }
+    [InternetHelp replyToOterReplyByUserId:[Login_info share].userInfo_model.user_id
+                               andToUserId:To_userId
+                                 andNewsId:self.model.ID
+                                    AndPid:pid
+                                AndComment:str_comment Sucess:^(NSDictionary *dic) {
+                                    [MyMBProgressHUD ShowMessage:@"评论成功" ToView:self.view AndTime:1.0f];
+                                    [self GetReplyComment: 0];//刷新
+                                } Fail:^(NSDictionary *dic) {
+                                    [MyMBProgressHUD ShowMessage:@"网络失败" ToView:self.view AndTime:1.0f];
+                                }];
     
-    [InternetHelp replyToServer_test:[Login_info share].userInfo_model.user_id andNewsId:self.model.ID AndComment:str_comment Sucess:^(NSDictionary *dic) {
-        [MyMBProgressHUD ShowMessage:@"评论成功" ToView:self.view AndTime:1.0f];
-        [self GetReplyComment:0];
-    } Fail:^(NSDictionary *dic) {
-        [MyMBProgressHUD ShowMessage:@"网络失败" ToView:self.view AndTime:1.0f];
-    }];
+//    [InternetHelp replyToServer_test:[Login_info share].userInfo_model.user_id andNewsId:self.model.ID AndComment:str_comment Sucess:^(NSDictionary *dic) {
+//        [MyMBProgressHUD ShowMessage:@"评论成功" ToView:self.view AndTime:1.0f];
+//        [self GetReplyComment:0];
+//    } Fail:^(NSDictionary *dic) {
+//        [MyMBProgressHUD ShowMessage:@"网络失败" ToView:self.view AndTime:1.0f];
+//    }];
 }
 
 @end

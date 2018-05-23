@@ -7,7 +7,7 @@
 //
 
 #import "Mine_History_cash_detail_ViewController.h"
-
+#import "Mine_zhifuInfo_ViewController.h"
 
 @interface Mine_History_cash_detail_ViewController ()
 
@@ -19,14 +19,16 @@
     CGFloat             m_margin;
     CGFloat             m_fontSize;
     UIFont*             m_font;
+    UIColor*            m_title_color;
 }
 
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
-    m_margin    = kWidth(16);
-    m_fontSize  = kWidth(16);
+    m_margin    = kWidth(17);
+    m_fontSize  = kWidth(14);
     m_font      = kFONT(m_fontSize);
+    m_title_color= RGBA(122, 125, 125, 1);
     self.view.backgroundColor = [UIColor whiteColor];
     [self initNavibar];
     [self setUI];
@@ -66,7 +68,7 @@
     //申请时间
     UILabel* label_time = [UILabel new];
     label_time.text             = @"申请时间";
-    label_time.textColor        = RGBA(167, 169, 169, 1);
+    label_time.textColor        = m_title_color;
     label_time.textAlignment    = NSTextAlignmentLeft;
     label_time.font             = m_font;
     [self.view addSubview:label_time];
@@ -101,7 +103,7 @@
     //提现金额
     UILabel* label_money = [UILabel new];
     label_money.text             = @"提现金额";
-    label_money.textColor        = RGBA(167, 169, 169, 1);
+    label_money.textColor        = m_title_color;
     label_money.textAlignment    = NSTextAlignmentLeft;
     label_money.font             = m_font;
     [self.view addSubview:label_money];
@@ -136,7 +138,7 @@
     //提现方式
     UILabel* label_type = [UILabel new];
     label_type.text             = @"提现方式";
-    label_type.textColor        = RGBA(167, 169, 169, 1);
+    label_type.textColor        = m_title_color;
     label_type.textAlignment    = NSTextAlignmentLeft;
     label_type.font             = m_font;
     [self.view addSubview:label_type];
@@ -188,7 +190,7 @@
     //身份证姓名
     UILabel* label_shenfenzheng = [UILabel new];
     label_shenfenzheng.text             = @"身份证姓名";
-    label_shenfenzheng.textColor        = RGBA(167, 169, 169, 1);
+    label_shenfenzheng.textColor        = m_title_color;
     label_shenfenzheng.textAlignment    = NSTextAlignmentLeft;
     label_shenfenzheng.font             = m_font;
     [self.view addSubview:label_shenfenzheng];
@@ -250,7 +252,7 @@
     //提现状态
     UILabel* label_status = [UILabel new];
     label_status.text             = @"提现状态";
-    label_status.textColor        = RGBA(167, 169, 169, 1);
+    label_status.textColor        = m_title_color;
     label_status.textAlignment    = NSTextAlignmentLeft;
     label_status.font             = m_font;
     [self.view addSubview:label_status];
@@ -262,20 +264,133 @@
     
     UILabel* label_sub_status = [UILabel new];
     label_sub_status.text             = [NSString stringWithFormat:@"%@",self.model.state];
-    label_sub_status.textColor        = RGBA(251, 84, 38, 1);
+    label_sub_status.textColor        = RGBA(253, 8, 31, 1);
     label_sub_status.textAlignment    = NSTextAlignmentRight;
     label_sub_status.font             = m_font;
     [self.view addSubview:label_sub_status];
-    [label_sub_status mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.top.equalTo(line_jiange.mas_bottom).with.offset(m_margin);
-        make.right.equalTo(self.view.mas_right).with.offset(-m_margin);
+    
+    if([self.model.state isEqualToString:@"提现失败-认证姓名不一致"]){ //可以跳转
+        UIImageView* state_next_img = [UIImageView new];
+        [state_next_img setImage:[UIImage imageNamed:@"ic_list_next_black"]];
+        [self.view addSubview:state_next_img];
+        [state_next_img mas_makeConstraints:^(MASConstraintMaker *make) {
+            make.right.equalTo(self.view.mas_right).offset(-kWidth(16));
+            make.width.and.height.mas_offset(kWidth(16));
+            make.centerY.equalTo(label_status.mas_centerY);
+        }];
+        
+        [label_sub_status mas_makeConstraints:^(MASConstraintMaker *make) {
+            make.top.equalTo(line_jiange.mas_bottom).with.offset(m_margin);
+            make.right.equalTo(state_next_img.mas_left);
+            make.height.mas_offset(m_fontSize);
+        }];
+        
+        //联系客服 点击层
+        UIView* state_view = [UIView new];
+        state_view.userInteractionEnabled = YES;
+        [self.view addSubview:state_view];
+        [state_view mas_makeConstraints:^(MASConstraintMaker *make) {
+            make.left.and.right.equalTo(self.view);
+            make.top.equalTo(line_jiange.mas_bottom).with.offset(m_margin);
+            make.bottom.equalTo(label_status.mas_bottom).offset(m_margin);
+        }];
+        UITapGestureRecognizer* state_tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(goToZhifuVC)];
+        [state_view addGestureRecognizer:state_tap];
+    }
+    else{
+        [label_sub_status mas_makeConstraints:^(MASConstraintMaker *make) {
+            make.top.equalTo(line_jiange.mas_bottom).with.offset(m_margin);
+            make.right.equalTo(self.view.mas_right).with.offset(-m_margin);
+            make.height.mas_offset(m_fontSize);
+        }];
+    }
+    
+    
+    //灰色间隔
+    UIView* line_jiange_two = [UIView new];
+    line_jiange_two.backgroundColor = RGBA(242, 242, 242, 1);
+    [self.view addSubview:line_jiange_two];
+    [line_jiange_two mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.left.and.right.equalTo(self.view);
+        make.top.equalTo(label_status.mas_bottom).offset(m_margin);
+        make.height.mas_offset(kWidth(10));
+    }];
+    
+    //联系客服
+    UILabel* label_kefu = [UILabel new];
+    label_kefu.text             = @"联系客服";
+    label_kefu.textColor        = m_title_color;
+    label_kefu.textAlignment    = NSTextAlignmentLeft;
+    label_kefu.font             = m_font;
+    [self.view addSubview:label_kefu];
+    [label_kefu mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(line_jiange_two.mas_bottom).with.offset(m_margin);
+        make.left.equalTo(self.view.mas_left).with.offset(m_margin);
         make.height.mas_offset(m_fontSize);
     }];
+    
+    UIImageView* kefu_next_img = [UIImageView new];
+    [kefu_next_img setImage:[UIImage imageNamed:@"ic_list_next_black"]];
+    [self.view addSubview:kefu_next_img];
+    [kefu_next_img mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.right.equalTo(self.view.mas_right).offset(-kWidth(16));
+        make.width.and.height.mas_offset(kWidth(16));
+        make.centerY.equalTo(label_kefu.mas_centerY);
+    }];
+    
+    //灰色间隔
+    UIView* line_jiange_three = [UIView new];
+    line_jiange_three.backgroundColor = RGBA(242, 242, 242, 1);
+    [self.view addSubview:line_jiange_three];
+    [line_jiange_three mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.left.and.right.equalTo(self.view);
+        make.top.equalTo(label_kefu.mas_bottom).offset(m_margin);
+        make.height.mas_offset(kWidth(10));
+    }];
+    
+    //联系客服 点击层
+    UIView* kefu_view = [UIView new];
+    kefu_view.userInteractionEnabled = YES;
+    [self.view addSubview:kefu_view];
+    [kefu_view mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.left.and.right.equalTo(self.view);
+        make.top.equalTo(line_jiange_two.mas_bottom);
+        make.bottom.equalTo(line_jiange_three.mas_top);
+    }];
+    UITapGestureRecognizer* kefu_tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(goToKefu)];
+    [kefu_view addGestureRecognizer:kefu_tap];
 }
 
 #pragma mark - 按钮方法
 -(void)back{
     [self.navigationController popViewControllerAnimated:YES];
+}
+
+-(void)goToKefu{
+    NSLog(@"goToKefu");
+}
+
+-(void)goToZhifuVC{
+    Mine_zhifuInfo_ViewController* vc = [Mine_zhifuInfo_ViewController new];
+    NSInteger type1 = [self.model.type integerValue];
+    switch (type1) {
+        case Ali:
+//            title1 = [Login_info share].userMoney_model.alipay_name;
+            vc.type = ali;
+            break;
+        case Wechat:
+//            title1 = [Login_info share].userMoney_model.wechat_name;
+            vc.type = wechat;
+            break;
+        case Phone:
+//            title1 = @"话费提现";
+//            vc.type = Phone_duanxin
+            break;
+            
+        default:
+            break;
+    }
+    [self.navigationController pushViewController:vc animated:YES];
 }
 
 @end

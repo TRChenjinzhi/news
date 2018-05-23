@@ -15,6 +15,7 @@
 @property (nonatomic,strong)NSString* moeny;
 @property (nonatomic,strong)NSString* state;
 @property (nonatomic,strong)NSString* type;
+@property (nonatomic,strong)NSString* withDraw_type;//1是成功0是未提现成功
 
 +(NSArray*)dicToModelArray:(NSDictionary*)dic;
 

@@ -71,13 +71,14 @@
     {
         UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
         [button setTitle:_itemTitles[index] forState:UIControlStateNormal];
-        button.titleLabel.font = [UIFont systemFontOfSize:16];
+        button.titleLabel.font = kFONT(16);
         button.titleLabel.lineBreakMode = NSLineBreakByTruncatingMiddle;
         CGSize textMaxSize = CGSizeMake(SCREENW, MAXFLOAT);
-        CGSize textRealSize = [_itemTitles[index] sizeWithFont:[UIFont systemFontOfSize:16] maxSize:textMaxSize].size;
+        CGSize textRealSize = [_itemTitles[index] sizeWithFont:kFONT(16) maxSize:textMaxSize].size;
 
-        textRealSize = CGSizeMake(textRealSize.width + 15*2, 44);
-        button.frame = CGRectMake(buttonX, 0,textRealSize.width, 44);
+        textRealSize = CGSizeMake(textRealSize.width + 15*2, kWidth(16));
+        button.frame = CGRectMake(buttonX, 0, textRealSize.width, self.frame.size.height);
+        button.titleEdgeInsets = UIEdgeInsetsMake(0, 0, self.frame.size.height-kWidth(16), 0);
         
         //字体颜色
         [button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
@@ -125,12 +126,13 @@
         UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
         [button setTitle:_itemTitles[index] forState:UIControlStateNormal];
         button.titleLabel.lineBreakMode = NSLineBreakByTruncatingMiddle;
-        button.titleLabel.font = [UIFont systemFontOfSize:16];
+        button.titleLabel.font = kFONT(16);
         CGSize textMaxSize = CGSizeMake(SCREENW, MAXFLOAT);
-        CGSize textRealSize = [_itemTitles[index] sizeWithFont:[UIFont systemFontOfSize:16] maxSize:textMaxSize].size;
+        CGSize textRealSize = [_itemTitles[index] sizeWithFont:kFONT(16) maxSize:textMaxSize].size;
         
-        textRealSize = CGSizeMake(textRealSize.width + 15*2, 44);
-        button.frame = CGRectMake(buttonX, 0,textRealSize.width, 44);
+        textRealSize = CGSizeMake(textRealSize.width + 15*2, kWidth(16));
+        button.frame = CGRectMake(buttonX, 0 ,textRealSize.width, self.frame.size.height);
+        button.titleEdgeInsets = UIEdgeInsetsMake(0, 0, self.frame.size.height-kWidth(16), 0);
         
         //字体颜色
         [button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
@@ -150,7 +152,7 @@
 - (void)showLineWithButtonWidth:(CGFloat)width
 {
     //第一个线的位置
-    _line = [[UIView alloc] initWithFrame:CGRectMake(15, 45 - kWidth(5), width, kWidth(5))];
+    _line = [[UIView alloc] initWithFrame:CGRectMake(15, self.frame.size.height - kWidth(5), width, kWidth(5))];
     _line.backgroundColor = self.lineColor;
     [_line.layer setCornerRadius:kWidth(5)/2];
     [_navgationTabBar addSubview:_line];
@@ -162,7 +164,7 @@
 - (void)showLineWithButtonWidth_again:(CGFloat)width
 {
     //第一个线的位置
-    _line = [[UIView alloc] initWithFrame:CGRectMake(15, 45 - kWidth(5), width, kWidth(5))];
+    _line = [[UIView alloc] initWithFrame:CGRectMake(15, self.frame.size.height - kWidth(5), width, kWidth(5))];
     _line.backgroundColor = self.lineColor;
     [_line.layer setCornerRadius:kWidth(5)/2];
     [_navgationTabBar addSubview:_line];

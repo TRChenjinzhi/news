@@ -102,22 +102,28 @@
 
 -(void)setModel:(reply_model *)model{
     _model = model;
-    if(model.user_icon.length <= 0){
-        if(model.wechat_icon.length <= 0){
+    if(model.myUserModel.user_icon.length <= 0){
+        if(model.myUserModel.wechat_icon.length <= 0){
             [m_icon setImage:[UIImage imageNamed:@"list_avatar"]];
         }
         else{
-            [m_icon sd_setImageWithURL:[NSURL URLWithString:model.wechat_icon]];
+            [m_icon sd_setImageWithURL:[NSURL URLWithString:model.myUserModel.wechat_icon]];
         }
     }
     else{
-        [m_icon sd_setImageWithURL:[NSURL URLWithString:model.user_icon]];
+        [m_icon sd_setImageWithURL:[NSURL URLWithString:model.myUserModel.user_icon]];
     }
     
-    m_name.text = model.user_name;
+    m_name.text = model.myUserModel.user_name;
     IsDianZan = [[MyDataBase shareManager] DianZan_IsDianZan:[model.ID integerValue]];//判断是否已经点赞
     [self dianzan_InitState:model];//设置点赞状态
-    m_dianzan_number.text = model.thumbs_num;
+    if([model.thumbs_num integerValue] < 0){
+        m_dianzan_number.text = @"0";
+    }
+    else{
+        m_dianzan_number.text = model.thumbs_num;
+    }
+    
 //    m_dianzan_number.text = @"99999";
     
     //内容
@@ -229,28 +235,35 @@
             reply_model* item = model.array_reply[i];
             
             UILabel* name_label = [UILabel new];
-//            if([item.pid integerValue] == 0){
-                name_label.text         = [item.user_name stringByAppendingString:@":"];
+            if([item.pid integerValue] == 0){
+                name_label.text         = [item.myUserModel.user_name stringByAppendingString:@":"];
                 name_label.textColor    = RGBA(122, 125, 125, 1);
-//            }
-//            else{
+            }
+            else{
+                NSString* str_all = @"";
+                if(![item.ToUserModel.user_id isEqualToString:model.myUserModel.user_id]){
+                    str_all = [NSString stringWithFormat:@"%@ 回复 %@:",item.myUserModel.user_name,item.ToUserModel.user_name];
+                }
+                else{
+                    str_all = [NSString stringWithFormat:@"%@ 回复:",item.myUserModel.user_name];
+                }
 //                NSString* str_all = [NSString stringWithFormat:@"%@ 回复 %@:",item.myUserModel.user_name,item.ToUserModel.user_name];
-//                NSString* str_color = @"回复";
-//                NSMutableAttributedString* att = [[NSMutableAttributedString alloc] initWithString:str_all];
-//                att = [LabelHelper GetMutableAttributedSting_color:att AndIndex:0 AndCount:str_all.length AndColor:RGBA(122, 125, 125, 1)];
-//                att = [LabelHelper GetMutableAttributedSting_color:att
-//                                                          AndIndex:[str_all rangeOfString:str_color].location
-//                                                          AndCount:str_color.length
-//                                                          AndColor:RGBA(255, 129, 3, 1)];
-//                name_label.attributedText = att;
-//            }
-            
+                NSString* str_color = @"回复";
+                NSMutableAttributedString* att = [[NSMutableAttributedString alloc] initWithString:str_all];
+                att = [LabelHelper GetMutableAttributedSting_color:att AndIndex:0 AndCount:str_all.length AndColor:RGBA(122, 125, 125, 1)];
+                att = [LabelHelper GetMutableAttributedSting_color:att
+                                                          AndIndex:[str_all rangeOfString:str_color].location
+                                                          AndCount:str_color.length
+                                                          AndColor:RGBA(255, 129, 3, 1)];
+                name_label.attributedText = att;
+            }
+        
             name_label.textAlignment= NSTextAlignmentLeft;
             name_label.font         = kFONT(13);
-//            UITapGestureRecognizer* tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(replyToName:)];
-//            [name_label addGestureRecognizer:tap];
+            UITapGestureRecognizer* tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(replyToName:)];
+            [name_label addGestureRecognizer:tap];
             name_label.userInteractionEnabled = YES;
-//            [m_tap_array addObject:tap];
+            [m_tap_array addObject:tap];
             [contentView addSubview:name_label];
             if(i == 0){
                 [name_label mas_makeConstraints:^(MASConstraintMaker *make) {
@@ -298,57 +311,57 @@
             }
             
             //查看全部
-//            if([model.reply_count integerValue] > 3){
-//                if(i == 2){
-//                    [content_label mas_makeConstraints:^(MASConstraintMaker *make) {
-//                        make.top.equalTo(name_label.mas_bottom).offset(kWidth(5));
-//                        make.left.equalTo(contentView.mas_left).offset(kWidth(8));
-//                        make.right.equalTo(contentView.mas_right).offset(-kWidth(8));
-//                    }];
-//
-//                    UILabel* reply_all_label = [UILabel new];
-//                    reply_all_label.text         = @"查看全部回复";
-//                    reply_all_label.textColor    = RGBA(255, 129, 3, 1);
-//                    reply_all_label.textAlignment= NSTextAlignmentRight;
-//                    reply_all_label.font         = kFONT(12);
-//                    reply_all_label.userInteractionEnabled = YES;
-//                    UITapGestureRecognizer* tap1 = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(reply_all_action)];
-//                    [reply_all_label addGestureRecognizer:tap1];
-//                    [contentView addSubview:reply_all_label];
-//                    [reply_all_label mas_makeConstraints:^(MASConstraintMaker *make) {
-//                        make.top.equalTo(content_label.mas_bottom).offset(kWidth(12));
-//                        make.right.equalTo(contentView.mas_right).offset(-kWidth(8));
-//                        make.left.equalTo(contentView.mas_left).offset(kWidth(8));
-//                        make.height.mas_offset(kWidth(12));
-//                        make.bottom.equalTo(contentView.mas_bottom).offset(-kWidth(8));
-//                    }];
-//                }
-//                else{
-//                    [content_label mas_makeConstraints:^(MASConstraintMaker *make) {
-//                        make.top.equalTo(name_label.mas_bottom).offset(kWidth(5));
-//                        make.left.equalTo(contentView.mas_left).offset(kWidth(8));
-//                        make.right.equalTo(contentView.mas_right).offset(-kWidth(8));
-//                    }];
-//                }
-//
-//            }
-//            else{
-//                if(i+1 == model.array_reply.count){
-//                    [content_label mas_makeConstraints:^(MASConstraintMaker *make) {
-//                        make.top.equalTo(name_label.mas_bottom).offset(kWidth(5));
-//                        make.left.equalTo(contentView.mas_left).offset(kWidth(8));
-//                        make.right.equalTo(contentView.mas_right).offset(-kWidth(8));
-//                        make.bottom.equalTo(contentView.mas_bottom).offset(-kWidth(8));
-//                    }];
-//                }
-//                else{
-//                    [content_label mas_makeConstraints:^(MASConstraintMaker *make) {
-//                        make.top.equalTo(name_label.mas_bottom).offset(kWidth(5));
-//                        make.left.equalTo(contentView.mas_left).offset(kWidth(8));
-//                        make.right.equalTo(contentView.mas_right).offset(-kWidth(8));
-//                    }];
-//                }
-//            }
+            if([model.reply_count integerValue] > 3){
+                if(i == 2){
+                    [content_label mas_makeConstraints:^(MASConstraintMaker *make) {
+                        make.top.equalTo(name_label.mas_bottom).offset(kWidth(5));
+                        make.left.equalTo(contentView.mas_left).offset(kWidth(8));
+                        make.right.equalTo(contentView.mas_right).offset(-kWidth(8));
+                    }];
+
+                    UILabel* reply_all_label = [UILabel new];
+                    reply_all_label.text         = @"查看全部回复";
+                    reply_all_label.textColor    = RGBA(255, 129, 3, 1);
+                    reply_all_label.textAlignment= NSTextAlignmentRight;
+                    reply_all_label.font         = kFONT(12);
+                    reply_all_label.userInteractionEnabled = YES;
+                    UITapGestureRecognizer* tap1 = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(reply_all_action)];
+                    [reply_all_label addGestureRecognizer:tap1];
+                    [contentView addSubview:reply_all_label];
+                    [reply_all_label mas_makeConstraints:^(MASConstraintMaker *make) {
+                        make.top.equalTo(content_label.mas_bottom).offset(kWidth(12));
+                        make.right.equalTo(contentView.mas_right).offset(-kWidth(8));
+                        make.left.equalTo(contentView.mas_left).offset(kWidth(8));
+                        make.height.mas_offset(kWidth(12));
+                        make.bottom.equalTo(contentView.mas_bottom).offset(-kWidth(8));
+                    }];
+                }
+                else{
+                    [content_label mas_makeConstraints:^(MASConstraintMaker *make) {
+                        make.top.equalTo(name_label.mas_bottom).offset(kWidth(5));
+                        make.left.equalTo(contentView.mas_left).offset(kWidth(8));
+                        make.right.equalTo(contentView.mas_right).offset(-kWidth(8));
+                    }];
+                }
+
+            }
+            else{
+                if(i+1 == model.array_reply.count){
+                    [content_label mas_makeConstraints:^(MASConstraintMaker *make) {
+                        make.top.equalTo(name_label.mas_bottom).offset(kWidth(5));
+                        make.left.equalTo(contentView.mas_left).offset(kWidth(8));
+                        make.right.equalTo(contentView.mas_right).offset(-kWidth(8));
+                        make.bottom.equalTo(contentView.mas_bottom).offset(-kWidth(8));
+                    }];
+                }
+                else{
+                    [content_label mas_makeConstraints:^(MASConstraintMaker *make) {
+                        make.top.equalTo(name_label.mas_bottom).offset(kWidth(5));
+                        make.left.equalTo(contentView.mas_left).offset(kWidth(8));
+                        make.right.equalTo(contentView.mas_right).offset(-kWidth(8));
+                    }];
+                }
+            }
         }
 
     }
@@ -405,7 +418,7 @@
 -(void)replyToName:(UITapGestureRecognizer*)tap{
     NSInteger index = [m_tap_array indexOfObject:tap];
     reply_model* model = _model.array_reply[index];
-    NSLog(@"%@",model.user_name);
+    NSLog(@"%@",model.myUserModel.user_name);
     [self.delegate replyFromMymodel:model];
 }
 
@@ -435,7 +448,7 @@
         return;
     }
     NSInteger action = self.model.DianZan_type;
-    action = action == 1 ? 1 : 2;//1：点赞    2：取消点赞
+    action = action == 1 ? 2 : 1;//1：点赞    2：取消点赞
     
     [InternetHelp DianzanById:self.model.ID andUser_id:[Login_info share].userInfo_model.user_id AndActionType:action];
     
@@ -474,21 +487,28 @@
         //存在
         if([[MyDataBase shareManager] DianZan_IsDianZan:reply_id]){ //是否已经点赞
             [m_dianzan setImage:[UIImage imageNamed:@"ic_liked"] forState:UIControlStateNormal];
+            self.model.DianZan_type = 1;
         }else{
             //没有点赞
             [m_dianzan setImage:[UIImage imageNamed:@"ic_like"] forState:UIControlStateNormal];
+            self.model.DianZan_type = 0;
         }
     }else{
         //不存在
         [m_dianzan setImage:[UIImage imageNamed:@"ic_like"] forState:UIControlStateNormal];
+        self.model.DianZan_type = 0;
     }
 }
 
 -(void)setDianZanNum_type:(NSInteger)type{
-    NSInteger num = [self.model.thumbs_num integerValue];
+    NSInteger num = [_model.thumbs_num integerValue];
     if(type == 0){//取消点赞
         if(IsDianZan){//起始点赞的状态
             num -= 1;
+            if(num < 0){
+                num = 0;
+            }
+            IsDianZan = NO;
         }
         if(num > 0){
             m_dianzan_number.text = [NSString stringWithFormat:@"%ld",num];
@@ -498,9 +518,11 @@
     }else{//点赞
         if(!IsDianZan){//起始点赞的状态
             num += 1;
+            IsDianZan = YES;
         }
         m_dianzan_number.text = [NSString stringWithFormat:@"%ld",num];
     }
+    _model.thumbs_num = [NSString stringWithFormat:@"%ld",num];
 }
 
 @end

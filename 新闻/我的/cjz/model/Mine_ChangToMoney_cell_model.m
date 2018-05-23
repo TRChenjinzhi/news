@@ -26,6 +26,7 @@
         model.moeny = dic_item[@"money"];
         model.state = dic_item[@"state"];
         model.ID = dic_item[@"id"];
+        model.withDraw_type = [JsonHelper JsonToObject_ToStringByInterger:dic_item[@"withDraw_type"]];
         
         [array addObject:model];
     }

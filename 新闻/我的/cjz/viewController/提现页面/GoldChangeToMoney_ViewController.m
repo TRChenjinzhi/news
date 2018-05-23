@@ -363,14 +363,21 @@
         [self.view layoutIfNeeded];
         
         if([[Login_info share].userInfo_model.wechat_binding integerValue] == 1){
-            if([Mine_zhifu_model share].wechat_name.length > 0){//进行手动设置信息
+            if([Login_info share].userMoney_model.wechat_name.length > 0){
                 [m_zhifu_icon setImage:[UIImage imageNamed:@"ic_WeChat2"]];
                 m_zhifu_tips.text = @"微信账号已设置";
             }
             else{
-                [m_zhifu_icon setImage:[UIImage imageNamed:@"ic_WeChat"]];
-                m_zhifu_tips.text = @"您尚未设置微信账号";
+                if([Mine_zhifu_model share].wechat_name.length > 0){//进行手动设置信息
+                    [m_zhifu_icon setImage:[UIImage imageNamed:@"ic_WeChat2"]];
+                    m_zhifu_tips.text = @"微信账号已设置";
+                }
+                else{
+                    [m_zhifu_icon setImage:[UIImage imageNamed:@"ic_WeChat"]];
+                    m_zhifu_tips.text = @"您尚未设置微信账号";
+                }
             }
+            
         }
         else{
             [m_zhifu_icon setImage:[UIImage imageNamed:@"ic_WeChat"]];

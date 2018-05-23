@@ -20,6 +20,7 @@
 
 @property (nonatomic, strong)   NSArray     *itemTitles;
 @property (nonatomic, strong)   UIColor     *lineColor;
+@property (nonatomic, assign)   CGFloat     topMargin;
 
 @property (nonatomic , strong)  NSMutableArray  *items;
 

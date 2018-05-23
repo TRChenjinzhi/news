@@ -93,7 +93,7 @@
         Video_channel_ViewController* vc = [[Video_channel_ViewController alloc] init];
         vc.delegate = self;
         vc.model = model;
-        vc.view.frame = CGRectMake(i*SCREEN_WIDTH, 0, SCREEN_WIDTH, SCREEN_HEIGHT-64);
+        vc.view.frame = CGRectMake(i*SCREEN_WIDTH, 0, SCREEN_WIDTH, SCREEN_HEIGHT-StaTusHight-kWidth(10)-kWidth(32));
         vc.view.backgroundColor = i%2 ? [UIColor redColor] : [UIColor blackColor];
         [m_subView_array addObject:vc];
         [m_tabBarTitles_array addObject:model.title];
@@ -101,8 +101,9 @@
 }
 
 -(void)initTabBar{
-    _navTabBar = [[SCNavTabBar alloc] initWithFrame:CGRectMake(kWidth(40), StaTusHight, SCREEN_WIDTH-kWidth(40) , kWidth(44))];
+    _navTabBar = [[SCNavTabBar alloc] initWithFrame:CGRectMake(kWidth(32), StaTusHight+kWidth(10), SCREEN_WIDTH-kWidth(32) , kWidth(32))];
     _navTabBar.backgroundColor = [[ThemeManager sharedInstance] GetBackgroundColor];
+//    _navTabBar.top = kWidth(32)/2-kWidth(16)/2;
 //    _navTabBar.backgroundColor = [UIColor blueColor];
     _navTabBar.delegate = self;
     _navTabBar.lineColor = RGBA(255, 129, 3, 1);
@@ -111,10 +112,11 @@
     [self.view addSubview:_navTabBar];
     
     //搜索
-    UIButton *btn = [[UIButton alloc]initWithFrame:CGRectMake(0, StaTusHight, 40, kWidth(44))];
+    UIButton *btn = [[UIButton alloc]initWithFrame:CGRectMake(0, StaTusHight+kWidth(10), kWidth(32), kWidth(32))];
     //    btn.backgroundColor = [UIColor greenColor];
     [btn setImage:[UIImage imageNamed:@"ic_nav_search"] forState:UIControlStateNormal];
     [btn addTarget:self action:@selector(searchClick) forControlEvents:UIControlEventTouchUpInside];
+    btn.imageEdgeInsets = UIEdgeInsetsMake(0, kWidth(9), kWidth(32-14), kWidth(9));
     [self.view addSubview:btn];
     
 //    [self.view layoutIfNeeded];

@@ -28,30 +28,31 @@
     for (NSDictionary* item_dic in array) {
         reply_model* model = [[reply_model alloc]init];
         model.ID = item_dic[@"id"];
-//        model.pid= item_dic[@"pid"];
-//        model.myUserModel = [reply_userInfo_model dicToModel:item_dic[@"user_info"]];
-//        if([model.pid integerValue] != ReplyFirst){
-//            model.ToUserModel = [reply_userInfo_model dicToModel:item_dic[@"to_user_info"]];
-//        }
+        model.pid= item_dic[@"pid"];
+        model.myUserModel = [reply_userInfo_model dicToModel:item_dic[@"user_info"]];
+        if([model.pid integerValue] != ReplyFirst){
+            model.ToUserModel = [reply_userInfo_model dicToModel:item_dic[@"to_user_info"]];
+        }
         model.comment = item_dic[@"comment"];
         model.thumbs_num = item_dic[@"thumbs_num"];
         model.ctime = item_dic[@"ctime"];
-//        model.reply_count = item_dic[@"reply_count"];
+        model.reply_count = item_dic[@"reply_count"];
         
-//        NSMutableArray* mut_array = [NSMutableArray array];
-//        if([item_dic containsObjectForKey:@"list"]){
-//            NSArray* array_reply = item_dic[@"list"];
-//            for (NSDictionary* dic_reply in array_reply) {
-//                [mut_array addObject:[reply_model getModelByDic:dic_reply]];
-//                NSLog(@"mut_array count = %ld",mut_array.count);
-//            }
-//            model.array_reply = mut_array;
-//        }
+        NSMutableArray* mut_array = [NSMutableArray array];
+        if([item_dic containsObjectForKey:@"list"]){
+            NSArray* array_reply = item_dic[@"list"];
+            for (NSDictionary* dic_reply in array_reply) {
+                [mut_array addObject:[reply_model getModelByDic:dic_reply]];
+                NSLog(@"mut_array count = %ld",mut_array.count);
+            }
+            model.array_reply = mut_array;
+        }
         
-        model.user_icon = item_dic[@"user_icon"];
-        model.user_name = item_dic[@"user_name"];
-        model.wechat_icon = item_dic[@"wechat_icon"];
-        model.wechat_nickname = item_dic[@"wechat_nickname"];
+            //没有回复的评论
+//        model.user_icon = item_dic[@"user_icon"];
+//        model.user_name = item_dic[@"user_name"];
+//        model.wechat_icon = item_dic[@"wechat_icon"];
+//        model.wechat_nickname = item_dic[@"wechat_nickname"];
         
         [array_model addObject:model];
     }
@@ -79,18 +80,18 @@
  "comment":"你评论得对",
  "ctime":"2018-05-16 10:27:38",
  */
-//+(reply_model*)getModelByDic:(NSDictionary*)item_dic{
-//    reply_model* model = [[reply_model alloc]init];
-//    model.ID = item_dic[@"id"];
-//    model.pid= item_dic[@"pid"];
-//    model.myUserModel = [reply_userInfo_model dicToModel:item_dic[@"user_info"]];
-//    if([model.pid integerValue] != 0){
-//        model.ToUserModel = [reply_userInfo_model dicToModel:item_dic[@"to_user_info"]];
-//    }
-//    model.comment = item_dic[@"comment"];
-//    model.ctime = item_dic[@"ctime"];
-//
-//    return model;
-//}
++(reply_model*)getModelByDic:(NSDictionary*)item_dic{
+    reply_model* model = [[reply_model alloc]init];
+    model.ID = item_dic[@"id"];
+    model.pid= item_dic[@"pid"];
+    model.myUserModel = [reply_userInfo_model dicToModel:item_dic[@"user_info"]];
+    if([model.pid integerValue] != 0){
+        model.ToUserModel = [reply_userInfo_model dicToModel:item_dic[@"to_user_info"]];
+    }
+    model.comment = item_dic[@"comment"];
+    model.ctime = item_dic[@"ctime"];
+
+    return model;
+}
 
 @end

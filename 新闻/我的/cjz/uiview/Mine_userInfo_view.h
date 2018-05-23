@@ -14,6 +14,7 @@
 @property (nonatomic,strong)NSString* name;
 @property (nonatomic,strong)NSString* icon;
 @property (nonatomic)BOOL isImg;//判断是图片还是name
+@property (nonatomic)BOOL isNext;// 是否需要 右箭头
 @property (nonatomic,strong)UIView* m_view_shifu;
 
 @property (nonatomic,strong)UIView* click_view;

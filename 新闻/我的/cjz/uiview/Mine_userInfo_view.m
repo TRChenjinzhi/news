@@ -108,6 +108,15 @@
     }
 }
 
+-(void)setIsNext:(BOOL)isNext{
+    if(!isNext){
+        m_name.frame = CGRectMake(CGRectGetMaxX(m_title.frame)+10,
+                                  60/2-24/2,
+                                  SCREEN_WIDTH-CGRectGetMaxX(m_title.frame)-16,
+                                  24);
+    }
+}
+
 -(void)setM_view_shifu:(UIView *)m_view_shifu{
     [m_touxiang_img removeFromSuperview];
     [m_name removeFromSuperview];

@@ -118,7 +118,19 @@ typedef enum : NSUInteger {
     [sex_view addGestureRecognizer:tap_sex];
     m_sex = sex_view;
     
-    Mine_userInfo_view* shifu_view = [[Mine_userInfo_view alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(sex_view.frame), SCREEN_WIDTH, 60)];
+    Mine_userInfo_view* telephone_view = [[Mine_userInfo_view alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(sex_view.frame), SCREEN_WIDTH, 60)];
+    telephone_view.title = @"手机号";
+    telephone_view.name = [Login_info share].userInfo_model.telephone;
+    telephone_view.isImg = NO;
+    telephone_view.isNext = NO;
+    
+    Mine_userInfo_view* apprenceCode_view = [[Mine_userInfo_view alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(telephone_view.frame), SCREEN_WIDTH, 60)];
+    apprenceCode_view.title = @"邀请码";
+    apprenceCode_view.name = [Login_info share].userInfo_model.appren;
+    apprenceCode_view.isImg = NO;
+    apprenceCode_view.isNext = NO;
+    
+    Mine_userInfo_view* shifu_view = [[Mine_userInfo_view alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(apprenceCode_view.frame), SCREEN_WIDTH, 60)];
     shifu_view.title = @"我的师傅";
     NSString* masterCode = [Login_info share].userInfo_model.mastercode;
     
@@ -176,6 +188,8 @@ typedef enum : NSUInteger {
     [self.view addSubview:img_view];
     [self.view addSubview:name_view];
     [self.view addSubview:sex_view];
+    [self.view addSubview:telephone_view];
+    [self.view addSubview:apprenceCode_view];
     [self.view addSubview:shifu_view];
 }
 
