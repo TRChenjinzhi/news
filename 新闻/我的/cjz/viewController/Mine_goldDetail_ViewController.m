@@ -565,6 +565,7 @@
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@"\"%@\":\"%@\"",@"user_id",[[Login_info share]GetUserInfo].user_id]];
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%ld\"",@"page",m_page_gold]];
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%d\"",@"size",10]];
+    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":%ld",@"client_type",IOS]];//设备类型 1:android 2；ios
     argument = [argument stringByAppendingString:@"}"];
     argument = [MyEntrypt MakeEntryption:argument];
     args = [args stringByAppendingString:[NSString stringWithFormat:@"%@",argument]];
@@ -664,6 +665,7 @@
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@"\"%@\":\"%@\"",@"user_id",[[Login_info share]GetUserInfo].user_id]];
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%ld\"",@"page",type]];
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%d\"",@"size",10]];
+    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":%ld",@"client_type",IOS]];//设备类型 1:android 2；ios
     argument = [argument stringByAppendingString:@"}"];
     argument = [MyEntrypt MakeEntryption:argument];
     args = [args stringByAppendingString:[NSString stringWithFormat:@"%@",argument]];

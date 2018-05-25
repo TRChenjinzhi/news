@@ -256,7 +256,6 @@
  */
 - (void)copylinkBtnClick {
     
-    [MBProgressHUD showSuccess:@"复制成功!"];
     UIPasteboard *pasteboard = [UIPasteboard generalPasteboard];
     pasteboard.string = [NSString stringWithFormat:@"%ld",self.number];
 }

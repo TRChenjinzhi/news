@@ -19,6 +19,9 @@
     //任务类型  1:提供开宝箱  2：阅读文章 3：分享文章  4:优质评论 5：晒收入 6：参与抽奖任务 7,查看常见问题 8：微信绑定奖励 9:登陆奖励
     //    NSNumber* number = noti.object;
     //    NSInteger type = [number integerValue];
+    if([[TaskCountHelper share] TaskIsOverByType:type]){ //当任务次数已完成 就不在提交
+        return;
+    }
     
     [[TaskCountHelper share] DayDayTask_addCountByType:type];//增加完成任务次数
     

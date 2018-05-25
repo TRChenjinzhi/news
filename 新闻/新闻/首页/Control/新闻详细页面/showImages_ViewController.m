@@ -123,9 +123,9 @@
 - (void)image:(UIImage *)image didFinishSavingWithError:(NSError *)error contextInfo:(void *)contextInfo
 {
     if(error){
-        [MBProgressHUD showError:@"保存失败"];
+        [MyMBProgressHUD showMessage:@"保存失败"];
     }else{
-        [MBProgressHUD showSuccess:@"保存成功"];
+        [MyMBProgressHUD showMessage:@"保存成功"];
     }
 //    NSLog(@"image = %@, error = %@, contextInfo = %@", image, error, contextInfo);
 }

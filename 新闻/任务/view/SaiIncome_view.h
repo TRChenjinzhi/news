@@ -7,6 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "SaiIncome_createImageVew.h"
 
 @interface SaiIncome_view : UIView
 

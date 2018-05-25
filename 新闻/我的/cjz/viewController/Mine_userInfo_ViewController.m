@@ -314,7 +314,7 @@ typedef enum : NSUInteger {
         [[AppConfig sharedInstance]saveUserIcon:m_selected_image];
 
         dispatch_async(dispatch_get_main_queue(), ^{
-            [MBProgressHUD showSuccess:@"修改成功"];
+            [MyMBProgressHUD showMessage:@"修改成功"];
             //修改头像
             m_img.icon = m_userInfo_model.icon;
         });
@@ -322,7 +322,7 @@ typedef enum : NSUInteger {
         
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"错误 %@", error.localizedDescription);
-        [MBProgressHUD showSuccess:@"修改失败"];
+        [MyMBProgressHUD showMessage:@"修改失败"];
     }];
 }
 

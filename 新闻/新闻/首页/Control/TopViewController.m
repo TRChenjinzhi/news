@@ -237,9 +237,9 @@
 - (void)image:(UIImage *)image didFinishSavingWithError:(NSError *)error contextInfo:(void *)contextInfo{
 
     if (error != NULL){
-        [MBProgressHUD showError:@"下载失败"];
+        [MyMBProgressHUD showMessage:@"下载失败"];
     }else{
-        [MBProgressHUD showSuccess:@"保存成功"];
+        [MyMBProgressHUD showMessage:@"保存成功"];
     }
 }
 

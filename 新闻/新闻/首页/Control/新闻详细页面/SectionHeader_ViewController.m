@@ -239,6 +239,7 @@
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"origin_channel",self.channel_id]];
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"news_id",self.model.ID]];
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"channel",self.model.channel]];
+    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":%ld",@"client_type",IOS]];//设备类型 1:android 2；ios
     argument = [argument stringByAppendingString:@"}"];
     argument = [MyEntrypt MakeEntryption:argument];
     args = [args stringByAppendingString:[NSString stringWithFormat:@"%@",argument]];

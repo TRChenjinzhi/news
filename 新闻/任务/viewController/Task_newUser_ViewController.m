@@ -395,11 +395,11 @@
     m_sendBtn.enabled = NO;
     
     waiting = [[MBProgressHUD alloc] initWithView:self.view];
-    waiting.labelText = @"正在提交..";
+    waiting.label.text = @"正在提交..";
     waiting.progress = 0.4;
     waiting.mode = MBProgressHUDModeIndeterminate;
-    waiting.dimBackground = YES;
-    [waiting show:YES]; //显示进度框
+//    waiting.dimBackground = YES;
+    [waiting showAnimated:YES]; //显示进度框
     [self.view addSubview:waiting];
     
     [InternetHelp ReplyMoneyByType:Wechat AndMoney:1 Sucess:^(NSDictionary *dic) {

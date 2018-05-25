@@ -101,6 +101,14 @@
     cell.type = @"日常任务";
     cell.tag = model.type;
     
+    //最后一行 隐藏下划线
+    if([m_arrayModel lastObject] == model){
+        cell.isHideLine = YES;
+    }
+    else{
+        cell.isHideLine = NO;
+    }
+    
     return cell;
     
 }

@@ -18,7 +18,7 @@
 
 @interface Mine_login_wechatBlindTel_ViewController : UIViewController
 
-@property (nonatomic,strong)NSString* openId;
+@property (nonatomic,strong)UMSocialUserInfoResponse* resp;
 @property (nonatomic,strong)id delegate;
 
 @end

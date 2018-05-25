@@ -112,10 +112,10 @@
     NSInteger index = [number integerValue];
     if(index == 0){
         //失败
-        [MBProgressHUD showSuccess:@"拜师失败"];
+        [MyMBProgressHUD showMessage:@"拜师失败"];
     }else{
         //成功
-        [MBProgressHUD showSuccess:@"拜师成功"];
+        [MyMBProgressHUD showMessage:@"拜师成功"];
     }
 }
 

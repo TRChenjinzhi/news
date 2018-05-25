@@ -14,4 +14,10 @@
 +(UIColor*)ImageChangeToColor:(UIImage*)img AndNewSize:(CGSize)size;
 +(UIImage *)imageResize :(UIImage*)img andResizeTo:(CGSize)newSize;
 
++ (UIImage *)imageWithView:(UIView *)view;
+
+//压缩一张图片
++(UIImage*)yaSuoImageByheight:(CGFloat)height AndImg:(UIImage*)img;
+//压缩多张图片
++(NSArray*)yaSuoImageFromeArray:(NSArray*)imgArray;
 @end

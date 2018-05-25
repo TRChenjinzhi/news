@@ -294,7 +294,7 @@ static int UrlIndex = 0;//顺序使用url
     NSLog(@"加载失败");
     //加载失败同样需要隐藏progressView
     self.progressView.hidden = YES;
-    [MBProgressHUD showError:@"加载失败!"];
+    [MyMBProgressHUD showMessage:@"加载失败!"];
     
     if(m_isGuanggao_url){
         m_choujiang_isDone = NO;

@@ -299,7 +299,7 @@ static id _instance;
             }
             else{
                 //微信登陆
-                [InternetHelp wechat_loginWithOpenId:resp.openid];
+                [InternetHelp wechat_loginWithOpenId:resp];
             }
             
             

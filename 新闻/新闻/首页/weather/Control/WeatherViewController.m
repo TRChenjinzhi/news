@@ -30,7 +30,7 @@
     [super viewDidLoad];
     self.view.backgroundColor = [UIColor whiteColor];
    
-    [MBProgressHUD showMessage:@"正在加载"];
+    [MyMBProgressHUD showMessage:@"正在加载"];
     
     NSString *pro = [AppConfig getProInfo];
     NSString *city = [AppConfig getCityInfo];
@@ -63,7 +63,7 @@
     urlstr = [urlstr stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
     [[BaseEngine shareEngine] runRequestWithPara:nil path:urlstr success:^(id responseObject) {
         
-        [MBProgressHUD hideHUD];
+//        [MBProgressHUD hideHUD];
         
         NSString *str = [NSString stringWithFormat:@"%@|%@",pro,city];
         NSArray *dataArray = [WeatherData objectArrayWithKeyValuesArray:responseObject[str]];
@@ -118,7 +118,7 @@
         locaV.view.backgroundColor = [UIColor whiteColor];
         locaV.CityBlock = ^(NSString *provice,NSString *city){
             block_self.weatherArray = nil;
-            [MBProgressHUD showMessage:@"正在加载..."];
+//            [MBProgressHUD showMessage:@"正在加载..."];
             [block_self requestNet:provice city:city];
             [AppConfig saveProAndCityInfoWithPro:provice city:city];
         };

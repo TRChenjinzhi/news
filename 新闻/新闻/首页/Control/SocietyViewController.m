@@ -590,6 +590,7 @@
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"channel",self.channel_id]];
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%d\"",@"page",_page]];
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%d\"",@"size",8]];
+    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":%ld",@"client_type",IOS]];//设备类型 1:android 2；ios
     argument = [argument stringByAppendingString:@"}"];
     argument = [MyEntrypt MakeEntryption:argument];
     args = [args stringByAppendingString:[NSString stringWithFormat:@"%@",argument]];
@@ -655,6 +656,7 @@
         if (type == 0) {
             if(block_self.totalArray.count == 0){
                 block_self.totalArray = statusArray;
+                
             }else{
                 //提示信息
                 tip_vc = [[Tips_ViewController alloc] init];
@@ -670,16 +672,20 @@
                     tip_vc = nil;
                 }];
                 
-                //添加阅读到这里
-                if(block_self.totalArray.count > 0){
-                    CJZdataModel* item_readHere = statusArray[statusArray.count-1];
-                    item_readHere.isRreadHere = YES;
-                    for (CJZdataModel* model in block_self.totalArray) {
-                        model.isRreadHere = NO;
-                        [statusArray addObject:model];
+                if(statusArray.count > 0){
+                    //添加阅读到这里
+                    if(block_self.totalArray.count > 0){
+                        if(statusArray.count > 0){
+                            CJZdataModel* item_readHere = statusArray[statusArray.count-1];
+                            item_readHere.isRreadHere = YES;
+                            for (CJZdataModel* model in block_self.totalArray) {
+                                model.isRreadHere = NO;
+                                [statusArray addObject:model];
+                            }
+                        }
                     }
+                    block_self.totalArray = statusArray;
                 }
-                block_self.totalArray = statusArray;
             }
             
         }else{
@@ -726,6 +732,7 @@
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"keyword",keyword]];
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%d\"",@"page",_page]];
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%d\"",@"size",10]];
+    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":%ld",@"client_type",IOS]];//设备类型 1:android 2；ios
     argument = [argument stringByAppendingString:@"}"];
     argument = [MyEntrypt MakeEntryption:argument];
     args = [args stringByAppendingString:[NSString stringWithFormat:@"%@",argument]];

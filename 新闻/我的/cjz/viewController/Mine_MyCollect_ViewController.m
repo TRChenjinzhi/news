@@ -350,6 +350,7 @@
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@"\"%@\":\"%@\"",@"user_id",[[Login_info share] GetUserInfo].user_id]];
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%ld\"",@"page",m_page]];
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%d\"",@"size",10]];
+    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":%ld",@"client_type",IOS]];//设备类型 1:android 2；ios
     argument = [argument stringByAppendingString:@"}"];
     argument = [MyEntrypt MakeEntryption:argument];
     args = [args stringByAppendingString:[NSString stringWithFormat:@"%@",argument]];
@@ -365,7 +366,7 @@
             
             if(error || data == nil){
                 NSLog(@"网络获取失败");
-                [MBProgressHUD showError:@"网络失败"];
+                [MyMBProgressHUD showMessage:@"网络失败"];
                 //发送失败消息
                 [block_self.tableview.header endRefreshing];
                 [block_self.tableview.footer endRefreshing];
@@ -435,6 +436,7 @@
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@"\"%@\":\"%@\"",@"user_id",[[Login_info share] GetUserInfo].user_id]];
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"news_id",newsId]];
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%ld\"",@"action",action]];//1：点赞    2：取消点赞
+    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":%ld",@"client_type",IOS]];//设备类型 1:android 2；ios
     argument = [argument stringByAppendingString:@"}"];
     argument = [MyEntrypt MakeEntryption:argument];
     args = [args stringByAppendingString:[NSString stringWithFormat:@"%@",argument]];

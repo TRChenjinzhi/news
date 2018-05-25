@@ -291,7 +291,7 @@
     if([@"举报" isEqualToString:name]){
         NSLog(@"举报");
         if(![Login_info share].isLogined){
-            [MBProgressHUD showMessage:@"未登录！"];
+            [MyMBProgressHUD showMessage:@"未登录！"];
             return;
         }
         //        [self ReportToMe];
@@ -446,7 +446,7 @@
 }
 
 - (void)copylinkBtnClick {
-    [MBProgressHUD showSuccess:@"复制成功!"];
+    [MyMBProgressHUD showMessage:@"复制成功!"];
     UIPasteboard *pasteboard = [UIPasteboard generalPasteboard];
     pasteboard.string = [NSString stringWithFormat:@"%@ %@&source=link",m_share_model.title,m_share_model.url];
 }
@@ -489,7 +489,7 @@
 
 #pragma mark - API
 -(void)Request_channelInfo:(NSInteger)type{
-    [InternetHelp Video_info_API_channelID:[self.model.channel_id integerValue] AndPage:m_page Sucess:^(NSDictionary *dic) {
+    [InternetHelp Video_info_API_channelID:[self.model.channel_id integerValue] AndPage:type Sucess:^(NSDictionary *dic) {
         
         NSMutableArray* array =[NSMutableArray arrayWithArray:[video_info_model dicToArray:dic]];
         //去重
@@ -538,7 +538,9 @@
             }
         }else{
             if(array.count == 0){
+                NSLog(@"没有下拉数据");
                 [m_tableview.footer endRefreshing];
+                m_page++;
 //                [m_tableview.footer noticeNoMoreData];
             }else{
                 [m_tableview_array addObjectsFromArray:array];
@@ -582,11 +584,13 @@
             }else{
                 //添加阅读到这里
                 if(m_tableview_array.count > 0){
-                    video_info_model* model = array[array.count-1];
-                    model.isRreadHere = YES;
-                    model.getVideoTime = [[TimeHelper share] getCurrentTime_YYYYMMDDHHMMSS];
-                    for (video_info_model* item in m_tableview_array) {
-                        item.isRreadHere = NO;
+                    if(array.count > 0){
+                        video_info_model* model = array[array.count-1];
+                        model.isRreadHere = YES;
+                        model.getVideoTime = [[TimeHelper share] getCurrentTime_YYYYMMDDHHMMSS];
+                        for (video_info_model* item in m_tableview_array) {
+                            item.isRreadHere = NO;
+                        }
                     }
                 }
                 

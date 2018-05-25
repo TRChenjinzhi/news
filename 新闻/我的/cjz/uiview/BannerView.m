@@ -10,6 +10,11 @@
 
 #define scrollTime  0.5
 
+@interface BannerView ()<UIScrollViewDelegate>
+
+@end
+
+
 @implementation BannerView{
     BOOL            isRight; //是否往右边滚动
 }
@@ -48,6 +53,7 @@
         _scrollView.contentInset = UIEdgeInsetsMake(0, 0, 0, 0);
 //        _scrollView.delegate = self;
         _scrollView.bounces = NO;
+        _scrollView.delegate = self;
         _scrollView.pagingEnabled = YES;
         _scrollView.showsHorizontalScrollIndicator = NO;
         _scrollView.decelerationRate = 1.0;
@@ -94,6 +100,12 @@
     ///此处设置动画的时间一定要小于滑动的时间
     [UIView animateWithDuration:scrollTime animations:^{
         ///动画发生的滑动
+        if(self.currentPage < 0){
+            self.currentPage = 0;
+        }
+        else if(self.currentPage + 1 > self.imageUrls.count){
+            self.currentPage = self.imageUrls.count - 1;
+        }
         if(isRight){
             self.scrollView.contentOffset = CGPointMake(CGRectGetWidth(self.scrollView.frame)*(self.currentPage+1), 0);
         }
@@ -155,9 +167,10 @@
     if(self.currentPage < 0){
         self.currentPage = 0;
     }
-    if(self.currentPage + 1 > self.imageUrls.count){
+    else if(self.currentPage + 1 > self.imageUrls.count){
         self.currentPage = self.imageUrls.count - 1;
     }
+    
     self.pageControl.currentPage = self.currentPage;
 }
 

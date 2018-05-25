@@ -399,6 +399,7 @@
     NSString *args = @"json=";
     NSString *argument = @"{";
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@"\"%@\":\"%@\"",@"user_id",self.model.user_id]];
+    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":%ld",@"client_type",IOS]];//设备类型 1:android 2；ios
     argument = [argument stringByAppendingString:@"}"];
     argument = [MyEntrypt MakeEntryption:argument];
     args = [args stringByAppendingString:[NSString stringWithFormat:@"%@",argument]];

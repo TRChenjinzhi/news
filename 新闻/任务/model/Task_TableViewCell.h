@@ -21,6 +21,7 @@
 @property (nonatomic,strong)NSString* type;//区分新手任务，日常任务
 
 @property (nonatomic,strong)TaskMaxCout_model* taskCount;
+@property (nonatomic,assign)BOOL isHideLine;
 
 
 @end

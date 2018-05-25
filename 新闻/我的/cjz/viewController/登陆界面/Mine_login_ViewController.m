@@ -512,13 +512,67 @@
 -(void)Login_wechat_sucess{
     NSLog(@"Login_wechat_sucess");
     [self.navigationController popViewControllerAnimated:YES];
+    
+    Login_userInfo* userInfo = [Login_info share].userInfo_model;
+    Login_userMoney* userMoney = [Login_info share].userMoney_model;
+    
+    if ([[DefauteNameHelper getDefuateName] isEqualToString:userInfo.name]) {
+        if([userInfo.wechat_binding integerValue] == 1){ //当微信绑定了，账号昵称为默认时，使用微信昵称
+            if(userInfo.wechat_nickname.length > 0){
+                userInfo.name = userInfo.wechat_nickname;
+                [InternetHelp updateUserInfo];
+            }
+        }
+    }
+    
+    Mine_userInfo_model* model = [[Mine_userInfo_model alloc] init];
+    model.name = userInfo.name;
+    model.icon = userInfo.avatar;
+    if([userInfo.sex integerValue] == 1){
+        model.sex = @"男";
+    }else{
+        model.sex = @"女";
+    }
+    
+    model.gold  = [userMoney.coin integerValue];
+    model.package = [userMoney.cash floatValue];
+    model.apprentice = [userMoney.binding_alipay integerValue];
+    model.IsLogin = YES;
+    
+    if(self.delegate != nil){
+        [self.delegate makeTureLogin:model];
+    }
+    [self.navigationController popViewControllerAnimated:YES];
+    
+    //弹出登陆奖励tan chuang
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"autoLogin-tabbarVC" object:nil];
+    
+    if([userInfo.device_mult_user integerValue] == TheDevice){
+        if([userInfo.reg_reward_status integerValue] == 0){
+            NSLog(@"登陆_TabBarVCL_红包活动_新用户");
+            [[NSNotificationCenter defaultCenter] postNotificationName:RedPackage_newUser object:nil];
+        }
+        else if([userInfo.reg_reward_status integerValue] == 1){
+            NSLog(@"登陆_TabBarVCL_红包活动_老用户");
+            [[NSNotificationCenter defaultCenter] postNotificationName:RedPackage_oldUser object:nil];
+        }
+    }
+    else{
+        NSLog(@"非绑定用户");
+        [[NSNotificationCenter defaultCenter] postNotificationName:WaringOfNotTheAccount_tips object:nil];
+    }
+    
+    
+    //获取任务信息
+    [InternetHelp GetMaxTaskCount];
+    [[AppConfig sharedInstance] getNewUserTaskInfo];//获取新手任务信息
 }
 
 -(void)Login_wechat_notBlind:(NSNotification*)noti{
     NSLog(@"Login_wechat_failed");
-    NSString* openId = noti.object;
+    UMSocialUserInfoResponse* resp = noti.object;
     Mine_login_wechatBlindTel_ViewController* vc = [[Mine_login_wechatBlindTel_ViewController alloc] init];
-    vc.openId = openId;
+    vc.resp = resp;
     vc.delegate = self;
     [self.navigationController pushViewController:vc animated:YES];
 }
@@ -614,8 +668,10 @@
             
             if ([[DefauteNameHelper getDefuateName] isEqualToString:userInfo.name]) {
                 if([userInfo.wechat_binding integerValue] == 1){ //当微信绑定了，账号昵称为默认时，使用微信昵称
-                    userInfo.name = userInfo.wechat_nickname;
-                    [InternetHelp updateUserInfo];
+                    if(userInfo.wechat_nickname.length > 0){
+                        userInfo.name = userInfo.wechat_nickname;
+                        [InternetHelp updateUserInfo];
+                    }
                 }
             }
             

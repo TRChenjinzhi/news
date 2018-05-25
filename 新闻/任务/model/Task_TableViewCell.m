@@ -17,6 +17,7 @@
     UIView*             m_subtitle_view;
     UIImageView*        m_imgV;
     UILabel*            m_money;
+    UIView*             m_line;
 }
 
 +(instancetype)CellFormTable:(UITableView *)tableView{
@@ -70,7 +71,7 @@
     UIView* line = [[UIView alloc] initWithFrame:CGRectMake(16, 65, SCREEN_WIDTH-16-16, 1)];
     line.backgroundColor = [UIColor colorWithRed:242/255.0 green:242/255.0 blue:242/255.0 alpha:1/1.0];
     [self addSubview:line];
-    
+    m_line = line;
 }
 
 -(void)setTaskModel:(TaskCell_model *)taskModel{
@@ -323,6 +324,10 @@
     else if([self.type isEqualToString:@"日常任务"]){
         [[NSNotificationCenter defaultCenter] postNotificationName:@"日常任务点击" object:[NSNumber numberWithInteger:self.tag]];
     }
+}
+
+-(void)setIsHideLine:(BOOL)isHideLine{
+    [m_line setHidden:isHideLine];
 }
 
 +(CGFloat)HightForcell{

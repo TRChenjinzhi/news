@@ -610,12 +610,14 @@
 // 拖拽的时候调用  这个时候不更新视频进度
 - (void)sliderDragValueChange:(UISlider *)slider
 {
+    NSLog(@"sliderDragValueChange");
     self.isDragSlider = YES;
     self.data_model.isDragSlider = YES;
 }
 // 点击调用  或者 拖拽完毕的时候调用
 - (void)sliderTapValueChange:(UISlider *)slider
 {
+    NSLog(@"sliderTapValueChange");
     self.data_model.isDragSlider = YES;
     self.isDragSlider = NO;
     // CMTimeMake(帧数（slider.value * timeScale）, 帧/sec)
@@ -626,7 +628,9 @@
 // 点击事件的Slider
 - (void)touchSlider:(UITapGestureRecognizer *)tap
 {
+    NSLog(@"touchSlider");
     self.data_model.isDragSlider = YES;
+    self.isDragSlider = NO;
     // 根据点击的坐标计算对应的比例
     CGPoint touch = [tap locationInView:self.slider];
     CGFloat scale = touch.x / self.slider.bounds.size.width;
@@ -713,7 +717,7 @@
         {
             weakSelf.slider.value = CMTimeGetSeconds(weakSelf.playerItem.currentTime);
             
-            if(nowTime == duration){//视频播放结束
+            if(nowTime >= duration){//视频播放结束
 
                 if(!weakSelf.data_model.isDragSlider){ //是否在结束后给予奖励
                     if(weakSelf.delegate && weakSelf.data_model.video_playTime >= Task_video_leastTime){

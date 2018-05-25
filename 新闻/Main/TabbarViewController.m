@@ -678,10 +678,10 @@
     NSInteger index = [number integerValue];
     if(index == 0){
         //失败
-        [MBProgressHUD showError:@"拜师失败"];
+        [MyMBProgressHUD showMessage:@"拜师失败"];
     }else{
         //成功
-        [MBProgressHUD showSuccess:@"拜师成功"];
+        [MyMBProgressHUD showMessage:@"拜师成功"];
         [m_redPackage_newUser_NoShifu removeFromSuperview];
     }
 }

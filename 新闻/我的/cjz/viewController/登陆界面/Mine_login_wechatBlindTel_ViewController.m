@@ -340,6 +340,7 @@
 
 -(void)PhoneNumberLoginAction{
     NSLog(@"手机登陆");
+    [m_login_btn setEnabled:NO];
     //苹果审核测试账号
     if([m_phoneNumber_textfeild.text isEqualToString:@"13000000000"] && [m_password_textfeild.text isEqualToString:@"112233"]){
         [self SendLoginToServer];
@@ -350,6 +351,7 @@
             [[IdentifyingCode ShareInstance] MakeTureIdentifyingCode:m_password_textfeild.text AndPhoneNumber:m_phoneNumber_textfeild.text];
         }else{
             [[AlertHelper Share] ShowMe:self And:2.0 And:@"手机号码格式不对"];
+            [m_login_btn setEnabled:YES];
         }
     
 //    [self SendLoginToServer];
@@ -527,13 +529,14 @@
     NSString* argument = @"{";
 
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@"\"%@\":\"%@\"",@"telephone",m_phoneNumber_textfeild.text]];
-    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"openid",self.openId]];
-//    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"avatar",[Login_info share].userInfo_model.avatar]];
-//    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"name",[Login_info share].userInfo_model.name]];
-//    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%d\"",@"sex",[[Login_info share].userInfo_model.sex intValue]]];
-    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"avatar",@"avata"]];
-    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"name",@"name"]];
-    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%d\"",@"sex",1]];
+    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"openid",self.resp.openid]];
+    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"wechat_icon",self.resp.iconurl]];
+    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"wechat_nickname",self.resp.name]];
+    if([self.resp.unionGender isEqualToString:@"男"]){
+        argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%d\"",@"sex",1]];
+    }else{
+        argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%d\"",@"sex",2]];
+    }
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":%ld",@"client_type",IOS]];//设备类型 1:android 2；ios
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"imei",IDFA]];
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"unique_id",(NSString*)[MyKeychain queryDataWithService:MyKeychain_server]]];
@@ -557,9 +560,12 @@
                 NSLog(@"网络获取失败");
                 //发送失败消息
                 [[AlertHelper Share] ShowMe:self And:1.0f And:@"注册失败"];
+                [m_login_btn setEnabled:YES];
+                return ;
             }
             if(data == nil){
                 [MyMBProgressHUD ShowMessage:@"网络错误" ToView:self.view AndTime:1.0f];
+                [m_login_btn setEnabled:YES];
                 return ;
             }
             NSLog(@"从服务器获取到数据");
@@ -583,11 +589,14 @@
                 return;
             }
             [Login_info dicToModel:dict];
-            Login_userInfo* userInfo = [[Login_info share] GetUserInfo];
+//            Login_userMoney* userMoney = [Login_info share].userMoney_model;
+            Login_userInfo* userInfo = [Login_info share].userInfo_model;
             if ([[DefauteNameHelper getDefuateName] isEqualToString:userInfo.name]) {
                 if([userInfo.wechat_binding integerValue] == 1){ //当微信绑定了，账号昵称为默认时，使用微信昵称
-                    userInfo.name = userInfo.wechat_nickname;
-                    [InternetHelp updateUserInfo];
+                    if(userInfo.wechat_nickname.length > 0){
+                        userInfo.name = userInfo.wechat_nickname;
+                        [InternetHelp updateUserInfo];
+                    }
                 }
             }
             
@@ -618,6 +627,7 @@
             [InternetHelp GetMaxTaskCount];
             [[AppConfig sharedInstance] getNewUserTaskInfo];//获取新手任务信息
             
+            [m_login_btn setEnabled:YES];
         });
         
     }];
@@ -628,11 +638,11 @@
 -(void)TelephoneLoginToServer{
     
     waiting = [[MBProgressHUD alloc] initWithView:self.view];
-    waiting.labelText = @"正在登陆..";
+    waiting.label.text = @"正在登陆..";
     waiting.progress = 0.4;
     waiting.mode = MBProgressHUDModeIndeterminate;
-    waiting.dimBackground = YES;
-    [waiting show:YES]; //显示进度框
+//    waiting.dimBackground = YES;
+    [waiting showAnimated:YES]; //显示进度框
     [self.view addSubview:waiting];
     [self.view bringSubviewToFront:waiting];
     // 1.创建一个网络路径
@@ -666,6 +676,7 @@
                 NSLog(@"网络获取失败");
                 //发送失败消息
                 [[AlertHelper Share] ShowMe:self And:1.0f And:@"注册失败"];
+                return ;
             }
             if(data == nil){
                 [MyMBProgressHUD ShowMessage:@"网络错误" ToView:self.view AndTime:1.0f];
@@ -686,8 +697,10 @@
             Login_userInfo* userInfo = [Login_info share].userInfo_model;
             if ([[DefauteNameHelper getDefuateName] isEqualToString:userInfo.name]) {
                 if([userInfo.wechat_binding integerValue] == 1){ //当微信绑定了，账号昵称为默认时，使用微信昵称
-                    userInfo.name = userInfo.wechat_nickname;
-                    [InternetHelp updateUserInfo];
+                    if(userInfo.wechat_nickname.length > 0){
+                        userInfo.name = userInfo.wechat_nickname;
+                        [InternetHelp updateUserInfo];
+                    }
                 }
             }
             

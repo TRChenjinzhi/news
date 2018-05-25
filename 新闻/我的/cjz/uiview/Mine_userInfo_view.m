@@ -111,9 +111,9 @@
 -(void)setIsNext:(BOOL)isNext{
     if(!isNext){
         m_name.frame = CGRectMake(CGRectGetMaxX(m_title.frame)+10,
-                                  60/2-24/2,
-                                  SCREEN_WIDTH-CGRectGetMaxX(m_title.frame)-16,
-                                  24);
+                                   60/2-24/2,
+                                   SCREEN_WIDTH-CGRectGetMaxX(m_title.frame)-10-16,
+                                   24);
     }
 }
 

@@ -729,10 +729,14 @@
     NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://younews.3gshow.cn/api/getChannel"]];
     // 2.创建一个网络请求，分别设置请求方法、请求参数
     NSMutableURLRequest *request =[NSMutableURLRequest requestWithURL:url];
-//    request.HTTPMethod = @"POST";
-//    NSString *args = [NSString stringWithFormat:@"json={\"%@\":\"%@\"}",@"user_id",@"814B08C64ADD12284CA82BA39384B177"];
-//    request.HTTPBody = [args dataUsingEncoding:NSUTF8StringEncoding];
-    // 3.获得会话对象
+    request.HTTPMethod = @"POST";
+    NSString *args = @"json=";
+    NSString* argument = @"{";
+    argument = [argument stringByAppendingString:[NSString stringWithFormat:@"\"%@\":%ld",@"client_type",IOS]];//设备类型 1:android 2；ios
+    argument = [argument stringByAppendingString:@"}"];
+    argument = [MyEntrypt MakeEntryption:argument];
+    args = [args stringByAppendingString:[NSString stringWithFormat:@"%@",argument]];
+    request.HTTPBody = [args dataUsingEncoding:NSUTF8StringEncoding];
     NSURLSession *session = [NSURLSession sharedSession];
     // 4.根据会话对象，创建一个Task任务
     IMP_BLOCK_SELF(SCNavTabBarController);

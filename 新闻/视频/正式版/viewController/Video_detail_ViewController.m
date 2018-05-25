@@ -308,7 +308,7 @@
 -(void)layoutControllerSubViews:(NSNotification*)noti{
     NSLog(@"layoutControllerSubViews");
     NSString* str = [NSString stringWithFormat:@"height:%f",StaTusHight];
-    [MBProgressHUD showSuccess:str];
+    [MyMBProgressHUD showMessage:str];
     //    CGRect tableview_frame = self.tableView.frame;
     CGRect tabbarview_frame = m_tabbar_view.frame;
     if(STATUS_BAR_BIGGER_THAN_20){
@@ -816,7 +816,7 @@
     if([@"举报" isEqualToString:name]){
         NSLog(@"举报");
         if(![Login_info share].isLogined){
-            [MBProgressHUD showMessage:@"未登录！"];
+            [MyMBProgressHUD showMessage:@"未登录！"];
             return;
         }
 //        [self ReportToMe];
@@ -836,7 +836,7 @@
 }
 
 - (void)copylinkBtnClick {
-    [MBProgressHUD showSuccess:@"复制成功!"];
+    [MyMBProgressHUD showMessage:@"复制成功!"];
     UIPasteboard *pasteboard = [UIPasteboard generalPasteboard];
     pasteboard.string = [NSString stringWithFormat:@"%@ %@&source=link",self.model.title,self.model.url];
 }
@@ -901,6 +901,7 @@
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@"\"%@\":\"%@\"",@"user_id",[[Login_info share] GetUserInfo].user_id]];
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"news_id",self.model.ID]];
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%ld\"",@"action",action]];//1：点赞    2：取消点赞
+    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":%ld",@"client_type",IOS]];//设备类型 1:android 2；ios
     argument = [argument stringByAppendingString:@"}"];
     argument = [MyEntrypt MakeEntryption:argument];
     args = [args stringByAppendingString:[NSString stringWithFormat:@"%@",argument]];
@@ -916,7 +917,7 @@
                 NSLog(@"网络获取失败");
                 //发送失败消息
                 //                [block_self.tableView.footer endRefreshing];
-                [MBProgressHUD showError:@"网络错误"];
+                [MyMBProgressHUD showMessage:@"网络错误"];
                 return ;
             }
             //提示信息
@@ -968,6 +969,7 @@
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":%@",@"news_id",self.model.ID]];
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":%ld",@"page",type]];
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":%d",@"size",10]];
+    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":%ld",@"client_type",IOS]];//设备类型 1:android 2；ios
     argument = [argument stringByAppendingString:@"}"];
     argument = [MyEntrypt MakeEntryption:argument];
     args = [args stringByAppendingString:[NSString stringWithFormat:@"%@",argument]];

@@ -20,7 +20,7 @@
 +(void)AutoLogin;
 +(void)updateUserInfo;
 +(void)wechat_blindingWithOpenId:(UMSocialUserInfoResponse*)resp;
-+(void)wechat_loginWithOpenId:(NSString*)OpenId;
++(void)wechat_loginWithOpenId:(UMSocialUserInfoResponse*)resp;
 +(void)SendTaskId:(NSString*)taskId AndType:(NSInteger)type  Sucess:(void(^)(NSInteger type,NSDictionary* dic))success Fail:(void(^)(NSDictionary* dic))fail;
 +(void)BaiShi_API:(NSString*)code Sucess:(void(^)(NSDictionary* dic))success Fail:(void(^)(NSDictionary* dic))fail;
 +(void)GetMaxTaskCount;

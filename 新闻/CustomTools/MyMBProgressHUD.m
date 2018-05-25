@@ -10,20 +10,37 @@
 
 @implementation MyMBProgressHUD
 
-+(void)ShowMessage:(NSString *)message ToView:(UIView *)view AndTime:(unsigned int)time{
-    MBProgressHUD* _HUD = [[MBProgressHUD alloc] initWithView:view];
-    [view addSubview:_HUD];
-    _HUD.labelText = message;
-    _HUD.mode = MBProgressHUDModeText;
++(void)showMessage:(NSString *)message{
+    MBProgressHUD *hud = [MBProgressHUD showHUDAddedTo:[UIApplication sharedApplication].keyWindow animated:YES];
     
-    [_HUD showAnimated:YES whileExecutingBlock:^{
-        sleep(time);
-        
-    }
-       completionBlock:^{
-           [_HUD removeFromSuperview];
-           //                       _HUD = nil;
-       }];
+    // Set the text mode to show only text.
+    hud.mode = MBProgressHUDModeText;
+    hud.label.text = message;
+    hud.label.textColor = RGBA(255, 129, 3, 1);
+    // Move to bottm center.
+    hud.offset = CGPointMake(0.f, SCREEN_HEIGHT);
+    
+    [hud hideAnimated:YES afterDelay:1.0f];
+}
++(void)ShowMessage:(NSString *)message ToView:(UIView *)view AndTime:(unsigned int)time{
+    MBProgressHUD *hud = [MBProgressHUD showHUDAddedTo:view animated:YES];
+    
+    // Set the text mode to show only text.
+    hud.mode = MBProgressHUDModeText;
+    hud.label.text = NSLocalizedString(message, @"HUD message title");
+    // Move to bottm center.
+    hud.offset = CGPointMake(0.f, SCREEN_HEIGHT);
+    
+    [hud hideAnimated:YES afterDelay:time];
+}
+
++(MBProgressHUD*)ShowWaittingByMessage:(NSString *)message ToView:(UIView *)view{
+    MBProgressHUD *hud = [MBProgressHUD showHUDAddedTo:view animated:YES];
+    
+    // Set the label text.
+    hud.label.text = NSLocalizedString(message, message);
+    
+    return hud;
 }
 
 @end

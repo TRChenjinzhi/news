@@ -10,6 +10,7 @@
 #import <QuartzCore/QuartzCore.h>
 
 @implementation SaiIncome_view{
+    UIView*             m_createImg_View;
     UIImageView*        m_img;
 }
 
@@ -31,60 +32,70 @@
     [del_button setImageEdgeInsets:UIEdgeInsetsMake(14, 14, 0, 0)];
     [self addSubview:del_button];
     
+    SaiIncome_createImageVew* saiIncome_creater = [[SaiIncome_createImageVew alloc] initWithFrame:[UIScreen mainScreen].bounds];
+    [saiIncome_creater setUI:^{
+        [MyMBProgressHUD ShowMessage:@"加载成功" ToView:[UIApplication sharedApplication].keyWindow AndTime:1.0f];
+        
+    } fail:^{
+        [MyMBProgressHUD ShowMessage:@"加载失败" ToView:[UIApplication sharedApplication].keyWindow AndTime:1.0f];
+    }];
+    [self addSubview:saiIncome_creater];
+//    UIImage* img = [self imageWithView:saiIncome_creater];
+    
     //大图
     UIImageView* big_img = [[UIImageView alloc] initWithFrame:CGRectMake(45, CGRectGetMaxY(del_button.frame)+14.5, SCREEN_WIDTH-45-45, 360)];
-    [big_img setImage:[UIImage imageNamed:@"share_bg"]];
+//    [big_img setImage:img];
     [self addSubview:big_img];
     m_img = big_img;
         //title
-    UILabel* title_label = [[UILabel alloc]initWithFrame:CGRectMake(0, 40, big_img.frame.size.width, 24)];
-    NSString* str_title = @"我在橙子快报里";
-    NSString* str_title_one = @"橙子快报";
-    NSMutableAttributedString* att_string = [[NSMutableAttributedString alloc] initWithString:str_title];
-    att_string = [LabelHelper GetMutableAttributedSting_bold_font:att_string AndIndex:0 AndCount:str_title.length AndFontSize:16];
-    att_string = [LabelHelper GetMutableAttributedSting_color:att_string AndIndex:0 AndCount:str_title.length AndColor: [UIColor colorWithRed:34/255.0 green:39/255.0 blue:39/255.0 alpha:1/1.0]];
-    att_string = [LabelHelper GetMutableAttributedSting_bold_font:att_string AndIndex:[str_title rangeOfString:str_title_one].location AndCount:str_title_one.length AndFontSize:26];
-    att_string = [LabelHelper GetMutableAttributedSting_color:att_string AndIndex:[str_title rangeOfString:str_title_one].location AndCount:str_title_one.length AndColor:[UIColor blackColor]];
-
-    title_label.textAlignment = NSTextAlignmentCenter;
-    title_label.attributedText = att_string;
-    [big_img addSubview:title_label];
+//    UILabel* title_label = [[UILabel alloc]initWithFrame:CGRectMake(0, 40, big_img.frame.size.width, 24)];
+//    NSString* str_title = @"我在橙子快报里";
+//    NSString* str_title_one = @"橙子快报";
+//    NSMutableAttributedString* att_string = [[NSMutableAttributedString alloc] initWithString:str_title];
+//    att_string = [LabelHelper GetMutableAttributedSting_bold_font:att_string AndIndex:0 AndCount:str_title.length AndFontSize:16];
+//    att_string = [LabelHelper GetMutableAttributedSting_color:att_string AndIndex:0 AndCount:str_title.length AndColor: [UIColor colorWithRed:34/255.0 green:39/255.0 blue:39/255.0 alpha:1/1.0]];
+//    att_string = [LabelHelper GetMutableAttributedSting_bold_font:att_string AndIndex:[str_title rangeOfString:str_title_one].location AndCount:str_title_one.length AndFontSize:26];
+//    att_string = [LabelHelper GetMutableAttributedSting_color:att_string AndIndex:[str_title rangeOfString:str_title_one].location AndCount:str_title_one.length AndColor:[UIColor blackColor]];
+//
+//    title_label.textAlignment = NSTextAlignmentCenter;
+//    title_label.attributedText = att_string;
+//    [big_img addSubview:title_label];
     
     //subTitle
-    UILabel* subTitle_label = [[UILabel alloc]initWithFrame:CGRectMake(0, CGRectGetMaxY(title_label.frame)+24, big_img.frame.size.width, 40)];
-    subTitle_label.textColor = [UIColor colorWithRed:251/255.0 green:84/255.0 blue:38/255.0 alpha:1/1.0];
-    NSString* str = [NSString stringWithFormat:@"赚了%@元",[Login_info share].userMoney_model.total_income];
-    NSMutableAttributedString* att1_string = [[NSMutableAttributedString alloc] initWithString:str];
-    att1_string = [LabelHelper GetMutableAttributedSting_bold_font:att1_string AndIndex:0 AndCount:2 AndFontSize:16];
-    att1_string = [LabelHelper GetMutableAttributedSting_bold_font:att1_string AndIndex:2 AndCount:str.length-3 AndFontSize:34];
-    att1_string = [LabelHelper GetMutableAttributedSting_bold_font:att1_string AndIndex:str.length-1 AndCount:1 AndFontSize:16];
-
-    subTitle_label.attributedText = att1_string;
-    subTitle_label.textAlignment = NSTextAlignmentCenter;
-    [big_img addSubview:subTitle_label];
+//    UILabel* subTitle_label = [[UILabel alloc]initWithFrame:CGRectMake(0, CGRectGetMaxY(title_label.frame)+24, big_img.frame.size.width, 40)];
+//    subTitle_label.textColor = [UIColor colorWithRed:251/255.0 green:84/255.0 blue:38/255.0 alpha:1/1.0];
+//    NSString* str = [NSString stringWithFormat:@"赚了%@元",[Login_info share].userMoney_model.total_income];
+//    NSMutableAttributedString* att1_string = [[NSMutableAttributedString alloc] initWithString:str];
+//    att1_string = [LabelHelper GetMutableAttributedSting_bold_font:att1_string AndIndex:0 AndCount:2 AndFontSize:16];
+//    att1_string = [LabelHelper GetMutableAttributedSting_bold_font:att1_string AndIndex:2 AndCount:str.length-3 AndFontSize:34];
+//    att1_string = [LabelHelper GetMutableAttributedSting_bold_font:att1_string AndIndex:str.length-1 AndCount:1 AndFontSize:16];
+//
+//    subTitle_label.attributedText = att1_string;
+//    subTitle_label.textAlignment = NSTextAlignmentCenter;
+//    [big_img addSubview:subTitle_label];
     
     //二维码图片
-    UIImageView* img = [[UIImageView alloc] initWithFrame:CGRectMake(big_img.frame.size.width-48-40, big_img.frame.size.height-20-48, 48, 48)];
-    NSString* str_url = [NSString stringWithFormat:@"http://younews.3gshow.cn/api/share?user_id=%@",[Login_info share].userInfo_model.user_id];
-    [img setImage:[erWeiMa_Helper GetErWeiMa_string:str_url AndSize:48]];
-    [big_img addSubview:img];
+//    UIImageView* img = [[UIImageView alloc] initWithFrame:CGRectMake(big_img.frame.size.width-48-40, big_img.frame.size.height-20-48, 48, 48)];
+//    NSString* str_url = [NSString stringWithFormat:@"http://younews.3gshow.cn/api/share?user_id=%@",[Login_info share].userInfo_model.user_id];
+//    [img setImage:[erWeiMa_Helper GetErWeiMa_string:str_url AndSize:48]];
+//    [big_img addSubview:img];
     
     //二维码图片左边文字
-    UILabel* img_tips = [[UILabel alloc]initWithFrame:CGRectMake(CGRectGetMinX(img.frame)-8-130,
-                                                                 CGRectGetMinY(img.frame),
-                                                                 130, 48)];
-    NSString* appren = [Login_info share].userInfo_model.appren;
-    NSString* img_str = [NSString stringWithFormat:@"长按可扫码下载\n输入邀请码%@\n立即领红包",appren];
-    NSMutableAttributedString* att_img_str = [[NSMutableAttributedString alloc] initWithString:img_str];
-    NSRange range = [img_str rangeOfString:appren];
-    att_img_str = [LabelHelper GetMutableAttributedSting_font:att_img_str AndIndex:0 AndCount:img_str.length AndFontSize:12];
-    att_img_str = [LabelHelper GetMutableAttributedSting_color:att_img_str AndIndex:0 AndCount:img_str.length AndColor:RGBA(34, 39, 39, 1)];
-    att_img_str = [LabelHelper GetMutableAttributedSting_color:att_img_str AndIndex:range.location AndCount:range.length AndColor:RGBA(251, 84, 38, 1)];
-    
-    img_tips.textAlignment = NSTextAlignmentRight;
-    img_tips.numberOfLines = 3;
-    img_tips.attributedText = att_img_str;
-    [big_img addSubview:img_tips];
+//    UILabel* img_tips = [[UILabel alloc]initWithFrame:CGRectMake(CGRectGetMinX(img.frame)-8-130,
+//                                                                 CGRectGetMinY(img.frame),
+//                                                                 130, 48)];
+//    NSString* appren = [Login_info share].userInfo_model.appren;
+//    NSString* img_str = [NSString stringWithFormat:@"长按可扫码下载\n输入邀请码%@\n立即领红包",appren];
+//    NSMutableAttributedString* att_img_str = [[NSMutableAttributedString alloc] initWithString:img_str];
+//    NSRange range = [img_str rangeOfString:appren];
+//    att_img_str = [LabelHelper GetMutableAttributedSting_font:att_img_str AndIndex:0 AndCount:img_str.length AndFontSize:12];
+//    att_img_str = [LabelHelper GetMutableAttributedSting_color:att_img_str AndIndex:0 AndCount:img_str.length AndColor:RGBA(34, 39, 39, 1)];
+//    att_img_str = [LabelHelper GetMutableAttributedSting_color:att_img_str AndIndex:range.location AndCount:range.length AndColor:RGBA(251, 84, 38, 1)];
+//
+//    img_tips.textAlignment = NSTextAlignmentRight;
+//    img_tips.numberOfLines = 3;
+//    img_tips.attributedText = att_img_str;
+//    [big_img addSubview:img_tips];
     
     //分享
     NSInteger width = 48;

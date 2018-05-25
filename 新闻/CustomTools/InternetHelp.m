@@ -33,6 +33,7 @@
     [dic setValue:user_id forKey:@"user_id"];
     [dic setValue:newsId forKey:@"news_id"];
     [dic setValue:comment forKey:@"comment"];
+    [dic setValue:[NSNumber numberWithInteger:IOS] forKey:@"client_type"];
     NSData *jsonData = [NSJSONSerialization dataWithJSONObject:dic options:0 error:NULL];
     NSString* str_tmp = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
     argument = [MyEntrypt MakeEntryption:str_tmp];
@@ -65,6 +66,16 @@
     NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://younews.3gshow.cn/interface/banner"]];
     // 2.创建一个网络请求，分别设置请求方法、请求参数
     NSMutableURLRequest *request =[NSMutableURLRequest requestWithURL:url];
+    request.HTTPMethod = @"POST";
+    NSString *args = @"json=";
+    NSString* argument = @"";
+    NSMutableDictionary* dic = [[NSMutableDictionary alloc] init];
+    [dic setValue:[NSNumber numberWithInteger:IOS] forKey:@"client_type"];
+    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:dic options:0 error:NULL];
+    NSString* str_tmp = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+    argument = [MyEntrypt MakeEntryption:str_tmp];
+    args = [args stringByAppendingString:[NSString stringWithFormat:@"%@",argument]];
+    request.HTTPBody = [args dataUsingEncoding:NSUTF8StringEncoding];
     // 3.获得会话对象
     NSURLSession *session = [NSURLSession sharedSession];
     // 4.根据会话对象，创建一个Task任务
@@ -109,6 +120,7 @@
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@"\"%@\":\"%@\"",@"user_id",user_id]];
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"comment_id",comment_id]];
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%ld\"",@"action",type]];//1：点赞    2：取消点赞
+    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":%ld",@"client_type",IOS]];//设备类型 1:android 2；ios
     argument = [argument stringByAppendingString:@"}"];
     argument = [MyEntrypt MakeEntryption:argument];
     args = [args stringByAppendingString:[NSString stringWithFormat:@"%@",argument]];
@@ -150,6 +162,7 @@
     [dic setValue:newsId forKey:@"news_id"];
     [dic setValue:[NSNumber numberWithInteger:Pid] forKey:@"pid"];
     [dic setValue:comment forKey:@"comment"];
+    [dic setValue:[NSNumber numberWithInteger:IOS] forKey:@"client_type"];
     NSData *jsonData = [NSJSONSerialization dataWithJSONObject:dic options:0 error:NULL];
     NSString* str_tmp = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
     argument = [MyEntrypt MakeEntryption:str_tmp];
@@ -194,6 +207,7 @@
     [dic setValue:[NSNumber numberWithInteger:pid] forKey:@"pid"];
     [dic setValue:[NSNumber numberWithInteger:page] forKey:@"page"];
     [dic setValue:[NSNumber numberWithInteger:size] forKey:@"size"];
+    [dic setValue:[NSNumber numberWithInteger:IOS] forKey:@"client_type"];
     NSData *jsonData = [NSJSONSerialization dataWithJSONObject:dic options:0 error:NULL];
     NSString* str_tmp = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
     argument = [MyEntrypt MakeEntryption:str_tmp];
@@ -292,8 +306,10 @@
             Login_userInfo* userInfo = [Login_info share].userInfo_model;
             if ([[DefauteNameHelper getDefuateName] isEqualToString:userInfo.name]) {
                 if([userInfo.wechat_binding integerValue] == 1){ //当微信绑定了，账号昵称为默认时，使用微信昵称
-                    userInfo.name = userInfo.wechat_nickname;
-                    [InternetHelp updateUserInfo];
+                    if(userInfo.wechat_nickname.length > 0){
+                        userInfo.name = userInfo.wechat_nickname;
+                        [InternetHelp updateUserInfo];
+                    }
                 }
             }
             
@@ -325,6 +341,7 @@
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@"\"%@\":\"%@\"",@"user_id",[Login_info share].userInfo_model.user_id]];
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"name",[Login_info share].userInfo_model.name]];
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"sex",[Login_info share].userInfo_model.sex]];
+    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":%ld",@"client_type",IOS]];//设备类型 1:android 2；ios
     argument = [argument stringByAppendingString:@"}"];
     argument = [MyEntrypt MakeEntryption:argument];
     args = [args stringByAppendingString:[NSString stringWithFormat:@"%@",argument]];
@@ -352,7 +369,6 @@
 //                [MyMBProgressHUD ShowMessage:@"修改失败" ToView:[UIApplication sharedApplication].keyWindow AndTime:1.0f];
                 return;
             }
-            [Login_info dicToModel:dict];
 //            [MyMBProgressHUD ShowMessage:@"修改成功" ToView:[UIApplication sharedApplication].keyWindow AndTime:1.0f];
         });
         
@@ -378,24 +394,10 @@
     }else{
         argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%d\"",@"sex",2]];
     }
-//    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%d\"",@"sex",[[Login_info share].userInfo_model.name intValue]]];
-//    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"city",@"朝阳"]];
-//    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"province",@"北京"]];
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%ld\"",@"client_type",IOS]];//设备类型 1:android 2；ios
-//    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"channel",@"default"]];
-//    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"v1_sign",@"318cb2d3d132cf362e305805ed3ed0ed"]];
-//    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%d\"",@"v1_ver",1001]];
-//    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"mobileOperator",@"46002"]];
-//    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"mobileOperatorName",@"中国移动"]];
-//    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"deviceid",@"ca9e5c58ef7c9432"]];
-//    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"mac",@"02:00:00:00:00:00"]];
-//    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"imsi",@"460022101154264"]];
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"imei",IDFA]];
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"unique_id",(NSString*)[MyKeychain queryDataWithService:MyKeychain_server]]];
-//    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%d\"",@"net_type",1]];//1:wifi
-//    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"os_version",@"7.1"]];
-//    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"model",@"A0001"]];
-//    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"brand",@"oneplus"]];
+
     argument = [argument stringByAppendingString:@"}"];
     argument = [MyEntrypt MakeEntryption:argument];
     args = [args stringByAppendingString:[NSString stringWithFormat:@"%@",argument]];
@@ -411,7 +413,7 @@
             if(error){
                 NSLog(@"网络获取失败");
                 //发送失败消息
-                [MBProgressHUD showError:@"微信绑定失败"];
+                [MyMBProgressHUD showMessage:@"微信绑定失败"];
             }
             
             NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:data options:(NSJSONReadingMutableLeaves) error:nil];
@@ -423,7 +425,7 @@
             }else{
                 NSLog(@"微信绑定成功");
 //                NSString* tips = dict[@"info"];
-                [MBProgressHUD showSuccess:@"微信绑定成功!"];
+                [MyMBProgressHUD showMessage:@"微信绑定成功!"];
                 NSDictionary* data_dic = dict[@"list"];
                 [Login_info share].userMoney_model.wechat_openid        = data_dic[@"openid"];
                 [Login_info share].userMoney_model.binding_wechat       = data_dic[@"wechat_binding"];
@@ -440,7 +442,7 @@
     [sessionDataTask resume];
 }
 
-+(void)wechat_loginWithOpenId:(NSString*)OpenId{
++(void)wechat_loginWithOpenId:(UMSocialUserInfoResponse*)resp{
     // 1.创建一个网络路径
     NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://younews.3gshow.cn/member/login"]];
     // 2.创建一个网络请求，分别设置请求方法、请求参数
@@ -449,10 +451,11 @@
     NSString *args = @"json=";
     NSString* argument = @"{";
 
-    argument = [argument stringByAppendingString:[NSString stringWithFormat:@"\"%@\":\"%@\"",@"openid",OpenId]];
+    argument = [argument stringByAppendingString:[NSString stringWithFormat:@"\"%@\":\"%@\"",@"openid",resp.openid]];
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%ld\"",@"client_type",IOS]];//设备类型 1:android 2；ios
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"imei",IDFA]];
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"unique_id",(NSString*)[MyKeychain queryDataWithService:MyKeychain_server]]];
+    
 
     argument = [argument stringByAppendingString:@"}"];
     argument = [MyEntrypt MakeEntryption:argument];
@@ -469,14 +472,14 @@
             if(error){
                 NSLog(@"网络获取失败");
                 //发送失败消息
-                [MBProgressHUD showError:@"微信绑定失败"];
+                [MyMBProgressHUD showMessage:@"微信绑定失败"];
             }
             
             NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:data options:(NSJSONReadingMutableLeaves) error:nil];
             NSNumber* number = dict[@"code"];
             if([number integerValue] != 200){
                 if([number integerValue] == Login_wechat_NotBlind){
-                    [[NSNotificationCenter defaultCenter] postNotificationName:@"LoginVCL微信未绑定" object:OpenId];
+                    [[NSNotificationCenter defaultCenter] postNotificationName:@"LoginVCL微信未绑定" object:resp];
                     return ;
                 }
                 NSLog(@"微信绑定获取失败");
@@ -486,10 +489,14 @@
                 NSLog(@"微信绑定成功");
                 //                NSString* tips = dict[@"info"];
                 [Login_info dicToModel:dict];
+                Login_userMoney* userMoney = [Login_info share].userMoney_model;
+                Login_userInfo* userInfo = [Login_info share].userInfo_model;
 //                NSDictionary* data_dic = dict[@"list"];
 //                [Login_info share].userMoney_model.wechat_openid        = data_dic[@"openid"];
 //                [Login_info share].userMoney_model.binding_wechat       = data_dic[@"wechat_binding"];
 //                [Login_info share].userInfo_model.avatar                = data_dic[@"avatar"];
+                
+                [InternetHelp wechat_blindingWithOpenId:resp];
                 
                 [[TaskCountHelper share] newUserTask_addCountByType:Task_blindWechat];
                 [[NSNotificationCenter defaultCenter] postNotificationName:@"LoginVCL微信登陆成功" object:nil];
@@ -531,6 +538,7 @@
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@"\"%@\":\"%@\"",@"user_id",[[Login_info share]GetUserInfo].user_id]];
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%ld\"",@"type",type]];
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"task_id",taskId]];
+    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":%ld",@"client_type",IOS]];//设备类型 1:android 2；ios
     argument = [argument stringByAppendingString:@"}"];
     argument = [MyEntrypt MakeEntryption:argument];
     args = [args stringByAppendingString:[NSString stringWithFormat:@"%@",argument]];
@@ -601,6 +609,7 @@
     NSString* argument = @"{";
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@"\"%@\":\"%@\"",@"user_id",[[Login_info share]GetUserInfo].user_id]];
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"master_code",code]];
+    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":%ld",@"client_type",IOS]];//设备类型 1:android 2；ios
     argument = [argument stringByAppendingString:@"}"];
     argument = [MyEntrypt MakeEntryption:argument];
     args = [args stringByAppendingString:[NSString stringWithFormat:@"%@",argument]];
@@ -646,6 +655,7 @@
     NSString *args = @"json=";
     NSString* argument = @"{";
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@"\"%@\":\"%@\"",@"user_id",[[Login_info share]GetUserInfo].user_id]];
+    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":%ld",@"client_type",IOS]];//设备类型 1:android 2；ios
     //    args = [args stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%ld\"",@"type",type]];
     //    args = [args stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%d\"",@"size",10]];
     argument = [argument stringByAppendingString:@"}"];
@@ -693,6 +703,7 @@
     
     NSMutableDictionary* dic = [[NSMutableDictionary alloc] init]; //用json传值 ：\n 加密就不会去掉换行符
     [dic setValue:[Login_info share].userInfo_model.user_id forKey:@"user_id"];
+    [dic setValue:[NSNumber numberWithInteger:IOS] forKey:@"client_type"];
 
     NSData *jsonData = [NSJSONSerialization dataWithJSONObject:dic options:0 error:NULL];
     NSString* str_tmp = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
@@ -735,6 +746,13 @@
     NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://younews.3gshow.cn/api/getVChannel"]];
     NSMutableURLRequest *request =[NSMutableURLRequest requestWithURL:url];
     request.HTTPMethod = @"POST";
+    NSString *args = @"json=";
+    NSString* argument = @"{";
+    argument = [argument stringByAppendingString:[NSString stringWithFormat:@"\"%@\":%ld",@"client_type",IOS]];//设备类型 1:android 2；ios
+    argument = [argument stringByAppendingString:@"}"];
+    argument = [MyEntrypt MakeEntryption:argument];
+    args = [args stringByAppendingString:[NSString stringWithFormat:@"%@",argument]];
+    request.HTTPBody = [args dataUsingEncoding:NSUTF8StringEncoding];
     // 3.获得会话对象
     NSURLSession *session = [NSURLSession sharedSession];
     // 4.根据会话对象，创建一个Task任务
@@ -778,6 +796,7 @@
     [dic setValue:[NSNumber numberWithInteger:channel] forKey:@"channel"];
     [dic setValue:[NSNumber numberWithInteger:page] forKey:@"page"];
     [dic setValue:[NSNumber numberWithInteger:10] forKey:@"size"];
+    [dic setValue:[NSNumber numberWithInteger:IOS] forKey:@"client_type"];
     
     NSNumber* action = nil;
     if(page == 0){
@@ -835,7 +854,9 @@
     [dic setValue:searchWord forKey:@"keyword"];
     [dic setValue:[NSNumber numberWithInteger:page] forKey:@"page"];
     [dic setValue:[NSNumber numberWithInteger:10] forKey:@"size"];
-    
+    [dic setValue:[NSNumber numberWithInteger:IOS] forKey:@"client_type"];
+    [dic setValue:[NSNumber numberWithInteger:IOS] forKey:@"client_type"];
+ 
     NSData *jsonData = [NSJSONSerialization dataWithJSONObject:dic options:0 error:NULL];
     NSString* str_tmp = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
     argument = [MyEntrypt MakeEntryption:str_tmp];
@@ -886,6 +907,7 @@
     [dic setValue:[NSNumber numberWithInteger:[channel integerValue]] forKey:@"channel"];
     [dic setValue:[NSNumber numberWithInteger:0] forKey:@"page"];
     [dic setValue:[NSNumber numberWithInteger:5] forKey:@"size"];
+    [dic setValue:[NSNumber numberWithInteger:IOS] forKey:@"client_type"];
     
     NSData *jsonData = [NSJSONSerialization dataWithJSONObject:dic options:0 error:NULL];
     NSString* str_tmp = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
@@ -966,6 +988,7 @@
         }
     }
     [dic setValue:[NSNumber numberWithInteger:moneyCount] forKey:@"money"];
+    [dic setValue:[NSNumber numberWithInteger:IOS] forKey:@"client_type"];
     
     NSData *jsonData = [NSJSONSerialization dataWithJSONObject:dic options:0 error:NULL];
     NSString* str_tmp = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];

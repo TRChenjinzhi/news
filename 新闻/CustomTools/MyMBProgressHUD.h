@@ -10,6 +10,8 @@
 
 @interface MyMBProgressHUD : UIView
 
++(void)showMessage:(NSString *)message;
 +(void)ShowMessage:(NSString*)message ToView:(UIView*)view AndTime:(unsigned int)time;
++(MBProgressHUD*)ShowWaittingByMessage:(NSString *)message ToView:(UIView *)view;
 
 @end

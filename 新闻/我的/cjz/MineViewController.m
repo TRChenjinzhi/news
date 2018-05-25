@@ -226,7 +226,9 @@
         Mine_userInfo_model* model = [[Mine_userInfo_model alloc] init];
         if ([[DefauteNameHelper getDefuateName] isEqualToString:loginInfo.userInfo_model.name]) {
             if([loginInfo.userInfo_model.wechat_binding integerValue] == 1){ //当微信绑定了，账号昵称为默认时，使用微信昵称
-                loginInfo.userInfo_model.name = loginInfo.userInfo_model.wechat_nickname;
+                if(loginInfo.userInfo_model.wechat_nickname.length > 0){
+                    loginInfo.userInfo_model.name = loginInfo.userInfo_model.wechat_nickname;
+                }
             }
         }
         model.name = loginInfo.userInfo_model.name;

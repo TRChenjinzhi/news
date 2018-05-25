@@ -96,6 +96,12 @@
         [self addSubview:rescLb];
         self.resouce = rescLb;
     }
+    else{
+        CGSize TextSize = [model.source sizeWithAttributes:@{NSFontAttributeName:[UIFont fontWithName:@"SourceHanSansCN-Regular" size:10]}];
+        CGSize size = CGSizeMake(ceilf(TextSize.width), ceilf(TextSize.height));
+        self.resouce.frame = CGRectMake(margin, cellHight-16-size.height, size.width, size.height);
+        self.resouce.text = model.source;
+    }
     
     if(self.imgReply == nil){
         UIImageView* imgView_reply = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"ic_comment_s"]];

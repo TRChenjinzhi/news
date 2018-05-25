@@ -31,6 +31,8 @@
 
 @property (nonatomic,strong)UIScrollView* MainScrollView;;
 @property (nonatomic,strong)UIView* MainView;//放在scrollview的整块view
+@property (nonatomic,strong)SaiIncome_createImageVew* saiIncome_creater;
+@property (nonatomic,strong)MBProgressHUD* m_waitting;
 
 @end
 
@@ -869,8 +871,48 @@
 }
 
 -(void)SaiIncome{
-    SaiIncome_view* sai_view = [[SaiIncome_view alloc] initWithFrame:[UIScreen mainScreen].bounds];
-    [[UIApplication sharedApplication].keyWindow addSubview:sai_view];
+    self.m_waitting = [MyMBProgressHUD ShowWaittingByMessage:@"正在生成图片" ToView:self.view];
+    
+    self.saiIncome_creater = [[SaiIncome_createImageVew alloc] initWithFrame:[UIScreen mainScreen].bounds];
+    IMP_BLOCK_SELF(TaskViewController)
+    [self.saiIncome_creater setUI:^{
+        [block_self.m_waitting hideAnimated:YES];
+        [MyMBProgressHUD ShowMessage:@"加载成功" ToView:[UIApplication sharedApplication].keyWindow AndTime:1.0f];
+//        [block_self.view addSubview:block_self.saiIncome_creater];
+        [block_self.saiIncome_creater layoutIfNeeded]; //要刷新 不然一片黑
+        [UMShareHelper SharePNGByName:WeChat_pengyoujuan AndImg:[Color_Image_Helper imageWithView:block_self.saiIncome_creater]];
+    } fail:^{
+        [block_self.m_waitting hideAnimated:YES];
+        [MyMBProgressHUD ShowMessage:@"加载失败" ToView:[UIApplication sharedApplication].keyWindow AndTime:1.0f];
+    }];
+    
+//    SaiIncome_view* sai_view = [[SaiIncome_view alloc] initWithFrame:[UIScreen mainScreen].bounds];
+//    [[UIApplication sharedApplication].keyWindow addSubview:sai_view];
+    
+    
+    //用原生可以分享多张图片
+//    NSString *path1 = [[NSBundle mainBundle] pathForResource:@"shareIncome1" ofType:@"jpg"];
+//    UIImage *image1 = [UIImage imageWithContentsOfFile:path1];
+//    image1 = [Color_Image_Helper yaSuoImageByheight:SCREEN_HEIGHT AndImg:image1];
+//    NSString *path2 = [[NSBundle mainBundle] pathForResource:@"shareIncome2" ofType:@"jpg"];
+//    UIImage *image2 = [UIImage imageWithContentsOfFile:path2];
+//    image2 = [Color_Image_Helper yaSuoImageByheight:SCREEN_HEIGHT AndImg:image2];
+//    NSArray *activityItems = @[image1,image2];
+//    UIActivityViewController *activityVC = [[UIActivityViewController alloc]initWithActivityItems:activityItems applicationActivities:nil];
+//    [activityVC setCompletionWithItemsHandler:^(UIActivityType  _Nullable activityType, BOOL completed, NSArray * _Nullable returnedItems, NSError * _Nullable activityError) {
+//        if (completed)  {
+//            if([activityType isEqualToString:@"com.tencent.xin.sharetimeline"]){
+//                NSLog(@"completed");
+//            }
+//        }
+//        else  {
+//            if([activityType isEqualToString:@"com.tencent.xin.sharetimeline"]){
+//                NSLog(@"cancel");
+//            }
+//        }
+//    }];
+//    [self presentViewController:activityVC animated:TRUE completion:nil];
+    
 }
 
 #pragma mark - 协议
@@ -951,6 +993,7 @@
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@"\"%@\":\"%@\"",@"user_id",[[Login_info share]GetUserInfo].user_id]];
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%ld\"",@"type",type]];
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"task_id",taskId]];
+    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":%ld",@"client_type",IOS]];//设备类型 1:android 2；ios
     argument = [argument stringByAppendingString:@"}"];
     argument = [MyEntrypt MakeEntryption:argument];
     args = [args stringByAppendingString:[NSString stringWithFormat:@"%@",argument]];
@@ -965,7 +1008,7 @@
             if(error || data == nil){
                 NSLog(@"SendTaskType_157网络获取失败");
                 //发送失败消息
-                [MBProgressHUD showError:@"网络出错"];
+                [MyMBProgressHUD showMessage:@"网络出错"];
                 if(type == 1){ //网络出错时，箱子倒计时重置
                     [m_logo_state_time removeFromSuperview];
                     [m_logo_tips addSubview:m_logo_state_normal];
@@ -1002,7 +1045,7 @@
                     break;
                 }
                 case Task_readQuestion:{
-                    [MBProgressHUD showSuccess:@"查看常见问题 任务完成"];
+                    [MyMBProgressHUD showMessage:@"查看常见问题 任务完成"];
                     [[TaskCountHelper share] newUserTask_addCountByType:Task_readQuestion];
                     [self TaskRefresh];
                     
@@ -1029,7 +1072,8 @@
     request.HTTPMethod = @"POST";
     NSString *args = @"json=";
     NSString* argument = @"{";
-    argument = [argument stringByAppendingString:[NSString stringWithFormat:@"\"%@\":\"%@\"",@"user_id",[[Login_info share]GetUserInfo].user_id]];
+    argument = [argument stringByAppendingString:[NSString stringWithFormat:@"\"%@\":\"%@\"",@"user_id",[Login_info share].userInfo_model.user_id]];
+    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":%ld",@"client_type",IOS]];//设备类型 1:android 2；ios
 //    args = [args stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%ld\"",@"type",type]];
     //    args = [args stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%d\"",@"size",10]];
     argument = [argument stringByAppendingString:@"}"];
@@ -1094,6 +1138,13 @@
                     if(item.type == Task_shareNews && [model.title isEqualToString:DayDayTask_shareNews]){
                         model.DayDay_model = item;
                         model.type = Task_shareNews;
+                        if(item.maxCout == 0){
+                            [self deleTask:model];//如果maxcount=0 就隐藏该任务
+                            break;
+                        }
+                        else{
+                            [self addTask:model];
+                        }
                         
                         if(item.maxCout <= item.count){
                             model.isDone = YES;
@@ -1103,7 +1154,13 @@
                     if(item.type == Task_video && [model.title isEqualToString:DayDayTask_readVideo]){
                         model.DayDay_model = item;
                         model.type = Task_video;
-                        
+                        if(item.maxCout == 0){
+                            [self deleTask:model];//如果maxcount=0 就隐藏该任务
+                            break;
+                        }
+                        else{
+                            [self addTask:model];
+                        }
                         if(item.maxCout <= item.count){
                             model.isDone = YES;
                         }
@@ -1112,7 +1169,13 @@
                     if(item.type == Task_showIncome && [model.title isEqualToString:DayDayTask_showIncome]){
                         model.DayDay_model = item;
                         model.type = Task_showIncome;
-                        
+                        if(item.maxCout == 0){
+                            [self deleTask:model];//如果maxcount=0 就隐藏该任务
+                            break;
+                        }
+                        else{
+                            [self addTask:model];
+                        }
                         if(item.maxCout <= item.count){
                             model.isDone = YES;
                         }
@@ -1121,7 +1184,13 @@
                     if(item.type == Task_chouJiang && [model.title isEqualToString:DayDayTask_choujiang]){
                         model.DayDay_model = item;
                         model.type = Task_chouJiang;
-                        
+                        if(item.maxCout == 0){
+                            [self deleTask:model];//如果maxcount=0 就隐藏该任务
+                            break;
+                        }
+                        else{
+                            [self addTask:model];
+                        }
                         if(item.maxCout <= item.count){
                             model.isDone = YES;
                         }
@@ -1130,11 +1199,11 @@
                 }
             }
             
+            //如果首次收徒已经完成。就隐藏此任务
             if([[Login_info share].userInfo_model.appren_count integerValue] > 0){
                 for (TaskCell_model* model in DayDayTaskTitleArray_model) {
                     if([model.title isEqualToString:DayDayTask_FirstShouTu]){
-                        [DayDayTaskTitleArray_model removeObject:model];
-                        self.MainScrollView.contentSize = CGSizeMake(self.MainScrollView.contentSize.width, self.MainScrollView.contentSize.height-[Task_TableViewCell HightForcell]);
+                        [self deleTask:model];
                         break;
                     }
                 }
@@ -1150,6 +1219,18 @@
 }
 
 
+-(void)deleTask:(TaskCell_model*)model{
+    [DayDayTaskTitleArray_model removeObject:model];
+    self.MainScrollView.contentSize = CGSizeMake(self.MainScrollView.contentSize.width, self.MainScrollView.contentSize.height-[Task_TableViewCell HightForcell]);
+}
+
+-(void)addTask:(TaskCell_model*)model{
+    if(![DayDayTaskTitleArray_model containsObject:model]){
+        //如果不包含
+        [DayDayTaskTitleArray_model addObject:model];
+        self.MainScrollView.contentSize = CGSizeMake(self.MainScrollView.contentSize.width, self.MainScrollView.contentSize.height+[Task_TableViewCell HightForcell]);
+    }
+}
 
 //同步服务器宝箱时间
 -(void)synchronousBoxTime:(NSArray*)array{

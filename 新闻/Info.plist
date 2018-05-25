@@ -104,6 +104,7 @@
 	<string>需要访问相册</string>
 	<key>UIAppFonts</key>
 	<array>
+		<string>DINCond-Bold.otf</string>
 		<string>SourceHanSansCN-Regular.ttf</string>
 		<string>Roboto-Regular.ttf</string>
 		<string>SourceHanSansCN-Bold.otf</string>

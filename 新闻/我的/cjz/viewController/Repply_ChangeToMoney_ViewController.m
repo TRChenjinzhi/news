@@ -322,7 +322,7 @@
 #pragma mark - 验证码协议方法
 -(void)MakeTureIdentifyingCode_failed{
     NSLog(@"MakeTureIdentifyingCode_failed");
-    [MBProgressHUD showError:@"验证码有误"];
+    [MyMBProgressHUD showMessage:@"验证码有误"];
 }
 -(void)MakeTureIdentifyingCode_sucess{
     NSLog(@"MakeTureIdentifyingCode_sucess");
@@ -360,6 +360,7 @@
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"money",[NSString stringWithFormat:@"%ld",m_moneyCount]]];
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"account_num",account_num]];
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"account_name",account_name]];
+    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":%ld",@"client_type",IOS]];//设备类型 1:android 2；ios
     argument = [argument stringByAppendingString:@"}"];
     argument = [MyEntrypt MakeEntryption:argument];
     args = [args stringByAppendingString:[NSString stringWithFormat:@"%@",argument]];
@@ -385,10 +386,10 @@
             NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:data options:(NSJSONReadingMutableLeaves) error:nil];
             NSNumber* code = dict[@"code"];
             if([code longValue] != 200){
-                [MBProgressHUD showSuccess:@"申请失败"];
+                [MyMBProgressHUD showMessage:@"申请失败"];
                 return;
             }else{
-                [MBProgressHUD showSuccess:@"申请成功"];
+                [MyMBProgressHUD showMessage:@"申请成功"];
                 [block_self.navigationController popViewControllerAnimated:YES];
             }
             

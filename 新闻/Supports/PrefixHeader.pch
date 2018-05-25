@@ -16,8 +16,8 @@
 #import "UIView+Frame.h"
 #import "NSString+Extension.h"
 #import "GYHHeadeRefreshController.h"
+#import "MBProgressHUD.h"
 #import "ThemeManager.h"
-#import "MBProgressHUD+Extion.h"
 #import "UIImageView+WebCache.h"
 #import "MJRefresh.h"
 #import "BaseEngine.h"
@@ -166,6 +166,8 @@ typedef enum : NSUInteger {
 #define Task_video                      9
 #define Task_yaoyiyao                   10
 #define Task_apprenitceByPengyouquan    11
+#define Task_boxShare                   12
+#define Task_shiwanGame                 13
 #define Task_Login                      100   //自定义
 #define Task_ShouTu                     101   //自定义
 #define Task_FirstShouTu                102   //自定义

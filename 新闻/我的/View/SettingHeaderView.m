@@ -180,7 +180,7 @@
     }
     
     if ([self.nameL.text isEqualToString:@"立即登录"]) {
-        [MBProgressHUD showError:@"当前未登录账号"];
+        [MyMBProgressHUD showMessage:@"当前未登录账号"];
     }else{
         UIAlertView *alert = [[UIAlertView alloc]initWithTitle:@"提示" message:@"确定要退出账号吗" delegate:self cancelButtonTitle:@"取消" otherButtonTitles:@"确定", nil];
         [alert show];

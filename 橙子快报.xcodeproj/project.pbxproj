@@ -149,6 +149,9 @@
 		792940411FFE035000C3ACE6 /* reply_Cell.m in Sources */ = {isa = PBXBuildFile; fileRef = 792940401FFE035000C3ACE6 /* reply_Cell.m */; };
 		792940451FFE1EE600C3ACE6 /* ShareSetting_view.m in Sources */ = {isa = PBXBuildFile; fileRef = 792940441FFE1EE600C3ACE6 /* ShareSetting_view.m */; };
 		792B00D420173F9E00631B30 /* OnlyTitel_CollectionViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 792B00D320173F9E00631B30 /* OnlyTitel_CollectionViewCell.m */; };
+		79342D7820B7DCC200475882 /* shareIncome1.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 79342D7620B7DCC100475882 /* shareIncome1.jpg */; };
+		79342D7920B7DCC200475882 /* shareIncome2.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 79342D7720B7DCC100475882 /* shareIncome2.jpg */; };
+		79342D7C20B7E7B600475882 /* SaiIncome_createImageVew.m in Sources */ = {isa = PBXBuildFile; fileRef = 79342D7B20B7E7B600475882 /* SaiIncome_createImageVew.m */; };
 		79355A7820A41A8200254B5D /* DeviveHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = 79355A7720A41A8200254B5D /* DeviveHelper.m */; };
 		793FDCC7208D8A4E00F3DA95 /* Mine_zhifu_model.m in Sources */ = {isa = PBXBuildFile; fileRef = 793FDCC6208D8A4E00F3DA95 /* Mine_zhifu_model.m */; };
 		7940A8C4209025AA00F68374 /* Mine_choujiang_ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 7940A8C3209025AA00F68374 /* Mine_choujiang_ViewController.m */; };
@@ -190,7 +193,6 @@
 		7941F320207B36CE00B36D0F /* NSLayoutConstraint+MASDebugAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 7941F26B207B36CE00B36D0F /* NSLayoutConstraint+MASDebugAdditions.m */; };
 		7941F321207B36CE00B36D0F /* View+MASAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 7941F26D207B36CE00B36D0F /* View+MASAdditions.m */; };
 		7941F322207B36CE00B36D0F /* ViewController+MASAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 7941F270207B36CE00B36D0F /* ViewController+MASAdditions.m */; };
-		7941F323207B36CE00B36D0F /* MBProgressHUD+Extion.m in Sources */ = {isa = PBXBuildFile; fileRef = 7941F273207B36CE00B36D0F /* MBProgressHUD+Extion.m */; };
 		7941F324207B36CE00B36D0F /* MBProgressHUD.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 7941F274207B36CE00B36D0F /* MBProgressHUD.bundle */; };
 		7941F325207B36CE00B36D0F /* MBProgressHUD.m in Sources */ = {isa = PBXBuildFile; fileRef = 7941F276207B36CE00B36D0F /* MBProgressHUD.m */; };
 		7941F326207B36CE00B36D0F /* MJArgument.m in Sources */ = {isa = PBXBuildFile; fileRef = 7941F279207B36CE00B36D0F /* MJArgument.m */; };
@@ -767,6 +769,11 @@
 		792940441FFE1EE600C3ACE6 /* ShareSetting_view.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ShareSetting_view.m; sourceTree = "<group>"; };
 		792B00D220173F9E00631B30 /* OnlyTitel_CollectionViewCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = OnlyTitel_CollectionViewCell.h; sourceTree = "<group>"; };
 		792B00D320173F9E00631B30 /* OnlyTitel_CollectionViewCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = OnlyTitel_CollectionViewCell.m; sourceTree = "<group>"; };
+		79342D7620B7DCC100475882 /* shareIncome1.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = shareIncome1.jpg; sourceTree = "<group>"; };
+		79342D7720B7DCC100475882 /* shareIncome2.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = shareIncome2.jpg; sourceTree = "<group>"; };
+		79342D7A20B7E7B600475882 /* SaiIncome_createImageVew.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SaiIncome_createImageVew.h; sourceTree = "<group>"; };
+		79342D7B20B7E7B600475882 /* SaiIncome_createImageVew.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SaiIncome_createImageVew.m; sourceTree = "<group>"; };
+		79342D7D20B7FE3400475882 /* DINCond-Bold.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "DINCond-Bold.otf"; sourceTree = "<group>"; };
 		79355A7620A41A8200254B5D /* DeviveHelper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DeviveHelper.h; sourceTree = "<group>"; };
 		79355A7720A41A8200254B5D /* DeviveHelper.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DeviveHelper.m; sourceTree = "<group>"; };
 		793FDCC5208D8A4E00F3DA95 /* Mine_zhifu_model.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Mine_zhifu_model.h; sourceTree = "<group>"; };
@@ -858,8 +865,6 @@
 		7941F26E207B36CE00B36D0F /* View+MASShorthandAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "View+MASShorthandAdditions.h"; sourceTree = "<group>"; };
 		7941F26F207B36CE00B36D0F /* ViewController+MASAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "ViewController+MASAdditions.h"; sourceTree = "<group>"; };
 		7941F270207B36CE00B36D0F /* ViewController+MASAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "ViewController+MASAdditions.m"; sourceTree = "<group>"; };
-		7941F272207B36CE00B36D0F /* MBProgressHUD+Extion.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "MBProgressHUD+Extion.h"; sourceTree = "<group>"; };
-		7941F273207B36CE00B36D0F /* MBProgressHUD+Extion.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "MBProgressHUD+Extion.m"; sourceTree = "<group>"; };
 		7941F274207B36CE00B36D0F /* MBProgressHUD.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = MBProgressHUD.bundle; sourceTree = "<group>"; };
 		7941F275207B36CE00B36D0F /* MBProgressHUD.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MBProgressHUD.h; sourceTree = "<group>"; };
 		7941F276207B36CE00B36D0F /* MBProgressHUD.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MBProgressHUD.m; sourceTree = "<group>"; };
@@ -1650,6 +1655,7 @@
 				9922B9561D8029D300E3E236 /* CustomTools */,
 				9922B96C1D8030E700E3E236 /* Supports */,
 				1945F0991BAFDD0200A38747 /* Assets.xcassets */,
+				79342D7D20B7FE3400475882 /* DINCond-Bold.otf */,
 				79EFCAE01FFB754300608EE7 /* Roboto-Regular.ttf */,
 				79F243C520037707004ACE87 /* SourceHanSansCN-Bold.otf */,
 				79EFCADE1FFB372900608EE7 /* SourceHanSansCN-Regular.ttf */,
@@ -2392,8 +2398,6 @@
 		7941F271207B36CE00B36D0F /* MBProgressHUD */ = {
 			isa = PBXGroup;
 			children = (
-				7941F272207B36CE00B36D0F /* MBProgressHUD+Extion.h */,
-				7941F273207B36CE00B36D0F /* MBProgressHUD+Extion.m */,
 				7941F274207B36CE00B36D0F /* MBProgressHUD.bundle */,
 				7941F275207B36CE00B36D0F /* MBProgressHUD.h */,
 				7941F276207B36CE00B36D0F /* MBProgressHUD.m */,
@@ -2652,6 +2656,8 @@
 				7941F372207B36E300B36D0F /* SaiIncome_view.m */,
 				7941F373207B36E300B36D0F /* TaskCellHeaderTitleView.h */,
 				7941F374207B36E300B36D0F /* TaskCellHeaderTitleView.m */,
+				79342D7A20B7E7B600475882 /* SaiIncome_createImageVew.h */,
+				79342D7B20B7E7B600475882 /* SaiIncome_createImageVew.m */,
 			);
 			path = view;
 			sourceTree = "<group>";
@@ -2659,6 +2665,8 @@
 		7941F375207B36E300B36D0F /* viewController */ = {
 			isa = PBXGroup;
 			children = (
+				79342D7620B7DCC100475882 /* shareIncome1.jpg */,
+				79342D7720B7DCC100475882 /* shareIncome2.jpg */,
 				7940A8C12090256200F68374 /* 抽奖 */,
 				7941F376207B36E300B36D0F /* Task_BaiShi_ViewController.h */,
 				7941F377207B36E300B36D0F /* Task_BaiShi_ViewController.m */,
@@ -3667,10 +3675,12 @@
 				19C33E451BB109FB0059238A /* PhotoCell.xib in Resources */,
 				7997C5D520AE826700DC6AC2 /* invite_banner.png in Resources */,
 				796CDDAF202AE44900D40650 /* UMSocialSDKResources.bundle in Resources */,
+				79342D7920B7DCC200475882 /* shareIncome2.jpg in Resources */,
 				19918FDF1CDDEF7500A89620 /* 开始录音02录音@2x.png in Resources */,
 				7941F3B7207B378300B36D0F /* Info.plist in Resources */,
 				1945F09A1BAFDD0200A38747 /* Assets.xcassets in Resources */,
 				19918FE11CDDEF7500A89620 /* 开始录音04录音@2x.png in Resources */,
+				79342D7820B7DCC200475882 /* shareIncome1.jpg in Resources */,
 				19918FDC1CDDEF7500A89620 /* 兴趣删除2@.png in Resources */,
 				796CDDAD202AE44900D40650 /* UMSocialSDKPromptResources.bundle in Resources */,
 				7941F312207B36CE00B36D0F /* ShareSDK.bundle in Resources */,
@@ -3949,7 +3959,6 @@
 				7941F333207B36CE00B36D0F /* MJRefreshComponent.m in Sources */,
 				799A3B752092CB9600E3B5C2 /* NSAttributedString+YYText.m in Sources */,
 				79FB98A7201053A000A67A24 /* DateReload_view.m in Sources */,
-				7941F323207B36CE00B36D0F /* MBProgressHUD+Extion.m in Sources */,
 				799A3B782092CB9600E3B5C2 /* YYTextArchiver.m in Sources */,
 				9921EC871D82AF79009D422E /* StartManager.m in Sources */,
 				799A3B942092CB9600E3B5C2 /* NSDictionary+YYAdd.m in Sources */,
@@ -4090,6 +4099,7 @@
 				7941F320207B36CE00B36D0F /* NSLayoutConstraint+MASDebugAdditions.m in Sources */,
 				792770602063512600726192 /* Mine_apprenceIncome_TableViewCell.m in Sources */,
 				799A3B5D2092CB9600E3B5C2 /* _YYWebImageSetter.m in Sources */,
+				79342D7C20B7E7B600475882 /* SaiIncome_createImageVew.m in Sources */,
 				790EF56320073182001E6ED6 /* Mine_message_TableViewController.m in Sources */,
 				198AF7BA1C8421AB00D941F4 /* SettingHeaderView.m in Sources */,
 				198E40951D71B0EE00ABDD5E /* GYHCircleLoadingView.m in Sources */,

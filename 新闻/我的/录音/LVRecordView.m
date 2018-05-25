@@ -147,7 +147,7 @@
 
     if (currentTime < 2) {
         self.imageView.image = [UIImage imageNamed:@"开始录音00录音"];
-        [MBProgressHUD showError:@"说话时间太短,请长按录音"];
+//        [MBProgressHUD showError:@"说话时间太短,请长按录音"];
         dispatch_async(dispatch_get_global_queue(0, 0), ^{
             
             [self.recordTool stopRecording];
@@ -183,7 +183,7 @@
         [self.recordTool destructionRecordingFile];
         
         dispatch_async(dispatch_get_main_queue(), ^{
-            [MBProgressHUD showError:@"已取消录音"];
+//            [MBProgressHUD showError:@"已取消录音"];
         });
     });
 }

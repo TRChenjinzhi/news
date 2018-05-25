@@ -60,8 +60,8 @@ static id _instance;
         [block_self setupCityWithLatitude:currentLocation.coordinate.latitude longitude:currentLocation.coordinate.longitude];
         
         if(status == 1){
-            [MBProgressHUD hideHUD];
-            [MBProgressHUD showError:@"请求超时"];
+//            [MBProgressHUD hideHUD];
+//            [MBProgressHUD showError:@"请求超时"];
             return;
         }
     }];

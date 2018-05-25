@@ -167,8 +167,7 @@
 
 -(void)layoutControllerSubViews:(NSNotification*)noti{
     NSLog(@"layoutControllerSubViews");
-    NSString* str = [NSString stringWithFormat:@"height:%f",StaTusHight];
-    [MBProgressHUD showSuccess:str];
+//    NSString* str = [NSString stringWithFormat:@"height:%f",StaTusHight];
 //    CGRect tableview_frame = self.tableView.frame;
     CGRect tabbarview_frame = m_tabbar_view.frame;
     if(STATUS_BAR_BIGGER_THAN_20){
@@ -793,7 +792,6 @@
 //    MyActivity* myActivity = [[MyActivity alloc] init];
     UIActivityViewController *activity = [[UIActivityViewController alloc] initWithActivityItems:activityItems applicationActivities:nil];
     activity.excludedActivityTypes = @[];
-    
     // incorrect usage
     // [self.navigationController pushViewController:activity animated:YES];
     
@@ -1099,7 +1097,7 @@
     if([@"举报" isEqualToString:name]){
         NSLog(@"举报");
         if(![Login_info share].isLogined){
-            [MBProgressHUD showMessage:@"未登录！"];
+            [MyMBProgressHUD showMessage:@"未登录！"];
             return;
         }
         [self ReportToMe];
@@ -1121,7 +1119,7 @@
     //收回所有窗口
     [[NSNotificationCenter defaultCenter] postNotificationName:HideAllDialog object:nil];
     
-    [MBProgressHUD showSuccess:@"复制成功!"];
+    [MyMBProgressHUD showMessage:@"复制成功!"];
     UIPasteboard *pasteboard = [UIPasteboard generalPasteboard];
     pasteboard.string = [NSString stringWithFormat:@"%@ %@&source=link",self.CJZ_model.title,self.CJZ_model.url];
 }
@@ -1151,13 +1149,13 @@
         dispatch_async(dispatch_get_main_queue(), ^{
             if(error){
                 NSLog(@"举报失败");
-                [MBProgressHUD showSuccess:@"举报失败!"];
+                [MyMBProgressHUD showMessage:@"举报失败!"];
             }
             NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:data options:(NSJSONReadingMutableLeaves) error:nil];
             NSNumber* code = dict[@"code"];
             if([code integerValue] == 200){
                 NSLog(@"举报提交成功");
-                [MBProgressHUD showSuccess:@"举报成功!"];
+                [MyMBProgressHUD showMessage:@"举报成功!"];
             }else{
                 
             }
@@ -1233,6 +1231,9 @@
     //任务类型  1:提供开宝箱  2：阅读文章 3：分享文章  4:优质评论 5：晒收入 6：参与抽奖任务 7,查看常见问题 8：微信绑定奖励
 //    NSNumber* number = noti.object;
 //    NSInteger type = [number integerValue];
+    if([[TaskCountHelper share] TaskIsOverByType:type]){//当任务次数 已经完成 就不在提交
+        return;
+    }
     
     [[TaskCountHelper share] DayDayTask_addCountByType:type];//增加完成任务次数
     
@@ -1364,6 +1365,7 @@
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":%@",@"news_id",self.CJZ_model.ID]];
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":%ld",@"page",m_page]];
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":%d",@"size",10]];
+    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":%ld",@"client_type",IOS]];//设备类型 1:android 2；ios
     argument = [argument stringByAppendingString:@"}"];
     argument = [MyEntrypt MakeEntryption:argument];
     args = [args stringByAppendingString:[NSString stringWithFormat:@"%@",argument]];
@@ -1477,6 +1479,7 @@
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@"\"%@\":\"%@\"",@"user_id",[[Login_info share] GetUserInfo].user_id]];
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%@\"",@"news_id",self.CJZ_model.ID]];
     argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":\"%ld\"",@"action",action]];//1：点赞    2：取消点赞
+    argument = [argument stringByAppendingString:[NSString stringWithFormat:@",\"%@\":%ld",@"client_type",IOS]];//设备类型 1:android 2；ios
     argument = [argument stringByAppendingString:@"}"];
     argument = [MyEntrypt MakeEntryption:argument];
     args = [args stringByAppendingString:[NSString stringWithFormat:@"%@",argument]];
@@ -1492,7 +1495,7 @@
                 NSLog(@"CollectedAction网络获取失败");
                 //发送失败消息
 //                [block_self.tableView.footer endRefreshing];
-                [MBProgressHUD showError:@"网络错误"];
+                [MyMBProgressHUD showMessage:@"网络错误"];
                 return ;
             }
             //提示信息
