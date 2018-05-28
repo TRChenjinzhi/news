@@ -165,31 +165,31 @@
     [backgroundView addSubview:gold_view];
     
     //广告层
-    UIImageView* guanggao_img = [[UIImageView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(gold_view.frame)+10, SCREEN_WIDTH, 70)];
-    [guanggao_img setImage:[UIImage imageNamed:@"invite_banner"]];
-
-    guanggao_img.userInteractionEnabled = YES;
-    
-    UIView* guanggao_clickView = [[UIView alloc]initWithFrame:CGRectMake(0, 0, guanggao_img.frame.size.width, guanggao_img.frame.size.height)];
-    guanggao_clickView.userInteractionEnabled = YES;
-    [guanggao_clickView addGestureRecognizer:self.m_tap_guanggao];
-    [guanggao_img addSubview:guanggao_clickView];
-    _m_guanggao_img = guanggao_img;
-    _m_guanggao_clickView = guanggao_clickView;
-    
-    [backgroundView addSubview:guanggao_img];
+//    UIImageView* guanggao_img = [[UIImageView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(gold_view.frame)+10, SCREEN_WIDTH, 70)];
+//    [guanggao_img setImage:[UIImage imageNamed:@"invite_banner"]];
+//
+//    guanggao_img.userInteractionEnabled = YES;
+//
+//    UIView* guanggao_clickView = [[UIView alloc]initWithFrame:CGRectMake(0, 0, guanggao_img.frame.size.width, guanggao_img.frame.size.height)];
+//    guanggao_clickView.userInteractionEnabled = YES;
+//    [guanggao_clickView addGestureRecognizer:self.m_tap_guanggao];
+//    [guanggao_img addSubview:guanggao_clickView];
+//    _m_guanggao_img = guanggao_img;
+//    _m_guanggao_clickView = guanggao_clickView;
+//
+//    [backgroundView addSubview:guanggao_img];
     
     headerBackView = backgroundView;
     [self addSubview:headerBackView];
 }
 
 -(void)bannerView_bengain{
-    [_m_guanggao_img removeFromSuperview];
+//    [_m_guanggao_img removeFromSuperview];
     NSMutableArray* tmp = [NSMutableArray array];
     for (Banner_model* item in [Banner_model share].array) {
         [tmp addObject:[NSURL URLWithString:item.ad_url]];
     }
-    self.bannerView = [[BannerView alloc] initWithFrame:_m_guanggao_img.frame ImageUrls:tmp IntervalTime:3.0];
+    self.bannerView = [[BannerView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(self.goldView.frame)+10, SCREEN_WIDTH, 70) ImageUrls:tmp IntervalTime:3.0];
     //    self.bannerView.delegate = self;
     [headerBackView addSubview:self.bannerView];
 }

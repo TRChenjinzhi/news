@@ -318,7 +318,7 @@
                 if(item.type == Task_blindWechat && [model.title isEqualToString:NewUserTask_blindWechat]){
                     model.User_model = item;
                     
-                    if(item.status == 1 || item.max <= item.count){//0：未完成   1：完成
+                    if(item.max <= item.count){//0：未完成   1：完成
                         model.isDone = YES;
                     }
                     break;
@@ -326,7 +326,7 @@
                 if(item.type == Task_readQuestion && [model.title isEqualToString:NewUserTask_readQuestion]){
                     model.User_model = item;
                     
-                    if(item.status == 1 || item.max <= item.count){//0：未完成   1：完成
+                    if(item.max <= item.count){//0：未完成   1：完成
                         model.isDone = YES;
                     }
                     break;
@@ -334,7 +334,7 @@
                 if(item.type == Task_reading && [model.title isEqualToString:NewUserTask_readNews]){
                     model.User_model = item;
                     
-                    if(item.status == 1 || item.max <= item.count){//0：未完成   1：完成
+                    if(item.max <= item.count){//0：未完成   1：完成
                         model.isDone = YES;
                     }
                     break;
@@ -342,7 +342,7 @@
                 if(item.type == Task_video && [model.title isEqualToString:NewUserTask_readVideo]){
                     model.User_model = item;
                     
-                    if(item.status == 1 || item.max <= item.count){//0：未完成   1：完成
+                    if(item.max <= item.count){//0：未完成   1：完成
                         model.isDone = YES;
                     }
                     break;
@@ -350,13 +350,15 @@
                 if(item.type == Task_apprenitceByPengyouquan && [model.title isEqualToString:NewUserTask_shareByPengyouquan]){
                     model.User_model = item;
                     
-                    if(item.status == 1 || item.max <= item.count){//0：未完成   1：完成
+                    if(item.max <= item.count){//0：未完成   1：完成
                         model.isDone = YES;
                     }
                     break;
                 }
             }
         }
+        
+        [self delTask_array:userTitleArray_model];
         
         NewUserTabelViewControl.array_model = userTitleArray_model;
         
@@ -369,6 +371,26 @@
             [MyMBProgressHUD ShowMessage:dic[@"msg"] ToView:self.view AndTime:1.0f];
         }
     }];
+}
+
+//当没有返回该数据类型就删除该任务
+-(void)delTask_array:(NSMutableArray*)array{
+    for (TaskCell_model* model in userTitleArray_model.reverseObjectEnumerator) {
+        if([model.title isEqualToString:NewUserTask_blindWechat] ||
+           [model.title isEqualToString:NewUserTask_readNews]){
+            if(model.User_model == nil){
+                [self deleTask:model];
+            }
+        }
+    }
+}
+
+-(void)deleTask:(TaskCell_model*)model{
+    [userTitleArray_model removeObject:model];
+    [m_newuserVCL_view mas_updateConstraints:^(MASConstraintMaker *make) {
+        make.height.mas_offset(kWidth(48)+kWidth(66)*userTitleArray_model.count);
+    }];
+    [self.view layoutIfNeeded];
 }
 
 -(void)sendMoneyToServer{

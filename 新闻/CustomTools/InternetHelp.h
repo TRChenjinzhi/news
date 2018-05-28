@@ -13,7 +13,8 @@
 
 +(void)replyToServer_test:(NSString*)user_id andNewsId:(NSString*)newsId AndComment:(NSString*)comment Sucess:(void (^)(NSDictionary *dic))success Fail:(void (^)(NSDictionary *dic))fail;
 
-+(void)getBanner_Sucess:(void(^)(NSArray* dic))success Fail:(void(^)(NSDictionary* dic))fail;
++(void)getBanner_Sucess:(void (^)(NSDictionary *))success Fail:(void (^)(NSDictionary *))fail;
++(void)isShowTask_Sucess:(void (^)(NSDictionary *dic))success Fail:(void (^)(NSDictionary *dic))fail;
 +(void)replyToOterReplyByUserId:(NSString*)user_id andToUserId:(NSString*)ToUserId andNewsId:(NSString*)newsId AndPid:(NSInteger)Pid AndComment:(NSString*)comment Sucess:(void (^)(NSDictionary *dic))success Fail:(void (^)(NSDictionary *dic))fail;
 +(void)replyAllByUserId:(NSString*)user_id AndNewsId:(NSString*)newsId AndPid:(NSInteger)pid AndPage:(NSInteger)page AndSize:(NSInteger)size Sucess:(void (^)(NSDictionary *dic))success Fail:(void (^)(NSDictionary *dic))fail;
 +(void)DianzanById:(NSString*)comment_id andUser_id:(NSString*)user_id AndActionType:(NSInteger)type;

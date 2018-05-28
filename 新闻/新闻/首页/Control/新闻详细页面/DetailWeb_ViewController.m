@@ -276,6 +276,7 @@
     
     BadgeButton* messge_button = [[BadgeButton alloc] init];
     messge_button.frame = CGRectMake(CGRectGetMinX(shoucang_button.frame)-22-30, 9, 30, 30);
+    messge_button.point = CGPointMake(24, 30-24);
     UIImage* img = [UIImage imageNamed:@"ic_comment"];
 //    UIEdgeInsets insets = UIEdgeInsetsMake(-10, 0, -10, 0);
 //    img = [img resizableImageWithCapInsets:insets resizingMode:UIImageResizingModeStretch];

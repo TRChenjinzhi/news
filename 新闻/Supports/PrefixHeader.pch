@@ -87,6 +87,10 @@
 
 //banner
 #define Banner_shoutu                    @"邀请收徒"
+#define Banner_off                       202
+
+//任务界面显示开关
+#define TaskView_off                202
 
 //1.微信好友 2.朋友圈 3.qq好友 4.qq空间 5.短信
 #define WeChat_haoyou               @"微信好友"

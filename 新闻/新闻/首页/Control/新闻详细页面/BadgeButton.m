@@ -84,11 +84,11 @@
     _badgeLabel.frame = CGRectMake(0, 0, labelWidth, labelHight);
     _badgeLabel.layer.cornerRadius = labelHight/2;
     
-    if(self.imageView.image){
+    if(self.point.x <= 0){
         CGPoint center = CGPointMake(CGRectGetMaxX(self.imageView.frame), self.imageView.frame.origin.y);
         _badgeLabel.center = center;
     }else{
-        CGPoint center = CGPointMake(self.bounds.size.width, self.bounds.origin.y);
+        CGPoint center = CGPointMake(self.point.x, self.point.y);
         _badgeLabel.center = center;
     }
     

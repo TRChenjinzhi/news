@@ -23,7 +23,7 @@
     [hud hideAnimated:YES afterDelay:1.0f];
 }
 +(void)ShowMessage:(NSString *)message ToView:(UIView *)view AndTime:(unsigned int)time{
-    MBProgressHUD *hud = [MBProgressHUD showHUDAddedTo:view animated:YES];
+    MBProgressHUD *hud = [MBProgressHUD showHUDAddedTo:[UIApplication sharedApplication].keyWindow animated:YES];
     
     // Set the text mode to show only text.
     hud.mode = MBProgressHUDModeText;
@@ -35,7 +35,7 @@
 }
 
 +(MBProgressHUD*)ShowWaittingByMessage:(NSString *)message ToView:(UIView *)view{
-    MBProgressHUD *hud = [MBProgressHUD showHUDAddedTo:view animated:YES];
+    MBProgressHUD *hud = [MBProgressHUD showHUDAddedTo:[UIApplication sharedApplication].keyWindow animated:YES];
     
     // Set the label text.
     hud.label.text = NSLocalizedString(message, message);

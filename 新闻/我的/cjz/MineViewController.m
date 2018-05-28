@@ -67,6 +67,7 @@
     UIView*                 m_deviceInfo_view;
     
     BOOL                    m_banner_isLoaded;
+    UIView*                 m_tabelview_view;
 }
 
 -(NSMutableArray *)array_model{
@@ -160,7 +161,7 @@
 }
 
 -(void)initHeaderView{
-    Header_view* headerView = [[Header_view alloc] initWithFrame:CGRectMake(0, 0, SCREEN_WIDTH, 314)];
+    Header_view* headerView = [[Header_view alloc] initWithFrame:CGRectMake(0, 0, SCREEN_WIDTH, 314-70-10)];
 //    [self GetMoney];
     headerView.number_gold = userInfo_model.gold;
     headerView.number_package = userInfo_model.package;
@@ -196,19 +197,35 @@
 }
 
 -(void)loadBanner{
-    [InternetHelp getBanner_Sucess:^(NSArray *array) {
+    [InternetHelp getBanner_Sucess:^(NSDictionary *dic) {
+        NSArray* array = dic[@"list"];
         [Banner_model arrayToBannerArray:array];
         [m_headerView bannerView_bengain];
         m_headerView.bannerView.delegate = self;
         m_banner_isLoaded = YES;
+        [self UILayout_refresh];
     } Fail:^(NSDictionary *dic) {
-        
+        if(dic != nil){
+            NSNumber* code = dic[@"code"];
+            if([code integerValue] == Banner_off){
+                m_banner_isLoaded = YES;
+            }
+        }
     }];
+}
+
+//添加bannner 重新布局
+-(void)UILayout_refresh{
+    m_headerView.frame      = CGRectMake(0, 0, SCREEN_WIDTH, 314);
+    m_tabelview_view.frame  = CGRectMake(0, CGRectGetMaxY(self.headerView.frame)-StaTusHight, SCREEN_WIDTH, 60*self.array_model.count);
+    
+    [self.scrollView setContentSize:CGSizeMake(SCREEN_WIDTH, m_headerView.frame.size.height+60*self.array_model.count)];
 }
 
 -(void)initTableView{
     [self GetData];
     UIView* view = [[UIView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(self.headerView.frame)-StaTusHight, SCREEN_WIDTH, 60*self.array_model.count)];
+    m_tabelview_view = view;
     
     Mine_TableViewController* tableViewConrl = [[Mine_TableViewController alloc] init];
     tableViewConrl.model = self.array_model;

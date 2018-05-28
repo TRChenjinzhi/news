@@ -61,7 +61,7 @@
     //5.最后一步，执行任务，(resume也是继续执行)。
     [sessionDataTask resume];
 }
-+(void)getBanner_Sucess:(void (^)(NSArray *))success Fail:(void (^)(NSDictionary *))fail{
++(void)getBanner_Sucess:(void (^)(NSDictionary *))success Fail:(void (^)(NSDictionary *))fail{
     // 1.创建一个网络路径
     NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://younews.3gshow.cn/interface/banner"]];
     // 2.创建一个网络请求，分别设置请求方法、请求参数
@@ -73,8 +73,8 @@
     [dic setValue:[NSNumber numberWithInteger:IOS] forKey:@"client_type"];
     NSData *jsonData = [NSJSONSerialization dataWithJSONObject:dic options:0 error:NULL];
     NSString* str_tmp = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-    argument = [MyEntrypt MakeEntryption:str_tmp];
-    args = [args stringByAppendingString:[NSString stringWithFormat:@"%@",argument]];
+//    argument = [MyEntrypt MakeEntryption:str_tmp];
+    args = [args stringByAppendingString:[NSString stringWithFormat:@"%@",str_tmp]];
     request.HTTPBody = [args dataUsingEncoding:NSUTF8StringEncoding];
     // 3.获得会话对象
     NSURLSession *session = [NSURLSession sharedSession];
@@ -91,18 +91,14 @@
             }
             
             NSLog(@"getBanner从服务器获取到数据");
-            NSString* str_json = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
-            str_json = [@"{\"result\":" stringByAppendingString:str_json];
-            str_json = [str_json stringByAppendingString:@"}"];
-            NSData* xmlData = [str_json dataUsingEncoding:NSUTF8StringEncoding];
-            NSDictionary* dict = [NSJSONSerialization JSONObjectWithData:xmlData options:0 error:nil];
-            if([dict valueForKey:@"result"]){
-                NSArray *arr2 = dict[@"result"];
-                if(arr2.count > 0){
-                    success(arr2);
-                }
+            NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:data options:(NSJSONReadingMutableLeaves) error:nil];
+            NSNumber* code = dict[@"code"];
+            if([code integerValue] == 200){
+                success(dict);
             }
-            
+            else{
+                fail(dict);
+            }
             
         });
         
@@ -110,6 +106,43 @@
     //5.最后一步，执行任务，(resume也是继续执行)。
     [sessionDataTask resume];
 }
+
++(void)isShowTask_Sucess:(void (^)(NSDictionary *dic))success Fail:(void (^)(NSDictionary *dic))fail{
+    // 1.创建一个网络路径
+    NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://younews.3gshow.cn/api/conf"]];
+    // 2.创建一个网络请求，分别设置请求方法、请求参数
+    NSMutableURLRequest *request =[NSMutableURLRequest requestWithURL:url];
+    // 3.获得会话对象
+    NSURLSession *session = [NSURLSession sharedSession];
+    // 4.根据会话对象，创建一个Task任务
+    //    IMP_BLOCK_SELF(Mine_login_ViewController);
+    NSURLSessionDataTask *sessionDataTask = [session dataTaskWithRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            
+            if(error || data == nil){
+                NSLog(@"getBanner网络获取失败");
+                fail(nil);
+                return ;
+            }
+            
+            NSLog(@"getBanner从服务器获取到数据");
+            NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:data options:(NSJSONReadingMutableLeaves) error:nil];
+            NSNumber* code = dict[@"code"];
+            if([code integerValue] == 200){
+                success(dict);
+            }
+            else{
+                fail(dict);
+            }
+            
+        });
+        
+    }];
+    //5.最后一步，执行任务，(resume也是继续执行)。
+    [sessionDataTask resume];
+}
+
 +(void)DianzanById:(NSString*)comment_id andUser_id:(NSString*)user_id AndActionType:(NSInteger)type{
 //    NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://younews.3gshow.cn/api/thumbs"]];
     NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://dev.3gshow.cn/api/thumbs"]];

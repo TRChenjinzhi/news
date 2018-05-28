@@ -1199,6 +1199,8 @@
                 }
             }
             
+            [self delTask_array:DayDayTaskTitleArray_model];
+            
             //如果首次收徒已经完成。就隐藏此任务
             if([[Login_info share].userInfo_model.appren_count integerValue] > 0){
                 for (TaskCell_model* model in DayDayTaskTitleArray_model) {
@@ -1218,6 +1220,20 @@
     [sessionDataTask resume];
 }
 
+//当没有返回该数据类型就删除该任务
+-(void)delTask_array:(NSMutableArray*)array{
+    for (TaskCell_model* model in DayDayTaskTitleArray_model.reverseObjectEnumerator) {
+        if([model.title isEqualToString:DayDayTask_readNews] ||
+           [model.title isEqualToString:DayDayTask_shareNews] ||
+           [model.title isEqualToString:DayDayTask_readVideo] ||
+           [model.title isEqualToString:DayDayTask_showIncome] ||
+           [model.title isEqualToString:DayDayTask_choujiang]){
+            if(model.DayDay_model == nil){
+                [self deleTask:model];
+            }
+        }
+    }
+}
 
 -(void)deleTask:(TaskCell_model*)model{
     [DayDayTaskTitleArray_model removeObject:model];

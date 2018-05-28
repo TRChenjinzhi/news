@@ -259,7 +259,13 @@
             }
             NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:data options:(NSJSONReadingMutableLeaves) error:nil];
             NSArray* array_news = dict[@"list"];
-            NSArray *dataarray = [CJZdataModel jsonArrayToModelArray:array_news];
+            NSMutableArray *dataarray = [CJZdataModel jsonArrayToModelArray:array_news];
+            for (CJZdataModel* model in dataarray) {
+                if([model.ID isEqualToString:self.model.ID]){
+                    [dataarray removeObject:model];
+                    break;
+                }
+            }
             m_ReadingWithOther_model = dataarray;
             [block_self setTableView];
         });

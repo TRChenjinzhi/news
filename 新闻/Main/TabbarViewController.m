@@ -48,7 +48,8 @@
     [super viewDidLoad];
     [self initTabbar];
     
-    [self initControl];
+    //    [self initControl];
+    [self isShowTaskView];
     
     [self autoLogin];//用来登陆奖励
     
@@ -239,7 +240,7 @@
     [m_redPackage_view removeFromSuperview];
 }
 
-- (void)initControl
+- (void)initControl:(BOOL)isHideTaskVC
 {
     SCNavTabBarController  *new = [[SCNavTabBarController alloc]init];
     new.naviItems = (NSMutableArray*)self.array_model;
@@ -251,9 +252,11 @@
     [self setupChildViewController:vc title:@"视频" imageName:@"ic_menu_video_default" selectedImage:@"ic_menu_video_pressed"];
     
 //    PhotoViewController *photo = [[PhotoViewController alloc]init];
-    TaskViewController* task = [[TaskViewController alloc] init];
-    [self setupChildViewController:task title:@"任务" imageName:@"ic_menu_task_default" selectedImage:@"ic_menu_task_pressed"];
-
+    if(isHideTaskVC){
+        TaskViewController* task = [[TaskViewController alloc] init];
+        [self setupChildViewController:task title:@"任务" imageName:@"ic_menu_task_default" selectedImage:@"ic_menu_task_pressed"];
+    }
+    
 //    MeViewController *me = [[MeViewController alloc]init];
     MineViewController* me = [[MineViewController alloc] init];
     [self setupChildViewController:me title:@"我的" imageName:@"ic_menu_home" selectedImage:@"ic_menu_home_pressed"];
@@ -283,6 +286,22 @@
     item.image = [UIImage imageNamed:imageName];
     item.selectedImage = [[UIImage imageNamed:selectedImage]imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
     [self.tabbar addTabBarButtonWithItem:item];
+}
+
+//是否显示任务界面
+-(void)isShowTaskView{
+    IMP_BLOCK_SELF(TabbarViewController)
+    [InternetHelp isShowTask_Sucess:^(NSDictionary *dic) {
+        [block_self initControl:YES];
+    } Fail:^(NSDictionary *dic) {
+        if(dic != nil){
+            NSNumber* code = dic[@"code"];
+            if([code integerValue] == TaskView_off){
+                
+            }
+        }
+        [block_self initControl:NO];
+    }];
 }
 
 -(void)tabBar:(UITabBar *)tabBar didSelectItem:(UITabBarItem *)item{
